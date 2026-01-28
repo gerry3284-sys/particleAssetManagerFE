@@ -1,1 +1,20 @@
-<p>sidebar works!</p>
+<div class="d-flex flex-column bg-light vh-100 p-3 border border-warning justify-content-between">
+
+  <div>
+    <h5>SidebarComponent</h5>
+    <a routerLink="/assets" routerLinkActive="active" class="btn btn-outline-primary mb-2 text-start">
+      Lista Asset
+    </a>
+    <a routerLink="/users" routerLinkActive="active" class="btn btn-outline-secondary text-start">
+      Utenti
+    </a>
+  </div>
+
+  <!-- Pulsante Logout -->
+  <div>
+    <a routerLink="/login" class="btn btn-outline-danger w-100">
+      Logout
+    </a>
+  </div>
+
+</div>

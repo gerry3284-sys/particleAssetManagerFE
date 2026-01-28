@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  standalone: true,      // importantissimo!
   imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  template: `<router-outlet></router-outlet>` // qui girano tutte le rotte
 })
-export class App {
-  protected readonly title = signal('particleAssetManagerFE');
-}
+export class App {}
