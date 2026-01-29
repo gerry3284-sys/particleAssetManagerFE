@@ -1,0 +1,56 @@
+.pagination {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;  /* ← Rimosso margine, gestito dal parent */
+}
+
+.pagination-btn {
+  min-width: 28px;  /* ← Ridotto da 40px a 28px */
+  height: 28px;     /* ← Ridotto da 40px a 28px */
+  padding: 0;
+  border: 1px solid #E5E7EB;  /* ← Match con il tuo design */
+  background-color: white;
+  color: #6B7280;  /* ← Match con il tuo design */
+  font-size: 12px;  /* ← Ridotto da 14px a 12px */
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;  /* ← Aumentato da 4px a 6px per match */
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn.active {
+  background-color: #E56A3D;  /* ← Cambiato da #ff6b35 al tuo arancione */
+  color: white;
+  border-color: #E56A3D;
+}
+
+.pagination-btn:hover:not(.active):not(:disabled) {
+  background-color: #F9FAFB;  /* ← Match con il tuo design */
+  border-color: #D1D5DB;
+}
+
+.pagination-btn.active:hover {
+  background-color: #D85E33;  /* ← Match con il tuo hover button */
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #fafafa;
+}
+
+.pagination-btn:focus-visible {
+  outline: 2px solid #E56A3D;  /* ← Match con il tuo arancione */
+  outline-offset: 2px;
+}
+
+.pagination-prev,
+.pagination-next {
+  color: #9CA3AF;  /* ← Match con il tuo design */
+  font-weight: 600;
+}

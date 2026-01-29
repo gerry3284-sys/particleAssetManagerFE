@@ -1,8 +1,11 @@
+
 // asset-list.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core'; // ← Aggiungi signal e computed
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
+
 
 interface Asset {
   id: string;
@@ -19,7 +22,7 @@ interface Asset {
 @Component({
   selector: 'app-asset-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './asset-list.html',
   styleUrls: ['./asset-list.css']
 })
@@ -33,8 +36,8 @@ export class AssetListComponent implements OnInit {
     searchName: ''
   };
 
-  // Dati tabella (statici per ora)
-  assets: Asset[] = [
+  // signal 
+  allAssets = signal<Asset[]>([
     {
       id: '1',
       status: 'assigned',
@@ -89,13 +92,34 @@ export class AssetListComponent implements OnInit {
       assignedUser: 'Mario Rossi',
       businessUnit: 'Marketing',
       assignmentDate: '25/05/2024'
-    }
-  ];
+    },
+    
+  ]);
 
-  // Paginazione
-  currentPage = 1;
-  itemsPerPage = 5;
-  totalItems = 100;
+  
+  currentPage = signal(1);
+  
+  
+  itemsPerPage = signal(5);
+
+  // ricalcolo e aggiorno  automaticamente quando allAssets o itemsPerPage cambiano
+  totalPages = computed(() => {
+    return Math.ceil(this.allAssets().length / this.itemsPerPage());
+  });
+
+  // paginatedAssets si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi assets
+  paginatedAssets = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return this.allAssets().slice(start, end);
+  });
+
+  //creazione stringa display range. 
+  displayRange = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
+    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.allAssets().length);
+    return `Mostrando ${start}-${end} di ${this.allAssets().length}`;
+  });
 
   constructor(private router: Router) {}
 
@@ -106,36 +130,31 @@ export class AssetListComponent implements OnInit {
 
   // Naviga al dettaglio asset
   goToAssetDetail(assetId: string): void {
-    this.router.navigate(['/assets', assetId]);
+    // TODO: abilita quando esisterà il componente dettaglio
+    return;
   }
 
   // Naviga alla creazione nuovo asset
   createNewAsset(): void {
-    this.router.navigate(['/assets/new']);
+    // TODO: abilita quando esisterà il componente creazione
+    return;
   }
 
   // Applica filtri
   applyFilters(): void {
     console.log('Filtri applicati:', this.filters);
-    // Qui implementerai la logica di filtro
+    // Implementare logica filtro qui 
   }
 
-  // Cambia pagina
+  //  Aggiorna goToPage per usare signals
   goToPage(page: number): void {
-    this.currentPage = page;
+    this.currentPage.set(page); 
     console.log('Pagina:', page);
-    // Qui caricherai i dati della pagina
-  }
-
-  // Calcola range visualizzato
-  get displayRange(): string {
-    const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-    const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
-    return `${start}-${end}`;
-  }
-
-  // Calcola numero totale pagine
-  get totalPages(): number {
-    return Math.ceil(this.totalItems / this.itemsPerPage);
+    
+    //scroll alla tabella
+    const tableCard = document.querySelector('.table-card');
+    if (tableCard) {
+      tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }

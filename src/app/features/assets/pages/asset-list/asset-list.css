@@ -182,29 +182,18 @@
 	color: #9CA3AF;
 }
 
-.pagination {
-	display: inline-flex;
-	gap: 6px;
+/* 
+    Effetto hover sulle righe
+*/
+
+.asset-row:not(.asset-header):hover {
+	background-color: #F9FAFB;
+	transition: background-color 0.15s ease;
 }
 
-.page-btn {
-	border: 1px solid #E5E7EB;
-	background: #FFFFFF;
-	color: #6B7280;
-	width: 28px;
-	height: 28px;
-	border-radius: 6px;
-	font-size: 12px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.page-btn.active {
-	background: #E56A3D;
-	color: #FFFFFF;
-	border-color: #E56A3D;
-}
+/* 
+   RESPONSIVE 
+*/
 
 @media (max-width: 1200px) {
 	.filters-grid {
@@ -235,5 +224,6 @@
 		flex-direction: column;
 		gap: 10px;
 		align-items: flex-start;
+		
 	}
 }

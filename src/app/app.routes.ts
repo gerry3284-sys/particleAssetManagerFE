@@ -19,6 +19,8 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     children: [
       { path: 'assets', component: AssetListComponent },
+      { path: 'assets/new', redirectTo: 'assets', pathMatch: 'full' },
+      { path: 'assets/:id', redirectTo: 'assets', pathMatch: 'full' },
       { path: 'users', component: UserList },
       { path: '', redirectTo: 'assets', pathMatch: 'full' }
     ]
