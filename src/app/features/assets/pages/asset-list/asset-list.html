@@ -1,3 +1,135 @@
-<div class="border border-purple p-2">
-  <h3>AssetList (lista assets)</h3>
+<div class="asset-page">
+  <div class="page-header d-flex align-items-start justify-content-between gap-3">
+    <div>
+      <h2 class="page-title">Gestione asset</h2>
+      <p class="page-subtitle">Visualizza e gestisci tutti gli asset aziendali.</p>
+    </div>
+    <button class="btn btn-primary btn-new-asset" type="button">
+      <span class="btn-icon">+</span>
+      <span>Nuovo Asset</span>
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="filter-item">
+        <label class="filter-label">Tipologia Asset</label>
+        <select class="form-select filter-control">
+          <option>Tutte le Tipologie</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label class="filter-label">Business Unit</label>
+        <select class="form-select filter-control">
+          <option>Tutte le BU</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label class="filter-label">Stato Asset</label>
+        <select class="form-select filter-control">
+          <option>Tutti gli Stati</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label class="filter-label">Nome Assegnatario</label>
+        <div class="input-with-icon">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+            <path d="M20 20L16.5 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input class="form-control filter-control" placeholder="Cerca per nome..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="asset-table">
+      <div class="asset-row asset-header">
+        <div>Stato</div>
+        <div>Marca</div>
+        <div>Modello</div>
+        <div>Numero seriale</div>
+        <div>Utente assegnato</div>
+        <div>Business Unit</div>
+        <div>Data assegnazione</div>
+      </div>
+
+      <div class="asset-row">
+        <div class="status">
+          <span class="status-dot status-assigned"></span>
+          <span>Assegnato</span>
+        </div>
+        <div>Apple</div>
+        <div>MacBook Pro 14</div>
+        <div>CO2GXXXX1234</div>
+        <div>Mario Rossi</div>
+        <div>Marketing</div>
+        <div>10/01/2023</div>
+      </div>
+
+      <div class="asset-row">
+        <div class="status">
+          <span class="status-dot status-assigned"></span>
+          <span>Assegnato</span>
+        </div>
+        <div>Dell</div>
+        <div>Latitude 7420</div>
+        <div>FG5HXXXX5678</div>
+        <div>Giulia Bianchi</div>
+        <div>Vendite</div>
+        <div>15/02/2023</div>
+      </div>
+
+      <div class="asset-row muted">
+        <div class="status">
+          <span class="status-box"></span>
+          <span>Dismesso</span>
+        </div>
+        <div>Lenovo</div>
+        <div>ThinkPad X1</div>
+        <div>PF2AXXXX4321</div>
+        <div>-</div>
+        <div>-</div>
+        <div>01/06/2024</div>
+      </div>
+
+      <div class="asset-row">
+        <div class="status">
+          <span class="status-dot status-available"></span>
+          <span>Disponibile</span>
+        </div>
+        <div>Samsung</div>
+        <div>Galaxy S23</div>
+        <div>RF8TXXXX3456</div>
+        <div>-</div>
+        <div>-</div>
+        <div>-</div>
+      </div>
+
+      <div class="asset-row muted">
+        <div class="status">
+          <span class="status-box"></span>
+          <span>Dismesso</span>
+        </div>
+        <div>Vodafone</div>
+        <div>SIM Dati</div>
+        <div>8939XXXXXX789</div>
+        <div>Mario Rossi</div>
+        <div>Marketing</div>
+        <div>25/05/2024</div>
+      </div>
+    </div>
+
+    <div class="table-footer">
+      <span class="table-info">Mostrando 1-5 di 100</span>
+      <div class="pagination">
+        <button class="page-btn" type="button">&#8249;</button>
+        <button class="page-btn active" type="button">1</button>
+        <button class="page-btn" type="button">2</button>
+        <button class="page-btn" type="button">3</button>
+        <button class="page-btn" type="button">&#8250;</button>
+      </div>
+    </div>
+  </div>
 </div>

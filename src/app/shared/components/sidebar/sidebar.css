@@ -1,0 +1,130 @@
+/* sidebar.component.css */
+
+/* Layout principale sidebar - CSS custom necessario */
+.sidebar {
+  width: 230px;
+  height: 100vh;
+  background-color: #FFFFFF;
+  border-right: 1px solid #EFEFEF;
+  position: relative;
+}
+
+/* Avatar custom (non gestibile con Bootstrap) */
+.user-header .avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #F6C08A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.user-header .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Stili testo user header */
+.user-name {
+  font-size: 14px;
+  color: #1F2937;
+  line-height: 1.4;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #9CA3AF;
+  line-height: 1.4;
+}
+
+/* Menu items - stili custom per hover e active */
+.menu-item {
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  margin: 4px 12px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.menu-item .icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #9CA3AF;
+}
+
+.menu-item .icon svg {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
+
+.menu-item .icon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.menu-item:hover {
+  background-color: #F7F7F7;
+}
+
+/* Stato attivo - CSS custom per colori brand */
+.menu-item.active {
+  background-color: #FDE7DD;
+  color: #E56A3D;
+}
+
+.menu-item.active .icon {
+  color: #E56A3D;
+}
+
+/* Logout button - stili custom per hover rosso */
+.logout-btn {
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  margin: 0 12px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.logout-btn .icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #9CA3AF;
+}
+
+.logout-btn .icon svg {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
+
+.logout-btn:hover {
+  background-color: #FFEBEE;
+  color: #D32F2F;
+}
+
+.logout-btn:hover .icon {
+  color: #D32F2F;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+}

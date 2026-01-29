@@ -1,0 +1,19 @@
+.layout {
+	background-color: #FFFFFF;
+}
+
+app-sidebar {
+	display: block;
+	flex: 0 0 230px;
+}
+
+.content {
+	min-width: 0;
+}
+
+
+@media (max-width: 768px) {
+	.layout {
+		flex-direction: column;
+	}
+}

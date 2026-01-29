@@ -7,5 +7,6 @@ import { Sidebar } from '../../../shared/components/sidebar/sidebar';
   standalone: true,
   imports: [RouterOutlet, Sidebar],
   templateUrl: './main-layout.html',
+  styleUrl: './main-layout.css',
 })
 export class MainLayoutComponent {}
