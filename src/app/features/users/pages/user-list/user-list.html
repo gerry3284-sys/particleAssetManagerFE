@@ -1,1 +1,47 @@
-<p>user-list works!</p>
+<div>
+  <h2>Utenti</h2>
+  <h6>Visualizza e gestisci tutti gli utenti.</h6>
+  <form id="filter">
+    <div class="m-auto p-1 d-inline-block" id="input">
+      <label for="name">Nome</label>
+      <input type="text" id="input_inside">
+    </div>
+    <div class="m-auto p-1 d-inline-block" id="input">
+      <label for="businessUnit">Business Unit</label>
+      <select class="businessOption" id="input_inside">
+        <option>Action</option>
+        <option>Another action</option>
+      </select>
+    </div>
+  </form>
+  <div>
+    <table>
+      <thead>
+        <tr>
+          <th>UTENTE</th>
+          <th>EMAIL</th>
+          <th>BUSINESS UNIT</th>
+        </tr>
+      </thead>
+      @for( tentativo of tentativi; track tentativo.id){
+        <tr [routerLink]="['user-details', tentativo.id]" routerLinkActive="active" style="cursor:pointer;">
+          <td>{{tentativo.utente}}</td>
+          <td>{{tentativo.email}}</td>
+          <td>{{tentativo.business_unit}}</td>
+        </tr>
+      }
+      <tfoot>
+        <tr>
+          <th>mostrando 1-5 di 100</th>
+          <th colspan="2">
+            <div class="set_of_buttons">
+              <button> < </button>
+              <button> 1 </button>
+              <button> > </button>
+            </div>
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
