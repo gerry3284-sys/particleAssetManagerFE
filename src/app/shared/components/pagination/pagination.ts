@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './pagination.css'
 })
 export class PaginationComponent {
-  // Input signals (Angular 21 - nuovo modo)
+  // Input signals
   currentPage = input<number>(1);
   totalPages = input<number>(1);
   maxVisible = input<number>(5);

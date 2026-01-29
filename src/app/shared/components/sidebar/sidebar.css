@@ -1,6 +1,6 @@
-/* sidebar.component.css */
 
-/* Layout principale sidebar - CSS custom necessario */
+
+/* Layout principale sidebar  */
 .sidebar {
   width: 230px;
   height: 100vh;
@@ -9,7 +9,7 @@
   position: relative;
 }
 
-/* Avatar custom (non gestibile con Bootstrap) */
+/* Avatar custom  */
 .user-header .avatar {
   width: 48px;
   height: 48px;
@@ -41,7 +41,7 @@
   line-height: 1.4;
 }
 
-/* Menu items - stili custom per hover e active */
+/* Menu items */
 .menu-item {
   color: #6B7280;
   font-size: 13px;
@@ -76,7 +76,7 @@
   background-color: #F7F7F7;
 }
 
-/* Stato attivo - CSS custom per colori brand */
+/* Stato attivo  */
 .menu-item.active {
   background-color: #FDE7DD;
   color: #E56A3D;
@@ -86,7 +86,7 @@
   color: #E56A3D;
 }
 
-/* Logout button - stili custom per hover rosso */
+/* Logout button  */
 .logout-btn {
   color: #6B7280;
   font-size: 13px;
