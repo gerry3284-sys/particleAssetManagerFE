@@ -1,15 +1,26 @@
 
 
-/* Layout principale sidebar  */
+/* Layout principale sidebar */
 .sidebar {
   width: 230px;
-  height: 100vh;
+  height: 100vh; /* Altezza piena schermo */
   background-color: #FFFFFF;
   border-right: 1px solid #EFEFEF;
-  position: relative;
+  position: sticky; /* rimane fissa */
+  top: 0; /*ancoraggio top*/
+  overflow-y: hidden; /* vietiamo  scroll */
+  display: flex;
+  flex-direction: column;
 }
 
-/* Avatar custom  */
+/* Container interno scrollabile (solo se necessario) */
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto; /* Scrolla solo se il contenuto è troppo alto */
+  padding: 1rem 0;
+}
+
+/* Avatar custom */
 .user-header .avatar {
   width: 48px;
   height: 48px;
@@ -33,6 +44,7 @@
   font-size: 14px;
   color: #1F2937;
   line-height: 1.4;
+  font-weight: 600;
 }
 
 .user-role {
@@ -51,6 +63,10 @@
   border-radius: 10px;
   transition: all 0.2s ease;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
 }
 
 .menu-item .icon {
@@ -76,7 +92,7 @@
   background-color: #F7F7F7;
 }
 
-/* Stato attivo  */
+/* Stato attivo */
 .menu-item.active {
   background-color: #FDE7DD;
   color: #E56A3D;
@@ -86,7 +102,7 @@
   color: #E56A3D;
 }
 
-/* Logout button  */
+/* Logout button */
 .logout-btn {
   color: #6B7280;
   font-size: 13px;
@@ -96,6 +112,13 @@
   border-radius: 10px;
   transition: all 0.2s ease;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: none;
+  width: calc(100% - 24px);
+  font-family: inherit;
 }
 
 .logout-btn .icon {
@@ -120,11 +143,23 @@
   color: #D32F2F;
 }
 
+/* Footer sidebar (per logout) */
+.sidebar-footer {
+  margin-top: auto; /* Spinge il logout in fondo */
+  padding: 1rem 0;
+  border-top: 1px solid #F3F4F6;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
     height: auto;
     position: relative;
+    overflow-y: visible;
+  }
+
+  .sidebar-content {
+    overflow-y: visible;
   }
 }

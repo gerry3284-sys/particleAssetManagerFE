@@ -6,47 +6,16 @@
       <p class="page-subtitle">Visualizza e gestisci tutti gli asset aziendali.</p>
     </div>
     <button class="btn btn-new-asset" type="button" (click)="createNewAsset()">
-      <span class="">+</span>
+      <span class="btn-icon">+</span>
       <span>Nuovo Asset</span>
     </button>
   </div>
 
-  <!-- Filtri -->
-  <div class="filters-card">
-    <div class="filters-grid">
-      <div class="filter-item">
-        <label class="filter-label">Tipologia Asset</label>
-        <select class="form-select filter-control" [(ngModel)]="filters.typology">
-          <option>Tutte le Tipologie</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <label class="filter-label">Business Unit</label>
-        <select class="form-select filter-control" [(ngModel)]="filters.businessUnit">
-          <option>Tutte le BU</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <label class="filter-label">Stato Asset</label>
-        <select class="form-select filter-control" [(ngModel)]="filters.status">
-          <option>Tutti gli Stati</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <label class="filter-label">Nome Assegnatario</label>
-        <div class="input-with-icon">
-          <svg class="input-icon" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
-            <path d="M20 20L16.5 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <input 
-            class="form-control filter-control" 
-            placeholder="Cerca per nome..." 
-            [(ngModel)]="filters.searchName" />
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ✅ SOSTITUISCI tutto il blocco filtri con questo -->
+  <app-filters
+    [fields]="filterFields"
+    (filtersChange)="onFiltersChange($event)">
+  </app-filters>
 
   <!-- Tabella -->
   <div class="table-card">
@@ -62,7 +31,7 @@
         <div>Data assegnazione</div>
       </div>
 
-      <!--  RIGHE DINAMICHE -->
+      <!-- RIGHE DINAMICHE -->
       @for (asset of paginatedAssets(); track asset.id) {
         <div 
           class="asset-row" 

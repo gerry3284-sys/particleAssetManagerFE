@@ -1,11 +1,11 @@
-
 // asset-list.component.ts
-import { Component, OnInit, signal, computed } from '@angular/core'; // ← Aggiungi signal e computed
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
-
+import { FiltersComponent } from '../../../../shared/components/filters/filters'; // ← AGGIUNGI
+import { FilterField, FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
 
 interface Asset {
   id: string;
@@ -22,21 +22,61 @@ interface Asset {
 @Component({
   selector: 'app-asset-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, FiltersComponent], // ← AGGIUNGI FiltersComponent
   templateUrl: './asset-list.html',
   styleUrls: ['./asset-list.css']
 })
 export class AssetListComponent implements OnInit {
   
-  // Filtri
-  filters = {
-    typology: 'Tutte le Tipologie',
-    businessUnit: 'Tutte le BU',
-    status: 'Tutti gli Stati',
-    searchName: ''
-  };
+  
+  filterFields: FilterField[] = [
+    {
+      key: 'typology',
+      label: 'Tipologia Asset',
+      type: 'select',
+      options: [
+        { value: '', label: 'Tutte le Tipologie' },
+        { value: 'laptop', label: 'Laptop' },
+        { value: 'phone', label: 'Smartphone' },
+        { value: 'tablet', label: 'Tablet' },
+        { value: 'sim', label: 'SIM' }
+      ]
+    },
+    {
+      key: 'businessUnit',
+      label: 'Business Unit',
+      type: 'select',
+      options: [
+        { value: '', label: 'Tutte le BU' },
+        { value: 'Marketing', label: 'Marketing' },
+        { value: 'Vendite', label: 'Vendite' },
+        { value: 'IT', label: 'IT' },
+        { value: 'HR', label: 'HR' }
+      ]
+    },
+    {
+      key: 'status',
+      label: 'Stato Asset',
+      type: 'select',
+      options: [
+        { value: '', label: 'Tutti gli Stati' },
+        { value: 'assigned', label: 'Assegnato' },
+        { value: 'available', label: 'Disponibile' },
+        { value: 'dismissed', label: 'Dismesso' }
+      ]
+    },
+    {
+      key: 'searchName',
+      label: 'Nome Assegnatario',
+      type: 'search',
+      placeholder: 'Cerca per nome...'
+    }
+  ];
 
-  // signal 
+  // Filtri correnti (signal)
+  currentFilters = signal<FilterValues>({});
+
+  // Assets (signal)
   allAssets = signal<Asset[]>([
     {
       id: '1',
@@ -92,69 +132,87 @@ export class AssetListComponent implements OnInit {
       assignedUser: 'Mario Rossi',
       businessUnit: 'Marketing',
       assignmentDate: '25/05/2024'
-    },
-    
+    }
   ]);
 
-  
-  currentPage = signal(1);
-  
-  
-  itemsPerPage = signal(5);
+  // Assets filtrati in base ai filtri correnti
+  filteredAssets = computed(() => {
+    const filters = this.currentFilters();
+    let assets = this.allAssets();
 
-  // ricalcolo e aggiorno  automaticamente quando allAssets o itemsPerPage cambiano
-  totalPages = computed(() => {
-    return Math.ceil(this.allAssets().length / this.itemsPerPage());
+    // Filtra per Business Unit
+    if (filters['businessUnit']) {
+      assets = assets.filter(a => a.businessUnit === filters['businessUnit']);
+    }
+
+    // Filtra per Status
+    if (filters['status']) {
+      assets = assets.filter(a => a.status === filters['status']);
+    }
+
+    // Filtra per Nome (search)
+    if (filters['searchName']) {
+      const search = filters['searchName'].toLowerCase();
+      assets = assets.filter(a => 
+        a.assignedUser.toLowerCase().includes(search)
+      );
+    }
+
+
+    return assets;
   });
 
-  // paginatedAssets si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi assets
+  // Paginazione
+  currentPage = signal(1);
+  itemsPerPage = signal(5);
+
+  totalPages = computed(() => {
+    return Math.ceil(this.filteredAssets().length / this.itemsPerPage());
+  });
+
   paginatedAssets = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage();
     const end = start + this.itemsPerPage();
-    return this.allAssets().slice(start, end);
+    return this.filteredAssets().slice(start, end);
   });
 
-  //creazione stringa display range. 
   displayRange = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
-    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.allAssets().length);
-    return `Mostrando ${start}-${end} di ${this.allAssets().length}`;
+    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.filteredAssets().length);
+    return `Mostrando ${start}-${end} di ${this.filteredAssets().length}`;
   });
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    // Qui in futuro caricherai i dati dal servizio
     console.log('Asset list initialized');
   }
 
-  // Naviga al dettaglio asset
+  // ✅ SOSTITUISCI applyFilters con onFiltersChange
+  onFiltersChange(filters: FilterValues): void {
+    console.log('Filtri applicati:', filters);
+    this.currentFilters.set(filters);
+    
+    // Reset alla prima pagina quando i filtri cambiano
+    this.currentPage.set(1);
+  }
+
   goToAssetDetail(assetId: string): void {
-    // TODO: abilita quando esisterà il componente dettaglio
-    return;
-  }
+  this.router.navigate(['/assets', assetId]); // ← RIMUOVI il return
+}
 
-  // Naviga alla creazione nuovo asset
   createNewAsset(): void {
-    // TODO: abilita quando esisterà il componente creazione
-    return;
-  }
+  this.router.navigate(['/assets/new']);  // ← RIMUOVI il return
+}
 
-  // Applica filtri
-  applyFilters(): void {
-    console.log('Filtri applicati:', this.filters);
-    // Implementare logica filtro qui 
-  }
-
-  //  Aggiorna goToPage per usare signals
   goToPage(page: number): void {
-    this.currentPage.set(page); 
+    this.currentPage.set(page);
     console.log('Pagina:', page);
     
-    //scroll alla tabella
     const tableCard = document.querySelector('.table-card');
     if (tableCard) {
       tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
+  
 }

@@ -1,0 +1,191 @@
+<div class="asset-detail-page">
+  <div class="page-container">
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <p>Caricamento...</p>
+      </div>
+    }
+
+    <!-- Content -->
+    @if (!isLoading() && asset()) {
+      
+      <!-- Header -->
+      <div class="page-header">
+        <button class="btn-back" type="button" (click)="goBack()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Indietro
+        </button>
+        
+        <div class="header-content">
+          <h1 class="page-title">Dettaglio Asset</h1>
+          <p class="page-subtitle">Visualizza e gestisci le informazioni dettagliate dell'asset selezionato.</p>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="content-grid">
+        
+        <!-- Left Column: Info + Movements -->
+        <div class="left-column">
+          
+          <!-- Card: Informazioni Asset -->
+          <div class="info-card">
+            <h2 class="card-title">Informazioni Asset</h2>
+            
+            <div class="info-grid">
+              
+              <!-- Business Unit -->
+              <div class="info-item full-width">
+                <span class="info-label">Business Unit</span>
+                <span class="info-value">{{ asset()!.businessUnit }}</span>
+              </div>
+
+              <!-- Marca -->
+              <div class="info-item">
+                <span class="info-label">Marca</span>
+                <span class="info-value">{{ asset()!.brand }}</span>
+              </div>
+
+              <!-- Modello -->
+              <div class="info-item">
+                <span class="info-label">Modello</span>
+                <span class="info-value">{{ asset()!.model }}</span>
+              </div>
+
+              <!-- Numero Seriale -->
+              <div class="info-item">
+                <span class="info-label">Numero Seriale</span>
+                <span class="info-value">{{ asset()!.serialNumber }}</span>
+              </div>
+
+              <!-- Utente Assegnato -->
+              <div class="info-item">
+                <span class="info-label">Utente Assegnato</span>
+                <span class="info-value">{{ asset()!.assignedUser || '-' }}</span>
+              </div>
+
+              <!-- Data Assegnazione -->
+              <div class="info-item">
+                <span class="info-label">Data di Assegnazione</span>
+                <span class="info-value">{{ asset()!.assignmentDate || '-' }}</span>
+              </div>
+
+              <!-- Data Riconsegna -->
+              <div class="info-item">
+                <span class="info-label">Data di Riconsegna</span>
+                <span class="info-value">{{ asset()!.returnDate || '-' }}</span>
+              </div>
+
+              <!-- Note -->
+              <div class="info-item full-width">
+                <span class="info-label">Note</span>
+                <span class="info-value">{{ asset()!.notes || '-' }}</span>
+              </div>
+
+              <!-- Stato -->
+              <div class="info-item">
+                <span class="info-label">Stato</span>
+                <span class="status-badge" [ngClass]="getStatusClass()">
+                  {{ asset()!.statusLabel }}
+                </span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card: Elenco Movimenti -->
+          <div class="movements-card">
+            <h2 class="card-title">Elenco movimenti</h2>
+            
+            <div class="movements-table">
+              
+              <!-- Header -->
+              <div class="movements-row movements-header">
+                <div class="col-date">DATA</div>
+                <div class="col-user">UTENTE</div>
+                <div class="col-movement">MOVIMENTO</div>
+              </div>
+
+              <!-- Rows -->
+              @for (movement of asset()!.movements; track movement.id) {
+                <div 
+                  class="movements-row movements-data"
+                  (click)="goToMovementDetail(movement.id)">
+                  <div class="col-date">{{ movement.date }}</div>
+                  <div class="col-user">{{ movement.user }}</div>
+                  <div class="col-movement">
+                    <span class="movement-label">{{ movement.movementLabel }}</span>
+                    <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+              }
+
+              <!-- Empty State -->
+              @if (asset()!.movements.length === 0) {
+                <div class="empty-state">
+                  <p>Nessun movimento registrato</p>
+                </div>
+              }
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Actions -->
+        <div class="right-column">
+          <div class="actions-card">
+            <h3 class="actions-title">Azioni Amministratore</h3>
+            <p class="actions-subtitle">Gestisci il ciclo di vita e lo stato dell'asset.</p>
+            
+            <div class="actions-buttons">
+              <button 
+                class="btn btn-primary"
+                type="button"
+                (click)="assignAsset()">
+                Assegna Asset
+              </button>
+
+              <button 
+                class="btn btn-secondary"
+                type="button"
+                (click)="certifyReturn()">
+                Certifica Riconsegna
+              </button>
+
+              <button 
+                class="btn btn-danger"
+                type="button"
+                (click)="dismissAsset()">
+                Dismetti Asset
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (!isLoading() && !asset()) {
+      <div class="error-state">
+        <p>Asset non trovato</p>
+        <button class="btn btn-primary" (click)="goBack()">Torna alla lista</button>
+      </div>
+    }
+
+  </div>
+  <!-- Modal Assegnazione -->
+<app-assign-asset-modal
+  [isOpen]="showAssignModal()"
+  [assetId]="assetId()"
+  (close)="closeAssignModal()"
+  (assign)="onAssetAssigned($event)">
+</app-assign-asset-modal>
+</div>

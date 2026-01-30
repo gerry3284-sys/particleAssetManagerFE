@@ -1,0 +1,145 @@
+<div class="create-asset-page">
+  <div class="page-container">
+    
+    <!-- Header -->
+    <div class="page-header">
+      <button class="btn-back" type="button" (click)="goBack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Indietro
+      </button>
+      
+      <div class="header-content">
+        <h1 class="page-title">Crea Nuovo Asset</h1>
+        <p class="page-subtitle">Inserisci le informazioni del nuovo asset. Potrai assegnarlo a un utente in un secondo momento.</p>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+      <form (ngSubmit)="createAsset()">
+        
+        <!-- Prima riga: Marca, Modello, Tipologia -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="brand">
+              Marca <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="brand"
+              class="form-control"
+              placeholder="Es. Apple"
+              [value]="assetForm().brand"
+              (input)="updateField('brand', $any($event.target).value)"
+              required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="model">
+              Modello <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="model"
+              class="form-control"
+              placeholder="Es. MacBook Pro 16&quot;"
+              [value]="assetForm().model"
+              (input)="updateField('model', $any($event.target).value)"
+              required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="typology">
+              Tipologia Asset <span class="required">*</span>
+            </label>
+            <select
+              id="typology"
+              class="form-select"
+              [value]="assetForm().typology"
+              (change)="updateField('typology', $any($event.target).value)"
+              required>
+              @for (option of typologyOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Seconda riga: Numero Seriale, Business Unit -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="serialNumber">
+              Numero Seriale <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="serialNumber"
+              class="form-control"
+              placeholder="Inserisci il numero seriale"
+              [value]="assetForm().serialNumber"
+              (input)="updateField('serialNumber', $any($event.target).value)"
+              required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="businessUnit">
+              Business Unit <span class="required">*</span>
+            </label>
+            <select
+              id="businessUnit"
+              class="form-select"
+              [value]="assetForm().businessUnit"
+              (change)="updateField('businessUnit', $any($event.target).value)"
+              required>
+              @for (option of businessUnitOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Terza riga: Note (full width) -->
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label class="form-label" for="notes">
+              Note (opzionale)
+            </label>
+            <textarea
+              id="notes"
+              class="form-control textarea"
+              rows="4"
+              placeholder="Es. numero di telefono, note varie..."
+              [value]="assetForm().notes || ''"
+              (input)="updateField('notes', $any($event.target).value)">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Bottoni azione -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-cancel"
+            (click)="cancel()"
+            [disabled]="isSubmitting()">
+            Annulla
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-submit"
+            [disabled]="!isFormValid() || isSubmitting()">
+            @if (isSubmitting()) {
+              <span>Creazione in corso...</span>
+            } @else {
+              <span>Crea Asset</span>
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
