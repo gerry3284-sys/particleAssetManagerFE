@@ -162,28 +162,7 @@
   border-top: 1px solid #F3F4F6;
 }
 
-.btn {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-cancel {
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  color: #6B7280;
-}
-
-.btn-cancel:hover:not(:disabled) {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
-}
-
+/* Varianti specifiche (ereditano da .btn globale) */
 .btn-submit {
   background-color: #E56A3D;
   color: #FFFFFF;
@@ -195,9 +174,15 @@
   box-shadow: 0 6px 16px rgba(229, 106, 61, 0.3);
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.btn-cancel {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background-color: #F9FAFB;
+  border-color: #D1D5DB;
 }
 
 /* ===================================

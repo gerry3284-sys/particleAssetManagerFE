@@ -1,5 +1,7 @@
 .layout {
 	background-color: #FFFFFF;
+	display: flex;
+	min-height: 100vh;
 }
 
 app-sidebar {
@@ -9,6 +11,8 @@ app-sidebar {
 
 .content {
 	min-width: 0;
+	flex: 1;
+	padding: 1.5rem;
 }
 
 

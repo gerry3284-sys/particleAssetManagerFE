@@ -5,9 +5,9 @@ import { Router } from '@angular/router';
   selector: 'app-login',
   standalone: true,
   templateUrl: './login.html',
-  styleUrls: ['./login.css'],
+  styleUrl: './login.css',
 })
-export class Login {
+export class LoginComponent {
   constructor(private readonly router: Router) {}
 
   onLogin() {

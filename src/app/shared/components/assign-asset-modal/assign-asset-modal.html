@@ -1,127 +1,94 @@
-<!-- Modal Backdrop -->
 @if (isOpen()) {
-  <div class="modal-backdrop" (click)="onBackdropClick($event)">
-    
-    <!-- Modal Container -->
-    <div class="modal-container">
-      
-      <!-- Modal Header -->
+  <div class="modal-overlay" (click)="onOverlayClick()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div class="header-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 16V12M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+        <div class="modal-icon">i</div>
+        <div>
+          <h3>Assegna asset</h3>
         </div>
-        <h2 class="modal-title">Assegna asset</h2>
       </div>
 
-      <!-- Modal Body -->
-      <form class="modal-body" (ngSubmit)="onAssign()">
-        
-        <!-- Data di assegnazione -->
-        <div class="form-group">
-          <label class="form-label" for="assignmentDate">
-            Data di assegnazione <span class="required">*</span>
-          </label>
-          <input
-            type="date"
-            id="assignmentDate"
-            class="form-control"
-            [value]="formData().assignmentDate"
-            (change)="updateField('assignmentDate', $any($event.target).value)"
-            required />
+      <div class="modal-body">
+        <div class="field">
+          <label>Data di assegnazione</label>
+          <div class="input-with-icon" [class.error]="dateError()">
+            <input
+              #dateInput
+              type="date"
+              [value]="assignmentDate()"
+              (input)="onDateChange(dateInput.value)"
+              required
+            />
+             <span class="input-icon" aria-hidden="true">
+               <svg viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8" />
+                <path d="M16 3v4M8 3v4M3 9h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+            </span>  
+          </div>
+          @if (dateError()) {
+            <p class="error-text">Seleziona una data valida.</p>
+          }
         </div>
 
-        <!-- Seleziona utente -->
-        <div class="form-group">
-          <label class="form-label" for="userSelect">
-            Seleziona l'utente a cui assegnare l'asset <span class="required">*</span>
-          </label>
-          
-          <div class="custom-select-wrapper">
+        <div class="field">
+          <label>Seleziona l'utente a cui assegnare l'asset</label>
+          <div class="dropdown" [class.error]="userError()">
             <input
+              #searchInput
               type="text"
-              id="userSelect"
-              class="form-control custom-select"
               placeholder="Inizia a scrivere..."
-              [value]="userSearchQuery()"
-              (input)="onUserInputChange($any($event.target).value)"
-              (focus)="openUserDropdown()"
-              (click)="openUserDropdown()"
-              (blur)="closeUserDropdown()"
-              (keydown.escape)="closeUserDropdown()"
-              autocomplete="off"
-              required />
-            
-            <svg class="select-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-
-            <!-- Dropdown utenti -->
-            @if (showUserDropdown()) {
-              <div class="dropdown-menu">
-                @if (filteredUsers().length > 0) {
-                  @for (user of filteredUsers(); track user.id) {
-                    <div 
-                      class="dropdown-item" 
-                      (click)="selectUser(user)">
-                      <div class="user-info">
-                        <span class="user-name">{{ user.name }}</span>
-                        <span class="user-bu">{{ user.businessUnit }}</span>
-                      </div>
-                    </div>
-                  }
-                } @else {
-                  <div class="dropdown-empty">
-                    Nessun utente trovato
-                  </div>
+              [value]="searchTerm()"
+              (input)="onSearchChange(searchInput.value)"
+              (focus)="onInputFocus()"
+              (blur)="onInputBlur()"
+              required
+            />
+            <span class="dropdown-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            @if (dropdownOpen()) {
+              <div class="dropdown-panel">
+                @for (user of filteredUsers(); track user.id) {
+                  <button type="button" (mousedown)="onUserSelect(user)">
+                    <span>{{ user.name }}</span>
+                    @if (user.businessUnit) {
+                      <small>{{ user.businessUnit }}</small>
+                    }
+                  </button>
+                }
+                @if (filteredUsers().length === 0) {
+                  <div class="dropdown-empty">Nessun risultato</div>
                 }
               </div>
             }
           </div>
-          
-          <p class="form-hint">
-            Verranno mostrati solo gli utenti appartenenti alla BU corretta.
-            <br>
-            In caso contrario, ti mostrerò tutti gli altri disponibili.
+          <p class="helper-text">
+            TUTTI gli utenti indipendentemente da BU. mostrare alert se bu diversa
           </p>
+          @if (userError()) {
+            <p class="error-text">Seleziona un utente dalla lista.</p>
+          }
         </div>
 
-        <!-- Note (opzionale) -->
-        <div class="form-group">
-          <label class="form-label" for="notes">
-            Note (opzionale)
-          </label>
+        <div class="field">
+          <label>Note (Opzionale)</label>
           <textarea
-            id="notes"
-            class="form-control textarea"
+            #notesInput
             rows="3"
             placeholder="Es. rimossa SSD, ecc..."
-            [value]="formData().notes || ''"
-            (input)="updateField('notes', $any($event.target).value)">
-          </textarea>
+            [value]="notes()"
+            (input)="notes.set(notesInput.value)"
+          ></textarea>
         </div>
-
-      </form>
-
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button 
-          type="button" 
-          class="btn btn-cancel"
-          (click)="onCancel()">
-          Annulla
-        </button>
-        <button 
-          type="button" 
-          class="btn btn-assign"
-          [disabled]="!isFormValid()"
-          (click)="onAssign()">
-          Assegna
-        </button>
       </div>
 
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" (click)="close.emit()">Annulla</button>
+        <button class="btn btn-primary" type="button" (click)="submit()">Assegna</button>
+      </div>
     </div>
   </div>
 }

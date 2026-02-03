@@ -181,11 +181,12 @@
     }
 
   </div>
-  <!-- Modal Assegnazione -->
-<app-assign-asset-modal
-  [isOpen]="showAssignModal()"
-  [assetId]="assetId()"
-  (close)="closeAssignModal()"
-  (assign)="onAssetAssigned($event)">
-</app-assign-asset-modal>
+  
+  <app-assign-asset-modal
+    [isOpen]="showAssignModal()"
+    [assetId]="assetId()"
+    (close)="closeAssignModal()"
+    (assign)="onAssetAssigned($event)">
+  </app-assign-asset-modal>
+
 </div>

@@ -20,6 +20,7 @@ export interface Asset {
   typology?: string;
   notes?: string;
 }
+
 export interface AssetMovement {
   id: string;
   date: string;
@@ -28,6 +29,7 @@ export interface AssetMovement {
   movementType: 'assigned' | 'returned' | 'dismissed';
   movementLabel: string;
 }
+
 export interface AssetDetail {
   id: string;
   businessUnit: string;
@@ -44,16 +46,6 @@ export interface AssetDetail {
   typology: string;
   movements: AssetMovement[];
 }
-// Singolo movimento nell'elenco movimenti
-export interface AssetMovement {
-  id: string;
-  date: string;
-  user: string;
-  userId: string;
-  movementType: 'assigned' | 'returned' | 'dismissed';
-  movementLabel: string;
-}
-
 
 export interface AssignAssetForm {
   assignmentDate: string;

@@ -1,164 +1,168 @@
-import { Component, output, input, signal, effect } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AssignAssetForm } from '../../models/asset.interface';
+
+interface UserOption {
+  id: string;
+  name: string;
+  businessUnit?: string;
+}
 
 @Component({
   selector: 'app-assign-asset-modal',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './assign-asset-modal.html',
-  styleUrl: './assign-asset-modal.css'
+  styleUrl: './assign-asset-modal.css',
 })
-export class AssignAssetModalComponent {
-  
-  // Input/Output
+export class AssignAssetModalComponent implements OnDestroy {
+  private platformId = inject(PLATFORM_ID);
+  private escListenerAttached = false;
   isOpen = input<boolean>(false);
   assetId = input<string>('');
+  users = input<UserOption[]>([]);
+
   close = output<void>();
   assign = output<AssignAssetForm>();
-  
-  // Form data
-  formData = signal<AssignAssetForm>({
-    assignmentDate: this.getTodayDate(),
-    userId: '',
-    userName: '',
-    notes: ''
+
+  private fallbackUsers: UserOption[] = [
+    { id: 'u1', name: 'Mario Rossi', businessUnit: 'Marketing' },
+    { id: 'u2', name: 'Giulia Bianchi', businessUnit: 'Vendite' },
+    { id: 'u3', name: 'Luca Verdi', businessUnit: 'IT' },
+    { id: 'u4', name: 'Sara Neri', businessUnit: 'HR' },
+    { id: 'u5', name: 'Paolo Gallo', businessUnit: 'Marketing' },
+  ];
+
+  assignmentDate = signal('');
+  searchTerm = signal('');
+  selectedUser = signal<UserOption | null>(null);
+  notes = signal('');
+  dropdownOpen = signal(false);
+
+  dateError = signal(false);
+  userError = signal(false);
+
+  availableUsers = computed(() => {
+    const external = this.users();
+    return external.length ? external : this.fallbackUsers;
   });
-  
-  // Lista utenti (mock - sostituire con API)
-  users = signal([
-    { id: '1', name: 'Mario Rossi', businessUnit: 'Marketing' },
-    { id: '2', name: 'Giulia Bianchi', businessUnit: 'Vendite' },
-    { id: '3', name: 'Luca Verdi', businessUnit: 'IT' },
-    { id: '4', name: 'Anna Neri', businessUnit: 'HR' },
-    { id: '5', name: 'Paolo Gialli', businessUnit: 'Marketing' },
-    { id: '6', name: 'Sara Viola', businessUnit: 'Vendite' }
-  ]);
-  
-  // Stato dropdown
-  showUserDropdown = signal(false);
-  userSearchQuery = signal('');
-  filteredUsers = signal(this.users());
-  
+
+  filteredUsers = computed(() => {
+    const query = this.searchTerm().trim().toLowerCase();
+    const users = this.availableUsers();
+    if (!query) {
+      return users;
+    }
+    return users.filter((u) => u.name.toLowerCase().includes(query));
+  });
+
   constructor() {
-    // Reset form quando la modale si chiude
     effect(() => {
-      if (!this.isOpen()) {
+      if (this.isOpen()) {
         this.resetForm();
+        if (isPlatformBrowser(this.platformId)) {
+          document.body.classList.add('modal-open');
+          this.attachEscListener();
+        }
+      } else {
+        if (isPlatformBrowser(this.platformId)) {
+          document.body.classList.remove('modal-open');
+          this.detachEscListener();
+        }
       }
     });
   }
-  
-  // Ottiene la data odierna in formato YYYY-MM-DD
-  getTodayDate(): string {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('modal-open');
+      this.detachEscListener();
+    }
   }
-  
-  // Chiude la modale
-  onClose(): void {
+
+  closeModal(): void {
     this.close.emit();
   }
-  
-  // Chiude la modale cliccando sul backdrop
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
-      this.onClose();
+
+  private handleEsc = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      this.closeModal();
+    }
+  };
+
+  private attachEscListener(): void {
+    if (!this.escListenerAttached) {
+      document.addEventListener('keydown', this.handleEsc);
+      this.escListenerAttached = true;
     }
   }
-  
-  // Annulla e chiudi
-  onCancel(): void {
-    if (confirm('Sei sicuro di voler annullare? I dati inseriti andranno persi.')) {
-      this.onClose();
+
+  private detachEscListener(): void {
+    if (this.escListenerAttached) {
+      document.removeEventListener('keydown', this.handleEsc);
+      this.escListenerAttached = false;
     }
   }
-  
-  // Gestisce input utente
-  onUserInputChange(value: string): void {
-    this.userSearchQuery.set(value);
-    this.filterUsers(value);
-    this.showUserDropdown.set(true);
+
+  onOverlayClick(): void {
+    this.close.emit();
   }
-  
-  // Filtra utenti in base alla ricerca
-  filterUsers(query: string): void {
-    if (!query || query.trim() === '') {
-      this.filteredUsers.set(this.users());
+
+  onInputFocus(): void {
+    this.dropdownOpen.set(true);
+  }
+
+  onInputBlur(): void {
+    setTimeout(() => this.dropdownOpen.set(false), 150);
+  }
+
+  onUserSelect(user: UserOption): void {
+    this.selectedUser.set(user);
+    this.searchTerm.set(user.name);
+    this.dropdownOpen.set(false);
+    this.userError.set(false);
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.selectedUser.set(null);
+    this.userError.set(false);
+  }
+
+  onDateChange(value: string): void {
+    this.assignmentDate.set(value);
+    this.dateError.set(false);
+  }
+
+  submit(): void {
+    const date = this.assignmentDate();
+    const user = this.selectedUser();
+
+    this.dateError.set(!date);
+    this.userError.set(!user);
+
+    if (!date || !user) {
       return;
     }
-    
-    const searchLower = query.toLowerCase();
-    const filtered = this.users().filter(user => 
-      user.name.toLowerCase().includes(searchLower) ||
-      user.businessUnit.toLowerCase().includes(searchLower)
-    );
-    
-    this.filteredUsers.set(filtered);
-  }
-  
-  // Seleziona utente dal dropdown
-  selectUser(user: { id: string; name: string; businessUnit: string }): void {
-    this.formData.update(current => ({
-      ...current,
+
+    this.assign.emit({
+      assignmentDate: date,
       userId: user.id,
-      userName: user.name
-    }));
-    this.userSearchQuery.set(user.name);
-    this.showUserDropdown.set(false);
-  }
-  
-  // Apre il dropdown
-  openUserDropdown(): void {
-    this.filterUsers(this.userSearchQuery());
-    this.showUserDropdown.set(true);
-  }
-  
-  // Chiude il dropdown con delay
-  closeUserDropdown(): void {
-    setTimeout(() => {
-      this.showUserDropdown.set(false);
-    }, 200);
-  }
-  
-  // Valida il form
-  isFormValid(): boolean {
-    const data = this.formData();
-    return !!(data.assignmentDate && data.userId);
-  }
-  
-  // Assegna asset
-  onAssign(): void {
-    if (!this.isFormValid()) {
-      alert('Compila tutti i campi obbligatori');
-      return;
-    }
-    
-    this.assign.emit(this.formData());
-  }
-  
-  // Aggiorna un campo del form
-  updateField(field: keyof AssignAssetForm, value: string): void {
-    this.formData.update(current => ({
-      ...current,
-      [field]: value
-    }));
-  }
-  
-  // Reset del form
-  resetForm(): void {
-    this.formData.set({
-      assignmentDate: this.getTodayDate(),
-      userId: '',
-      userName: '',
-      notes: ''
+      userName: user.name,
+      notes: this.notes().trim() || undefined,
     });
-    this.userSearchQuery.set('');
-    this.showUserDropdown.set(false);
-    this.filteredUsers.set(this.users());
+  }
+
+  private resetForm(): void {
+    this.assignmentDate.set('');
+    this.searchTerm.set('');
+    this.selectedUser.set(null);
+    this.notes.set('');
+    this.dropdownOpen.set(false);
+    this.dateError.set(false);
+    this.userError.set(false);
   }
 }

@@ -1,14 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AssetDetail } from '../../../../shared/models/asset.interface';
 import { AssignAssetModalComponent } from '../../../../shared/components/assign-asset-modal/assign-asset-modal';
-import { AssignAssetForm } from '../../../../shared/models/asset.interface';
+import { AssetDetail, AssignAssetForm } from '../../../../shared/models/asset.interface';
 
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [CommonModule,AssignAssetModalComponent],
+  imports: [CommonModule, AssignAssetModalComponent],
   templateUrl: './asset-detail.html',
   styleUrl: './asset-detail.css'
 })
@@ -82,7 +81,7 @@ export class AssetDetailComponent implements OnInit {
   closeAssignModal(): void {
     this.showAssignModal.set(false);
   }
-   onAssetAssigned(formData: AssignAssetForm): void {
+  onAssetAssigned(formData: AssignAssetForm): void {
     console.log('Asset assegnato:', formData);
     
     // TODO: Chiamare API per assegnare l'asset

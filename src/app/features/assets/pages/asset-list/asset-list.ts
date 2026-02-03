@@ -24,7 +24,7 @@ interface Asset {
   standalone: true,
   imports: [CommonModule, FormsModule, PaginationComponent, FiltersComponent], // ← AGGIUNGI FiltersComponent
   templateUrl: './asset-list.html',
-  styleUrls: ['./asset-list.css']
+  styleUrl: './asset-list.css'
 })
 export class AssetListComponent implements OnInit {
   

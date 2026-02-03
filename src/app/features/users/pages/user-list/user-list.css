@@ -1,0 +1,37 @@
+.user-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.page-header {
+  margin-bottom: 2px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.page-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 14px;
+  background-color: #FFFFFF;
+  border: 1px solid #EFEFEF;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}

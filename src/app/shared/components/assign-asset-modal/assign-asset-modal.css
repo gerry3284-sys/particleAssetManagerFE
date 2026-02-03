@@ -1,432 +1,217 @@
-/* ===================================
-   MODAL BACKDROP
-   =================================== */
-
-.modal-backdrop {
+.modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 20px;
-  animation: fadeIn 0.2s ease;
+  padding: 24px;
+  z-index: 1000;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* ===================================
-   MODAL CONTAINER
-   =================================== */
-
-.modal-container {
-  background-color: #FFFFFF;
-  border-radius: 16px;
+.modal-card {
   width: 100%;
-  max-width: 520px;
-  max-height: 90vh;
-  overflow: visible;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s ease;
-  display: flex;
-  flex-direction: column;
+  max-width: 420px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  padding: 22px 22px 18px;
+  border: 1px solid #EEF0F4;
 }
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* ===================================
-   MODAL HEADER
-   =================================== */
 
 .modal-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 24px 28px;
-  border-bottom: 1px solid #F3F4F6;
-  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
-.header-icon {
-  width: 40px;
-  height: 40px;
+.modal-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background-color: #DBEAFE;
+  background: #EAF2FF;
+  color: #2F6AE5;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3B82F6;
-  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 16px;
 }
 
-.header-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
+.modal-header h3 {
   margin: 0;
+  font-size: 16px;
+  color: #1F2937;
+  font-weight: 700;
 }
-
-/* ===================================
-   MODAL BODY
-   =================================== */
 
 .modal-body {
-  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-  max-height: calc(90vh - 160px);
-  flex: 1;
+  gap: 14px;
 }
 
-.modal-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-  background: #F9FAFB;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 4px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
-
-/* ===================================
-   FORM ELEMENTS
-   =================================== */
-
-.form-group {
+.field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.form-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  margin: 0;
-}
-
-.required {
-  color: #E56A3D;
-}
-
-.form-control {
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
-  padding: 10px 14px;
-  color: #374151;
-  background-color: #FFFFFF;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #E56A3D;
-  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.1);
-}
-
-.form-control::placeholder {
-  color: #9CA3AF;
-}
-
-.form-control:disabled {
-  background-color: #F9FAFB;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.5;
-}
-
-.form-hint {
+.field label {
   font-size: 12px;
-  color: #9CA3AF;
-  margin: 4px 0 0 0;
-  line-height: 1.5;
+  font-weight: 600;
+  color: #1F2937;
 }
 
-/* ===================================
-   CUSTOM SELECT DROPDOWN
-   =================================== */
-
-.custom-select-wrapper {
+.input-with-icon,
+.dropdown {
   position: relative;
 }
 
-.custom-select {
-  padding-right: 40px;
-  cursor: pointer;
+.input-with-icon input,
+.dropdown input,
+textarea {
+  width: 100%;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #374151;
+  outline: none;
+  background: #FFFFFF;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.select-icon {
+/* Nasconde l'icona nativa del date input */
+.input-with-icon input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.input-with-icon input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+
+.input-with-icon input {
+  padding-right: 40px;
+}
+
+.input-with-icon .input-icon,
+.dropdown .dropdown-icon {
   position: absolute;
-  right: 14px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: #9CA3AF;
+  width: 18px;
+  height: 18px;
   pointer-events: none;
-  transition: transform 0.2s ease;
-  z-index: 1;
 }
 
-.custom-select:focus + .select-icon {
-  transform: translateY(-50%) rotate(180deg);
+.input-with-icon .input-icon svg,
+.dropdown .dropdown-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
-/* ===================================
-   DROPDOWN MENU
-   =================================== */
+textarea {
+  resize: none;
+  min-height: 80px;
+}
 
-.dropdown-menu {
+.input-with-icon input:focus,
+.dropdown input:focus,
+textarea:focus {
+  border-color: #E56A3D;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.12);
+}
+
+.input-with-icon.error input,
+.dropdown.error input {
+  border-color: #DC2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.dropdown-panel {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background-color: #FFFFFF;
+  background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  max-height: 240px;
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  max-height: 180px;
   overflow-y: auto;
   z-index: 10;
 }
 
-.dropdown-item {
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  border-bottom: 1px solid #F9FAFB;
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.dropdown-item:hover {
-  background-color: #FEF3EF;
-}
-
-.dropdown-item:active {
-  background-color: #FDE7DD;
-}
-
-.user-info {
+.dropdown-panel button {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1F2937;
 }
 
-.user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+.dropdown-panel button:hover {
+  background: #F9FAFB;
 }
 
-.user-bu {
+.dropdown-panel small {
+  color: #9CA3AF;
+  font-size: 11px;
+}
+
+.dropdown-empty {
+  padding: 10px 12px;
   font-size: 12px;
   color: #9CA3AF;
 }
 
-.dropdown-empty {
-  padding: 20px;
-  text-align: center;
+.helper-text {
+  font-size: 10px;
   color: #9CA3AF;
+  margin: 0;
+}
+
+.error-text {
+  font-size: 11px;
+  color: #DC2626;
+  margin: 0;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-footer .btn {
+  padding: 8px 16px;
   font-size: 13px;
 }
 
-.dropdown-menu::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown-menu::-webkit-scrollbar-track {
-  background: #F9FAFB;
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 3px;
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
-
-/* ===================================
-   MODAL FOOTER
-   =================================== */
-
-.modal-footer {
-  padding: 20px 28px;
-  border-top: 1px solid #F3F4F6;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-/* ===================================
-   BUTTONS
-   =================================== */
-
-.btn {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-cancel {
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  color: #6B7280;
-}
-
-.btn-cancel:hover {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
-}
-
-.btn-cancel:active {
-  background-color: #F3F4F6;
-}
-
-.btn-assign {
-  background-color: #E56A3D;
-  color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(229, 106, 61, 0.2);
-}
-
-.btn-assign:hover:not(:disabled) {
-  background-color: #D85E33;
-  box-shadow: 0 6px 16px rgba(229, 106, 61, 0.3);
-  transform: translateY(-1px);
-}
-
-.btn-assign:active:not(:disabled) {
-  background-color: #C75329;
-  transform: translateY(0);
-}
-
-.btn-assign:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* ===================================
-   RESPONSIVE
-   =================================== */
-
-@media (max-width: 576px) {
-  .modal-backdrop {
-    padding: 10px;
-  }
-
-  .modal-container {
-    max-width: 100%;
-    max-height: 95vh;
-    border-radius: 12px;
-  }
-
-  .modal-header {
-    padding: 20px;
-  }
-
-  .header-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .header-icon svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .modal-title {
-    font-size: 18px;
-  }
-
-  .modal-body {
-    padding: 20px;
-    max-height: calc(95vh - 140px);
+@media (max-width: 480px) {
+  .modal-card {
+    padding: 18px;
   }
 
   .modal-footer {
-    padding: 16px 20px;
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
-  .btn {
+  .modal-footer .btn {
     width: 100%;
-  }
-
-  .dropdown-menu {
-    max-height: 200px;
-  }
-}
-
-/* ===================================
-   ACCESSIBILITY
-   =================================== */
-
-.form-control:focus-visible,
-.btn:focus-visible {
-  outline: 2px solid #E56A3D;
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .modal-backdrop,
-  .modal-container {
-    animation: none;
-  }
-
-  .btn,
-  .dropdown-item,
-  .form-control,
-  .select-icon {
-    transition: none;
   }
 }
