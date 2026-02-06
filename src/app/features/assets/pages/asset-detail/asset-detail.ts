@@ -49,16 +49,16 @@ export class AssetDetailComponent implements OnInit {
         assignmentDate: null,
         returnDate: null,
         notes: '-',
-        status: 'available',
+        status: 'Available',
         statusLabel: 'Disponibile',
-        typology: 'Laptop',
+        assetType: 'Laptop',
         movements: [
           {
             id: '1',
             date: '15/05/2025',
             user: 'Mario Rossi',
             userId: '123',
-            movementType: 'assigned',
+            movementType: 'Assigned',
             movementLabel: 'Assegnato'
           }
         ]
@@ -124,11 +124,11 @@ export class AssetDetailComponent implements OnInit {
   getStatusClass(): string {
     const status = this.asset()?.status;
     switch (status) {
-      case 'assigned':
+      case 'Assigned':
         return 'status-assigned';
-      case 'available':
+      case 'Available':
         return 'status-available';
-      case 'dismissed':
+      case 'Dismissed':
         return 'status-dismissed';
       default:
         return '';

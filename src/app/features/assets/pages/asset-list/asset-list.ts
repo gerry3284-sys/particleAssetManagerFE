@@ -5,162 +5,70 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
 import { FiltersComponent } from '../../../../shared/components/filters/filters'; // ← AGGIUNGI
-import { FilterField, FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
+import { FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
+import { HttpClientModule } from '@angular/common/http';
+import { AssetService } from '../../../../shared/services/asset.service'; // ← AGGIUNGI
+import { Asset } from '../../../../shared/models/asset.interface';
 
-interface Asset {
-  id: string;
-  status: 'assigned' | 'available' | 'dismissed';
-  statusLabel: string;
-  brand: string;
-  model: string;
-  serialNumber: string;
-  assignedUser: string;
-  businessUnit: string;
-  assignmentDate: string;
-}
 
 @Component({
   selector: 'app-asset-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent, FiltersComponent], // ← AGGIUNGI FiltersComponent
+  imports: [
+  CommonModule,
+  FormsModule,
+  HttpClientModule,
+  PaginationComponent,
+  FiltersComponent
+], 
   templateUrl: './asset-list.html',
   styleUrl: './asset-list.css'
 })
 export class AssetListComponent implements OnInit {
   
   
-  filterFields: FilterField[] = [
-    {
-      key: 'typology',
-      label: 'Tipologia Asset',
-      type: 'select',
-      options: [
-        { value: '', label: 'Tutte le Tipologie' },
-        { value: 'laptop', label: 'Laptop' },
-        { value: 'phone', label: 'Smartphone' },
-        { value: 'tablet', label: 'Tablet' },
-        { value: 'sim', label: 'SIM' }
-      ]
-    },
-    {
-      key: 'businessUnit',
-      label: 'Business Unit',
-      type: 'select',
-      options: [
-        { value: '', label: 'Tutte le BU' },
-        { value: 'Marketing', label: 'Marketing' },
-        { value: 'Vendite', label: 'Vendite' },
-        { value: 'IT', label: 'IT' },
-        { value: 'HR', label: 'HR' }
-      ]
-    },
-    {
-      key: 'status',
-      label: 'Stato Asset',
-      type: 'select',
-      options: [
-        { value: '', label: 'Tutti gli Stati' },
-        { value: 'assigned', label: 'Assegnato' },
-        { value: 'available', label: 'Disponibile' },
-        { value: 'dismissed', label: 'Dismesso' }
-      ]
-    },
-    {
-      key: 'searchName',
-      label: 'Nome Assegnatario',
-      type: 'search',
-      placeholder: 'Cerca per nome...'
-    }
-  ];
+  
 
   // Filtri correnti (signal)
   currentFilters = signal<FilterValues>({});
 
   // Assets (signal)
-  allAssets = signal<Asset[]>([
-    {
-      id: '1',
-      status: 'assigned',
-      statusLabel: 'Assegnato',
-      brand: 'Apple',
-      model: 'MacBook Pro 14',
-      serialNumber: 'C02DXXKX1234',
-      assignedUser: 'Mario Rossi',
-      businessUnit: 'Marketing',
-      assignmentDate: '10/01/2023'
-    },
-    {
-      id: '2',
-      status: 'assigned',
-      statusLabel: 'Assegnato',
-      brand: 'Dell',
-      model: 'Latitude 7420',
-      serialNumber: 'FG5HXXXX5678',
-      assignedUser: 'Giulia Bianchi',
-      businessUnit: 'Vendite',
-      assignmentDate: '15/02/2023'
-    },
-    {
-      id: '3',
-      status: 'dismissed',
-      statusLabel: 'Dismesso',
-      brand: 'Lenovo',
-      model: 'ThinkPad X1',
-      serialNumber: 'PF2AXXXX4321',
-      assignedUser: '-',
-      businessUnit: '-',
-      assignmentDate: '01/06/2024'
-    },
-    {
-      id: '4',
-      status: 'available',
-      statusLabel: 'Disponibile',
-      brand: 'Samsung',
-      model: 'Galaxy S23',
-      serialNumber: 'RF8TXXXX3456',
-      assignedUser: '-',
-      businessUnit: '-',
-      assignmentDate: '-'
-    },
-    {
-      id: '5',
-      status: 'dismissed',
-      statusLabel: 'Dismesso',
-      brand: 'Vodafone',
-      model: 'SIM Dati',
-      serialNumber: '893BXXXXXXXX789',
-      assignedUser: 'Mario Rossi',
-      businessUnit: 'Marketing',
-      assignmentDate: '25/05/2024'
-    }
-  ]);
+ allAssets = signal<Asset[]>([]);
+ loading = signal(true);
+ error = signal<string | null>(null); // segnala eventuali errori
 
   // Assets filtrati in base ai filtri correnti
   filteredAssets = computed(() => {
-    const filters = this.currentFilters();
-    let assets = this.allAssets();
+  const filters = this.currentFilters();
+  let assets = this.allAssets();
 
-    // Filtra per Business Unit
-    if (filters['businessUnit']) {
-      assets = assets.filter(a => a.businessUnit === filters['businessUnit']);
-    }
+  // Filtra per Tipologia
+  if (filters.assetType) {
+    // contorllo se "a"(singolo asset dell'array assets) è ugualea filters.assetType , se è vero rimane (array filtrato) se è falso viene scartato
+    assets = assets.filter(a => a.assetType === filters.assetType); 
+  }
 
-    // Filtra per Status
-    if (filters['status']) {
-      assets = assets.filter(a => a.status === filters['status']);
-    }
+  // Filtra per Business Unit
+  if (filters.businessUnit) {
+    assets = assets.filter(a => a.businessUnit === filters.businessUnit);
+  }
 
-    // Filtra per Nome (search)
-    if (filters['searchName']) {
-      const search = filters['searchName'].toLowerCase();
-      assets = assets.filter(a => 
-        a.assignedUser.toLowerCase().includes(search)
-      );
-    }
+  // Filtra per Status
+  if (filters.status) {
+    assets = assets.filter(a => a.status === filters.status);
+  }
 
+  // Filtra per Nome assegnatario (ricerca parziale)
+  if (filters.assignedUser) {
+    const search = filters.assignedUser.toLowerCase();
+    assets = assets.filter(a =>
+      a.assignedUser?.toLowerCase().includes(search)
+    );
+  }
 
-    return assets;
-  });
+  return assets;
+});
+
 
   // Paginazione
   currentPage = signal(1);
@@ -182,13 +90,30 @@ export class AssetListComponent implements OnInit {
     return `Mostrando ${start}-${end} di ${this.filteredAssets().length}`;
   });
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private readonly assetService: AssetService
+  ) {}
 
   ngOnInit(): void {
-    console.log('Asset list initialized');
+  this.loadAssets();
+}
+  private loadAssets(): void {
+    this.loading.set(true);
+    this.assetService.getAssets().subscribe({
+      next: (assets) => {
+        this.allAssets.set(assets);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.error.set('Errore nel caricamento degli asset');
+        this.loading.set(false);
+      }
+    });
   }
 
-  // ✅ SOSTITUISCI applyFilters con onFiltersChange
+ 
   onFiltersChange(filters: FilterValues): void {
     console.log('Filtri applicati:', filters);
     this.currentFilters.set(filters);

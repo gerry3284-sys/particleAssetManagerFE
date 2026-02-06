@@ -1,28 +1,29 @@
-/**
- * Opzione per un filtro select.
- * Esempio: { value: 'marketing', label: 'Marketing' }
- */
-export interface FilterOption {
-  value: string;    // Valore tecnico (usato nel codice)
-  label: string;    // Etichetta mostrata all'utente
+export interface User {
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+  businessUnit: { id: number; name: string };
 }
 
-/**
- * Configurazione di un singolo campo filtro.
- * Indica se è una select o un input di ricerca.
- */
-export interface FilterField {
-  key: string;                    // Identificatore univoco (es: 'businessUnit')
-  label: string;                  // Etichetta visualizzata (es: 'Business Unit')
-  type: 'select' | 'search';      // Tipo di filtro
-  placeholder?: string;           // Placeholder per input search (opzionale)
-  options?: FilterOption[];       // Opzioni per select (opzionale)
+export interface AssetType {
+  id: number;
+  name: string;
 }
 
-/**
- * Valori correnti dei filtri (chiavi dinamiche).
- * Esempio: { businessUnit: 'Marketing', status: 'assigned', searchName: 'Mario' }
- */
+export interface BusinessUnit {
+  id: number;
+  name: string;
+}
+
+export interface AssetStatusType {
+  id: number;
+  name: string;
+}
+
 export interface FilterValues {
-  [key: string]: string;  // Chiave -> valore
+  assetType?: string;
+  businessUnit?: string;
+  status?: string;
+  assignedUser?: string;
 }

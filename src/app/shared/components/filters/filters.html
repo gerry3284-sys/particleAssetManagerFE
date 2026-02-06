@@ -1,39 +1,53 @@
+<!-- Card contenitore dei filtri -->
 <div class="filters-card">
-  <div class="filters-grid">
+  <form [formGroup]="filtersForm" class="filters-grid">
     
-    @for (field of fields(); track field.key) {
-      <div class="filter-item">
-        <label class="filter-label">{{ field.label }}</label>
-        
-        <!-- Filtro tipo SELECT -->
-        @if (field.type === 'select') {
-          <select 
-            class="form-select filter-control"
-            [value]="getFilterValue(field.key)"
-            (change)="onFilterChange(field.key, $any($event.target).value)">
-            @for (option of field.options; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        }
-        
-        <!-- Filtro tipo SEARCH -->
-        @if (field.type === 'search') {
-          <div class="input-with-icon">
-            <svg class="input-icon" viewBox="0 0 24 24" fill="none">
-              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
-              <path d="M20 20L16.5 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            </svg>
-            <input 
-              type="text"
-              class="form-control filter-control"
-              [placeholder]="field.placeholder || 'Cerca...'"
-              [value]="getFilterValue(field.key)"
-              (input)="onFilterChange(field.key, $any($event.target).value)" />
-          </div>
-        }
-      </div>
-    }
-    
-  </div>
+    <!-- Tipologia Asset -->
+    <div class="filter-item">
+      <label class="filter-label" for="assetType">Tipologia Asset</label>
+      <select id="assetType" formControlName="assetType" class="filter-control">
+        <option value="">Tutte le tipologie</option>
+        <option *ngFor="let type of assetTypes()" [value]="type.name">
+          {{ type.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Business Unit -->
+    <div class="filter-item">
+      <label class="filter-label" for="businessUnit">Business Unit</label>
+      <select id="businessUnit" formControlName="businessUnit" class="filter-control">
+        <option value="">Tutte le BU</option>
+        <option *ngFor="let bu of businessUnits()" [value]="bu.name">
+          {{ bu.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Stato Asset -->
+    <div class="filter-item">
+      <label class="filter-label" for="status">Stato Asset</label>
+      <select id="status" formControlName="status" class="filter-control">
+        <option value="">Tutti gli stati</option>
+        <option *ngFor="let status of assetStatusTypes()" [value]="status.name">
+          {{ status.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Nome Assegnatario (input con debounce) -->
+    <div class="filter-item input-with-icon">
+      <label class="filter-label" for="assignedUser">Nome Assegnatario</label>
+      <input
+        id="assignedUser"
+        type="text"
+        placeholder="Cerca per nome..."
+        formControlName="assignedUser"
+        class="filter-control"
+      />
+      
+      
+    </div>
+
+  </form>
 </div>

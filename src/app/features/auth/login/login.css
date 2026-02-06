@@ -141,6 +141,21 @@
 .link:hover {
 	text-decoration: underline;
 }
+/* Input non valido */
+input.invalid {
+  border-color: #f51010;
+  box-shadow: 0 0 0 2px #e40a0a;
+}
+
+/* Pulsante disabilitato */
+button:disabled,
+.btn-login:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  background-color: #E56A3D; /* mantiene colore ma più chiaro con opacity */
+  border-color: #E56A3D;
+}
 
 @media (max-width: 480px) {
 	.login-card {

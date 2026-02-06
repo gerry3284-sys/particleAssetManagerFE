@@ -1,7 +1,7 @@
 export interface AssetCreateForm {
   brand: string;
   model: string;
-  typology: string;
+  assetType: string;
   serialNumber: string;
   businessUnit: string;
   notes?: string;
@@ -9,7 +9,7 @@ export interface AssetCreateForm {
 
 export interface Asset {
   id: string;
-  status: 'assigned' | 'available' | 'dismissed';
+  status: 'Assigned' | 'Available' | 'Dismissed';
   statusLabel: string;
   brand: string;
   model: string;
@@ -17,7 +17,7 @@ export interface Asset {
   assignedUser: string;
   businessUnit: string;
   assignmentDate: string;
-  typology?: string;
+  assetType?: string;
   notes?: string;
 }
 
@@ -26,7 +26,7 @@ export interface AssetMovement {
   date: string;
   user: string;
   userId: string;
-  movementType: 'assigned' | 'returned' | 'dismissed';
+  movementType: 'Assigned' | 'Returned' | 'Dismissed';
   movementLabel: string;
 }
 
@@ -41,9 +41,9 @@ export interface AssetDetail {
   assignmentDate: string | null;
   returnDate: string | null;
   notes: string;
-  status: 'assigned' | 'available' | 'dismissed';
+  status: 'Assigned' | 'Available' | 'Dismissed';
   statusLabel: string;
-  typology: string;
+  assetType: string;
   movements: AssetMovement[];
 }
 

@@ -17,14 +17,14 @@ export class AssetCreateComponent {
   assetForm = signal<AssetCreateForm>({
     brand: '',
     model: '',
-    typology: '',
+    assetType: '',
     serialNumber: '',
     businessUnit: '',
     notes: ''
   });
 
   // Opzioni per le select
-  typologyOptions = [
+  assetTypeOptions = [
     { value: '', label: 'Seleziona una tipologia' },
     { value: 'laptop', label: 'Laptop' },
     { value: 'phone', label: 'Smartphone' },
@@ -63,7 +63,7 @@ export class AssetCreateComponent {
     return !!(
       form.brand &&
       form.model &&
-      form.typology &&
+      form.assetType &&
       form.serialNumber &&
       form.businessUnit
     );

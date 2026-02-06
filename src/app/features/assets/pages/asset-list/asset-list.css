@@ -56,6 +56,15 @@
 	line-height: 1;
 }
 
+.loading {
+	padding: 10px 12px;
+	font-size: 12px;
+	color: #6B7280;
+	background-color: #FFF7ED;
+	border: 1px solid #FCD34D;
+	border-radius: 8px;
+}
+
 /* Stili dei filtri sono gestiti dal componente app-filters */
 
 .table-card {

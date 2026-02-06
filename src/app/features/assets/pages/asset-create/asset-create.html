@@ -51,16 +51,16 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="typology">
+            <label class="form-label" for="assetType">
               Tipologia Asset <span class="required">*</span>
             </label>
             <select
-              id="typology"
+              id="assetType"
               class="form-select"
-              [value]="assetForm().typology"
-              (change)="updateField('typology', $any($event.target).value)"
+              [value]="assetForm().assetType"
+              (change)="updateField('assetType', $any($event.target).value)"
               required>
-              @for (option of typologyOptions; track option.value) {
+              @for (option of assetTypeOptions; track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
             </select>

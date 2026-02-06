@@ -1,68 +1,72 @@
-import { Component, input, output, effect, signal } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { FilterField, FilterValues } from '../../models/filter-config.interface';
+import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
+import { FilterService } from '../../services/filter.service';
+import { User, AssetType, BusinessUnit, AssetStatusType } from '../../models/filter-config.interface';
+import { merge } from 'rxjs';
+import { debounceTime, map } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-filters',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule], // serve per ngFor, ngIf e Reactive Forms
   templateUrl: './filters.html',
-  styleUrl: './filters.css'
+  styleUrl: './filters.css',
 })
-export class FiltersComponent {
-  // Input: configurazione dei filtri da mostrare
-  fields = input.required<FilterField[]>();
-  
-  // Input: valori iniziali dei filtri (opzionale)
-  initialValues = input<FilterValues>({});
-  
-  // Output: emette i valori dei filtri quando cambiano
-  filtersChange = output<FilterValues>();
-  
-  //  Signal interno per gestire i valori correnti
-  filterValues = signal<FilterValues>({});
+export class FiltersComponent implements OnInit {
 
-  constructor() {
-    // Inizializza i valori quando il componente viene creato
-    effect(() => {
-      const initial = this.initialValues();
-      const fields = this.fields();
-      
-      // Crea un oggetto con tutti i campi inizializzati
-      const values: FilterValues = {};
-      fields.forEach(field => {
-        values[field.key] = initial[field.key] || '';
+  // output  emette i filtri al padre quando cambiano
+  @Output() filtersChange = new EventEmitter<{
+    assetType: string;
+    businessUnit: string;
+    status: string;
+    assignedUser: string;
+  }>();
+
+  //  Signals per i dati delle select
+  assetTypes = signal<AssetType[]>([]);
+  businessUnits = signal<BusinessUnit[]>([]);
+  assetStatusTypes = signal<AssetStatusType[]>([]);
+  users = signal<User[]>([]);
+
+  // FormGroup per tutti i filtri
+  filtersForm = new FormGroup<{
+    assetType: FormControl<string>;
+    businessUnit: FormControl<string>;
+    status: FormControl<string>;
+    assignedUser: FormControl<string>;
+  }>({
+    assetType: new FormControl<string>('', { nonNullable: true }),      // dropdown tipologia asset
+    businessUnit: new FormControl<string>('', { nonNullable: true }),  // dropdown business unit
+    status: new FormControl<string>('', { nonNullable: true }),        // dropdown stato asset
+    assignedUser: new FormControl<string>('', { nonNullable: true }),  // input nome assegnatario
+  });
+
+  constructor(private filterService: FilterService) {}
+
+  ngOnInit(): void {
+    // 4️⃣ Popoliamo i dropdown tramite API
+    this.filterService.getAssetTypes().subscribe(types => this.assetTypes.set(types));
+    this.filterService.getBusinessUnits().subscribe(bu => this.businessUnits.set(bu));
+    this.filterService.getAssetStatusTypes().subscribe(status => this.assetStatusTypes.set(status));
+    this.filterService.getUsers().subscribe(users => this.users.set(users));
+
+    // 5️⃣ Emissione filtri: immediata per select, debounced per input nome
+    const immediate$ = merge(
+      this.filtersForm.controls.assetType.valueChanges,
+      this.filtersForm.controls.businessUnit.valueChanges,
+      this.filtersForm.controls.status.valueChanges
+    );
+
+    const debounced$ = this.filtersForm.controls.assignedUser.valueChanges.pipe(
+      debounceTime(500) // aspetta 500ms dall’ultimo carattere digitato
+    );
+
+    merge(immediate$, debounced$)
+      .pipe(map(() => this.filtersForm.getRawValue()))
+      .subscribe(values => {
+        this.filtersChange.emit(values);
       });
-      
-      this.filterValues.set(values);
-    });
-  }
-
-  //  Metodo chiamato quando un filtro cambia
-  onFilterChange(key: string, value: string): void {
-    // Aggiorna il signal
-    this.filterValues.update(current => ({
-      ...current,
-      [key]: value
-    }));
-    
-    // Emetti i nuovi valori al componente parent
-    this.filtersChange.emit(this.filterValues());
-  }
-
-  // Metodo per resettare tutti i filtri (opzionale, per uso futuro)
-  resetFilters(): void {
-    const resetValues: FilterValues = {};
-    this.fields().forEach(field => {
-      resetValues[field.key] = '';
-    });
-    this.filterValues.set(resetValues);
-    this.filtersChange.emit(this.filterValues());
-  }
-
-  // Helper per ottenere il valore corrente di un filtro
-  getFilterValue(key: string): string {
-    return this.filterValues()[key] || '';
   }
 }
