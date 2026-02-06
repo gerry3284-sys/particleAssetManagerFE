@@ -1,0 +1,97 @@
+.user-page {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+.page-header {
+	margin-bottom: 2px;
+}
+
+.page-title {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 600;
+	color: #1F2937;
+}
+
+.page-subtitle {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: #9CA3AF;
+}
+.filters-card {
+	background-color: #FFFFFF;
+	border: 1px solid #EFEFEF;
+	border-radius: 12px;
+	padding: 14px 16px;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.filters-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.filter-item {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.filter-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: #6B7280;
+}
+
+.filter-control {
+	font-size: 12px;
+	border-radius: 8px;
+	border: 1px solid #E5E7EB;
+	padding: 8px 12px;
+	color: #6B7280;
+}
+.table-card {
+    margin-top: 18px;
+    width: 100%;
+	background-color: #FFFFFF;
+	border: 1px solid #EFEFEF;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    align-items: center;
+}
+.user-header {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+	align-items: center;
+	padding: 12px;
+	font-size: 12px;
+	color: #4B5563;
+	border-bottom: 1px solid #F3F4F6;
+	background-color: #F9FAFB;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.user-row{
+  display: grid;
+  padding: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid #F3F4F6;
+  gap: 14px;
+  text-align: start;
+  vertical-align: middle;
+}
+.table-foot{
+  color: #4B5563;
+  display: grid;
+  padding: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  text-align:center ;
+  vertical-align: middle;
+}

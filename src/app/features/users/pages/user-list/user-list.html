@@ -1,3 +1,57 @@
-<div class="border border-orange p-2">
-  <h3>UserList (lista utenti)</h3>
+<div class="user-page">
+  <!-- titolo -->
+  <div class="page-header d-flex align-items-start justify-content-between gap-3">
+    <div>
+      <h2 class="page-title">Utenti</h2>
+      <p class="page-subtitle">Visualizza e gestisci tutti gli utenti.</p>
+    </div>
+  </div>
+  <!-- filtro per la tabella -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="filter-item">
+        <label class="filter-label">Nome</label>
+        <input class="form-control filter-control" name="nome" placeholder="Cerca per nome..." [ngModel]="searchTerm()">
+      </div>
+      <div class="filter-item">
+        <label class="filter-label">Business Unit</label>
+        <select class="form-select filter-control" [(ngModel)]="filter" (change)="onFilter()">
+          <option value="">Tutte le categorie</option>
+          @for(businessType of businessTypes(); track businessType.id)
+          {
+              <option [value]="businessType.name"> {{businessType.name}} </option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+  <!-- tabella di users -->
+  <table class="table-card ">
+    <thead>
+      <tr class="user-header">
+        <th> UTENTE </th>
+        <th> EMAIL </th>
+        <th> BUSINESS UNIT </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for(user of usersFiltered(); track user.id)
+      {
+        <tr class="user-row" [routerLink]="['user-detail', user.id]" routerLinkActive="active" style="cursor: pointer;">
+          <td>{{user.name}} {{user.surname}}</td>
+          <td>{{user.email}}</td>
+          <td>{{user.businessUnit.name}}</td>
+      </tr>
+      }
+      <tr class="table-foot">
+        <td>
+          {{displayRange()}}
+        </td>
+        <td></td>
+        <td>
+          <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)" style="width: min-content;"></app-pagination>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>

@@ -4,6 +4,7 @@ import { MainLayoutComponent } from './core/layout/main-layout/main-layout';
 import { AssetListComponent } from './features/assets/pages/asset-list/asset-list';
 import { UserList } from './features/users/pages/user-list/user-list';
 import { Login } from './features/auth/login/login';
+import { UserDetail } from './features/user-detail/user-detail';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -22,6 +23,7 @@ export const routes: Routes = [
       { path: 'assets/new', redirectTo: 'assets', pathMatch: 'full' },
       { path: 'assets/:id', redirectTo: 'assets', pathMatch: 'full' },
       { path: 'users', component: UserList },
+      { path: 'users/user-detail/:id', component: UserDetail },
       { path: '', redirectTo: 'assets', pathMatch: 'full' }
     ]
   },

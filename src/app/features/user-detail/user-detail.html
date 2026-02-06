@@ -1,0 +1,69 @@
+<div class="user-detail-page">
+    <!-- tasto per tornare indieto e nome dell'utente -->
+    <div class="page-header d-flex align-items-start justify-content-between gap-3">
+        <div>
+            <a routerLink="/users" routerLinkActive="active" style="cursor: pointer;" class="user-button"><- Indietro</a>
+            <h2 class="page-title">{{fullName()}}</h2>
+        </div>
+    </div>
+    <!-- informazioni dell'utente -->
+    <div class="user-card">
+        <div class="user-info">
+            <div class="user-item">
+                <div class="avatar">
+                    <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
+                </div>
+                <div>
+                <div class="user-name fw-bold">{{fullName()}}</div>
+                <div class="user-role">Bussiness Unit: {{businessUnit()}}</div>
+                </div>
+            </div>
+            <div class="email">
+                <img src="/assets/icona-email.svg" alt="email">
+                <div class="user-text">{{email()}}</div>
+            </div>
+            <div class="telefono">
+                <img src="/assets/icona-telefono.svg" alt="telefono">
+                <div class="user-text">{{phoneNumber()}}</div>
+            </div>
+        </div>
+    </div>
+    <h5 class="page-subtitle">Storico degli asset</h5>
+<!-- tabella storico degli asset -->
+    <table class="table-card ">
+        <thead>
+            <tr class="user-header">
+                <th> MARCA </th>
+                <th> MODELLO </th>
+                <th> NUMERO SERIALE </th>
+                <th> DATA ASSEGNAZIONE </th>
+                <th> DATA RICONSEGNA </th>
+            </tr>
+        </thead>
+        <tbody>
+            @for(movement of movements; track movement.id)
+            {
+                @if(movement.dismesso)
+                {
+                <tr class="user-row-dismesso">
+                    <td>{{movement.marca}}</td>
+                    <td>{{movement.modello}}   [-Dismesso-]</td>
+                    <td>{{movement.numeroSeriale}}</td>
+                    <td>{{movement.dataAssegnazione}}</td>
+                    <td>{{movement.dataRiconsegna}}</td>
+                </tr>
+                }
+                @else 
+                {
+                    <tr class="user-row">
+                        <td>{{movement.marca}}</td>
+                        <td>{{movement.modello}}</td>
+                        <td>{{movement.numeroSeriale}}</td>
+                        <td>{{movement.dataAssegnazione}}</td>
+                        <td>{{movement.dataRiconsegna}}</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
