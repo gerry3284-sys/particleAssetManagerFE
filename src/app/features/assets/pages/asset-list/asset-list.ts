@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
 import { FiltersComponent } from '../../../../shared/components/filters/filters'; // ← AGGIUNGI
 import { FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
-import { HttpClientModule } from '@angular/common/http';
 import { AssetService } from '../../../../shared/services/asset.service'; // ← AGGIUNGI
 import { Asset } from '../../../../shared/models/asset.interface';
 
@@ -17,7 +16,6 @@ import { Asset } from '../../../../shared/models/asset.interface';
   imports: [
   CommonModule,
   FormsModule,
-  HttpClientModule,
   PaginationComponent,
   FiltersComponent
 ], 
@@ -122,12 +120,12 @@ export class AssetListComponent implements OnInit {
     this.currentPage.set(1);
   }
 
-  goToAssetDetail(assetId: string): void {
-  this.router.navigate(['/assets', assetId]); // ← RIMUOVI il return
+  goToAssetDetail(assetCode: string): void {
+  this.router.navigate(['/assets', assetCode]);
 }
 
   createNewAsset(): void {
-  this.router.navigate(['/assets/new']);  // ← RIMUOVI il return
+  this.router.navigate(['/assets/new']);
 }
 
   goToPage(page: number): void {

@@ -6,6 +6,7 @@ import { AssetCreateComponent } from './features/assets/pages/asset-create/asset
 import { UserListComponent } from './features/users/pages/user-list/user-list';
 import { LoginComponent } from './features/auth/login/login';
 import { AssetDetailComponent } from './features/assets/pages/asset-detail/asset-detail';
+import { NotFoundComponent } from './features/errors/pages/not-found/not-found';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   
@@ -26,15 +27,19 @@ export const routes: Routes = [
       // Assets
       { path: 'assets', component: AssetListComponent },
       { path: 'assets/new', component: AssetCreateComponent },
-      { path: 'assets/:id', component: AssetDetailComponent },      
+      { path: 'assets/:assetCode', component: AssetDetailComponent },      
       // Users
       { path: 'users', component: UserListComponent },
+
       
       // Default redirect
       { path: '', redirectTo: 'assets', pathMatch: 'full' }
     ]
   },
   
-  // Wildcard
-  { path: '**', redirectTo: 'login' }
+  // Pagina 404 senza layout
+  { path: '404', component: NotFoundComponent },
+
+  // Wildcard globale
+  { path: '**', redirectTo: '404' }
 ];

@@ -9,6 +9,7 @@ export interface AssetCreateForm {
 
 export interface Asset {
   id: string;
+  assetCode: string;
   status: 'Assigned' | 'Available' | 'Dismissed';
   statusLabel: string;
   brand: string;
@@ -28,10 +29,12 @@ export interface AssetMovement {
   userId: string;
   movementType: 'Assigned' | 'Returned' | 'Dismissed';
   movementLabel: string;
+  note?: string;
 }
 
 export interface AssetDetail {
   id: string;
+  assetCode: string;
   businessUnit: string;
   brand: string;
   model: string;

@@ -190,7 +190,7 @@
 
 .movements-data {
   color: #374151;
-  cursor: pointer;
+  cursor: default;
   transition: background-color 0.15s ease;
   padding-left: 12px;
   padding-right: 12px;
@@ -199,7 +199,11 @@
   border-radius: 8px;
 }
 
-.movements-data:hover {
+.movements-data.expandable {
+  cursor: pointer;
+}
+
+.movements-data.expandable:hover {
   background-color: #F9FAFB;
 }
 
@@ -211,6 +215,31 @@
 
 .movement-label {
   font-weight: 600;
+}
+
+.movement-toggle {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-left: 8px;
+}
+
+.movements-data.expanded {
+  background-color: #F9FAFB;
+}
+
+.movement-note {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding: 0 0 6px 132px;
+  font-size: 12px;
+  color: #6B7280;
+  display: flex;
+  gap: 6px;
+}
+
+.movement-note-label {
+  font-weight: 600;
+  color: #9CA3AF;
 }
 
 .arrow-icon {
@@ -250,6 +279,34 @@
 /* Button styles specifici per asset-detail */
 .btn {
   width: 100%; /* Full width per questa sezione */
+}
+
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: grayscale(1);
+}
+
+/* Rende molto evidente lo stato disabilitato per ogni variante */
+.btn.btn-primary:disabled,
+.btn.btn-primary.btn-disabled {
+  background-color: #FDE6DD;
+  color: #9CA3AF;
+}
+
+.btn.btn-secondary:disabled,
+.btn.btn-secondary.btn-disabled {
+  background-color: #F3F4F6;
+  border-color: #E5E7EB;
+  color: #9CA3AF;
+}
+
+.btn.btn-danger:disabled,
+.btn.btn-danger.btn-disabled {
+  background-color: #FEE2E2;
+  color: #9CA3AF;
 }
 
 /* ===================================

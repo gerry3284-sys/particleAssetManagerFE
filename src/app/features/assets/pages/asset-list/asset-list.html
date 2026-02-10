@@ -42,11 +42,11 @@
       </div>
 
       <!-- Righe dinamiche -->
-      @for (asset of paginatedAssets(); track asset.id) {
+      @for (asset of paginatedAssets(); track asset.assetCode) {
         <div 
           class="asset-row" 
           [class.muted]="asset.status === 'Dismissed'"
-          (click)="goToAssetDetail(asset.id)"
+          (click)="goToAssetDetail(asset.assetCode)"
           style="cursor: pointer;">
           
           <!-- Colonna Stato -->

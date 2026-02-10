@@ -38,55 +38,46 @@
             
             <div class="info-grid">
               
-              <!-- Business Unit -->
               <div class="info-item full-width">
                 <span class="info-label">Business Unit</span>
                 <span class="info-value">{{ asset()!.businessUnit }}</span>
               </div>
 
-              <!-- Marca -->
               <div class="info-item">
                 <span class="info-label">Marca</span>
                 <span class="info-value">{{ asset()!.brand }}</span>
               </div>
 
-              <!-- Modello -->
               <div class="info-item">
                 <span class="info-label">Modello</span>
                 <span class="info-value">{{ asset()!.model }}</span>
               </div>
 
-              <!-- Numero Seriale -->
               <div class="info-item">
                 <span class="info-label">Numero Seriale</span>
                 <span class="info-value">{{ asset()!.serialNumber }}</span>
               </div>
 
-              <!-- Utente Assegnato -->
               <div class="info-item">
                 <span class="info-label">Utente Assegnato</span>
                 <span class="info-value">{{ asset()!.assignedUser || '-' }}</span>
               </div>
 
-              <!-- Data Assegnazione -->
               <div class="info-item">
                 <span class="info-label">Data di Assegnazione</span>
                 <span class="info-value">{{ asset()!.assignmentDate || '-' }}</span>
               </div>
 
-              <!-- Data Riconsegna -->
               <div class="info-item">
                 <span class="info-label">Data di Riconsegna</span>
                 <span class="info-value">{{ asset()!.returnDate || '-' }}</span>
               </div>
 
-              <!-- Note -->
               <div class="info-item full-width">
                 <span class="info-label">Note</span>
                 <span class="info-value">{{ asset()!.notes || '-' }}</span>
               </div>
 
-              <!-- Stato -->
               <div class="info-item">
                 <span class="info-label">Stato</span>
                 <span class="status-badge" [ngClass]="getStatusClass()">
@@ -111,23 +102,37 @@
               </div>
 
               <!-- Rows -->
-              @for (movement of asset()!.movements; track movement.id) {
+              @for (movement of movements(); track movement.id) {
                 <div 
                   class="movements-row movements-data"
-                  (click)="goToMovementDetail(movement.id)">
+                  (click)="movement.note && goToMovementDetail(movement.id)"
+                  [class.expandable]="!!movement.note"
+                  [class.expanded]="movement.note && isMovementExpanded(movement.id)">
                   <div class="col-date">{{ movement.date }}</div>
                   <div class="col-user">{{ movement.user }}</div>
                   <div class="col-movement">
                     <span class="movement-label">{{ movement.movementLabel }}</span>
-                    <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    @if (movement.note) {
+                      <span class="movement-toggle">
+                        @if (isMovementExpanded(movement.id)) {
+                          ▼
+                        } @else {
+                          ▶
+                        }
+                      </span>
+                    }
                   </div>
+                  @if (movement.note && isMovementExpanded(movement.id)) {
+                    <div class="movement-note">
+                      <span class="movement-note-label">Note:</span>
+                      <span class="movement-note-text">{{ movement.note }}</span>
+                    </div>
+                  }
                 </div>
               }
 
               <!-- Empty State -->
-              @if (asset()!.movements.length === 0) {
+              @if (movements().length === 0) {
                 <div class="empty-state">
                   <p>Nessun movimento registrato</p>
                 </div>
@@ -148,6 +153,8 @@
               <button 
                 class="btn btn-primary"
                 type="button"
+                [disabled]="!canAssign()"
+                [class.btn-disabled]="!canAssign()"
                 (click)="assignAsset()">
                 Assegna Asset
               </button>
@@ -155,6 +162,8 @@
               <button 
                 class="btn btn-secondary"
                 type="button"
+                [disabled]="!canCertifyReturn()"
+                [class.btn-disabled]="!canCertifyReturn()"
                 (click)="certifyReturn()">
                 Certifica Riconsegna
               </button>
@@ -162,6 +171,8 @@
               <button 
                 class="btn btn-danger"
                 type="button"
+                [disabled]="!canDismiss()"
+                [class.btn-disabled]="!canDismiss()"
                 (click)="dismissAsset()">
                 Dismetti Asset
               </button>
@@ -182,6 +193,7 @@
 
   </div>
   
+  <!-- Modal assegnazione -->
   <app-assign-asset-modal
     [isOpen]="showAssignModal()"
     [assetId]="assetId()"
