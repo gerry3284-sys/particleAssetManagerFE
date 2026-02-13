@@ -1,0 +1,86 @@
+<div class="body">
+    <div class="over-page-union">
+        <div class="over-page-1">
+            <img src="/assets/icona-asset-file.svg" alt="Avatar-file" class="img-fluid avatar-file">
+            <span style="font-weight: bold;">Gestione Asset</span>
+        </div>
+        <div class="over-page-2">
+            <button (click)="onNavigate()" style="cursor: pointer; padding-right: 10px;">{{fullName()}}</button>
+            <img src="/assets/logo_Utente.png" alt="Avatar-mini" class="img-fluid avatar-mini">
+        </div>
+    </div>
+    <div class="user-standard-page">
+        <div class="page-header d-flex align-items-start justify-content-between gap-3">
+            <div>
+                <h2 class="page-title">{{fullName()}}!</h2>
+                <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
+            </div>
+        </div>
+        <!-- informazioni dell'utente -->
+        <div class="user-standard-subpage">
+            <div class="user-union">
+                <div class="user-title">Il Mio Profilo</div>
+                <div class="user-card"> 
+                    <div class="user-info">
+                        <div class="user-item">
+                            <div class="avatar">
+                                <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
+                            </div>
+                            <div>
+                            <div class="user-name fw-bold">{{fullName()}}</div>
+                            <div class="user-role">Bussiness Unit: {{businessUnit()}}</div>
+                            </div>
+                        </div>
+                        <div class="email">
+                            <img src="/assets/icona-email.svg" alt="email">
+                            <div class="user-text">{{email()}}</div>
+                        </div>
+                        <div class="telefono">
+                            <img src="/assets/icona-telefono.svg" alt="telefono">
+                            <div class="user-text">{{phoneNumber()}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- tabella storico degli asset -->
+            <table class="table-card ">
+                <thead>
+                    <div class="user-title"> I Miei Asset Assegnati</div>
+                    <!-- <tr class="user-title"> I Miei Asset Assegnati</tr> -->
+                </thead>
+                <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                    <tr class="user-header">
+                        <th> MARCA </th>
+                        <th> MODELLO </th>
+                        <th> NUMERO SERIALE </th>
+                        <th> DATA ASSEGNAZIONE </th>
+                        <th> DATA RICONSEGNA </th>
+                    </tr>
+                    @if(movements().length === 0){
+                        <tr class="user-row-empty">
+                            <td>Tabella attualmente vuota da movimenti</td>
+                        </tr>
+                    }
+                    @else{
+                        @for(movement of movements(); track movement.id){
+                            <tr class="user-row" [class.muted]="movement.movementType === 'Dismissed'">
+                            <td>{{movement.asset.brand}}</td>
+                            <td>{{movement.asset.model}}</td>
+                            <td>{{movement.asset.serialNumber}}</td>
+                            <td>{{movement.date | date: 'longDate'}}</td>
+                            @if(movement.updateDate === undefined){
+                                <td> - </td>
+                            }
+                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="under-page-union">
+        <div>
+            <span class="page-subtitle"> Asset Manager by Particle </span>
+        </div>
+    </div>
+</div>

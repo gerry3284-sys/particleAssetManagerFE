@@ -18,6 +18,7 @@ export class UserList{
   users = signal<User[]>([]);
   usersFiltered = signal<User[]>([]);
   businessTypes = signal<BusinessType[]>([]);
+  initialName = '';
   filter = '';
 
   constructor(private apiService: ApiService) {
@@ -40,25 +41,6 @@ export class UserList{
       }
     })
   }
-
-  searchTerm = signal('');
-
-  // Filtered items using computed signal
-  filteredItems = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    if (!term) {
-      return this.users();
-    }
-    return this.users().filter(user => 
-      user.name.toLowerCase().includes(term)
-    );
-  });
-
-  // Update search term
-  onSearchChange(value: string) {
-    this.searchTerm.set(value);
-  }
-
   currentPage = signal(1);
   
   itemsPerPage = signal(5);
@@ -85,20 +67,21 @@ export class UserList{
     console.log('Pagina:', page);
   }
 
-  onFilter(){
-    console.log(this.filter);
-    let filtered: User[] = [];
+  onFilter() {
+  let filtered = this.users();
 
-    if(this.filter === ''){
-      return this.usersFiltered.set(this.users());
-    }
-    else{
-      this.users().forEach(user => {
-        if(user.businessUnit.name === this.filter){
-          filtered = [...filtered, user];
-        }
-      })
-      return this.usersFiltered.set(filtered);
-    }
+  if (this.initialName !== '') {
+    const search = this.initialName.toLowerCase();
+    filtered = filtered.filter(user =>
+      user.name?.toLowerCase().includes(search) ||
+      user.surname.toLowerCase().includes(search)
+    );
   }
+
+  if (this.filter !== '') {
+    filtered = filtered.filter(user => user.businessUnit.name === this.filter);
+  }
+
+  this.usersFiltered.set(filtered);
+}
 }

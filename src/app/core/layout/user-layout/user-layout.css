@@ -1,0 +1,9 @@
+
+.user-layout {
+	padding: 1.5rem !important;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #F9FAFB;
+}

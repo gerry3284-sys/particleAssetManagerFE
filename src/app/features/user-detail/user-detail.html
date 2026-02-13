@@ -2,7 +2,7 @@
     <!-- tasto per tornare indieto e nome dell'utente -->
     <div class="page-header d-flex align-items-start justify-content-between gap-3">
         <div>
-            <a routerLink="/users" routerLinkActive="active" style="cursor: pointer;" class="user-button"><- Indietro</a>
+            <a routerLink="/users" routerLinkActive="active" style="cursor: pointer;" class="user-button">&larr; Indietro</a>
             <h2 class="page-title">{{fullName()}}</h2>
         </div>
     </div>
@@ -41,27 +41,22 @@
             </tr>
         </thead>
         <tbody>
-            @for(movement of movements; track movement.id)
-            {
-                @if(movement.dismesso)
-                {
-                <tr class="user-row-dismesso">
-                    <td>{{movement.marca}}</td>
-                    <td>{{movement.modello}}   [-Dismesso-]</td>
-                    <td>{{movement.numeroSeriale}}</td>
-                    <td>{{movement.dataAssegnazione}}</td>
-                    <td>{{movement.dataRiconsegna}}</td>
+            @if(movements().length === 0){
+                <tr class="user-row-empty">
+                    <td>Tabella attualmente vuota da movimenti</td>
                 </tr>
-                }
-                @else 
-                {
-                    <tr class="user-row">
-                        <td>{{movement.marca}}</td>
-                        <td>{{movement.modello}}</td>
-                        <td>{{movement.numeroSeriale}}</td>
-                        <td>{{movement.dataAssegnazione}}</td>
-                        <td>{{movement.dataRiconsegna}}</td>
-                    </tr>
+            }
+            @else{
+                @for(movement of movements(); track movement.id){
+                    <tr class="user-row" [class.muted]="movement.movementType === 'Dismissed'">
+                    <td>{{movement.asset.brand}}</td>
+                    <td>{{movement.asset.model}}</td>
+                    <td>{{movement.asset.serialNumber}}</td>
+                    <td>{{movement.date | date: 'longDate'}}</td>
+                    @if(movement.updateDate === undefined){
+                        <td> - </td>
+                    }
+                    @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
                 }
             }
         </tbody>

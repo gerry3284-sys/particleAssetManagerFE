@@ -5,9 +5,11 @@ import { AssetListComponent } from './features/assets/pages/asset-list/asset-lis
 import { UserList } from './features/users/pages/user-list/user-list';
 import { Login } from './features/auth/login/login';
 import { UserDetail } from './features/user-detail/user-detail';
+import { UserStandard } from './features/area-user/user-standard/user-standard';
+import { UserLayoutComponent } from './core/layout/user-layout/user-layout';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'user-standard/2', pathMatch: 'full' },
   {
     path: 'login',
     component: AuthLayoutComponent, // <- qui
@@ -16,9 +18,16 @@ export const routes: Routes = [
     ]
   },
   {
+    path: '', component: UserLayoutComponent,
+    children: [
+      { path: 'user-standard/2', component: UserStandard }
+    ]
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     children: [
+      //route temporanea per rendermi piu facile lavorare su user-standard
       { path: 'assets', component: AssetListComponent },
       { path: 'assets/new', redirectTo: 'assets', pathMatch: 'full' },
       { path: 'assets/:id', redirectTo: 'assets', pathMatch: 'full' },
@@ -27,5 +36,5 @@ export const routes: Routes = [
       { path: '', redirectTo: 'assets', pathMatch: 'full' }
     ]
   },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: 'user-standard/2' }
 ];

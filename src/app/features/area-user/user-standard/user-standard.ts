@@ -1,21 +1,20 @@
-import { Component, computed, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink, RouterLinkActive } from "@angular/router";
-import { ApiService } from '../../services/api';
-import { User, MovementByuserID } from '../../models/user.model';
+ import { Component, computed, signal } from '@angular/core';
+ import { ActivatedRoute, Router } from "@angular/router";
+import { ApiService } from '../../../services/api';
+import { User, MovementByuserID } from '../../../models/user.model';
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 
-
+@Component({
+  selector: 'app-user-standard',
+  imports: [DatePipe],
+  templateUrl: './user-standard.html',
+  styleUrl: './user-standard.css',
+})
+export class UserStandard {
 //TODO aggiungere destroyref ai subscribe
 //TODO se si mettono troppi valori nel movement la sidebar segue lo scorrimento verso il basso invece di rimanere bloccata
 
-@Component({
-  selector: 'app-user-detail',
-  imports: [RouterLink, RouterLinkActive, DatePipe],
-  templateUrl: './user-detail.html',
-  styleUrl: './user-detail.css',
-})
-export class UserDetail{
   user = signal<User | null>(null)
   movements = signal<MovementByuserID[]>([])
 
@@ -41,7 +40,7 @@ export class UserDetail{
     
   });
 
-  constructor(private apiService: ApiService, public route: ActivatedRoute) {
+  constructor(private apiService: ApiService, private route: ActivatedRoute, private router: Router) {
   const id = this.route.snapshot.paramMap.get('id');
   if (!id) return;
   forkJoin({
@@ -78,5 +77,9 @@ export class UserDetail{
     return move;
   });
   return result.filter(m => !toDelete.has(m.id));
+  }
+  onNavigate(){
+  this.router.navigate(['/users', 'user-detail', 2]);
+  console.log('Navigation triggered');
   }
 }

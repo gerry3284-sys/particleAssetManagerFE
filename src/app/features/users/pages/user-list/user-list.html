@@ -7,15 +7,15 @@
     </div>
   </div>
   <!-- filtro per la tabella -->
-  <div class="filters-card">
+  <div class="filters-card" (change)="onFilter()">
     <div class="filters-grid">
       <div class="filter-item">
         <label class="filter-label">Nome</label>
-        <input class="form-control filter-control" name="nome" placeholder="Cerca per nome..." [ngModel]="searchTerm()">
+        <input type="text" class="form-control filter-control" name="nome" placeholder="Cerca per nome..." [(ngModel)]="initialName">
       </div>
       <div class="filter-item">
         <label class="filter-label">Business Unit</label>
-        <select class="form-select filter-control" [(ngModel)]="filter" (change)="onFilter()">
+        <select class="form-select filter-control" [(ngModel)]="filter">
           <option value="">Tutte le categorie</option>
           @for(businessType of businessTypes(); track businessType.id)
           {
@@ -35,13 +35,29 @@
       </tr>
     </thead>
     <tbody>
-      @for(user of usersFiltered(); track user.id)
-      {
-        <tr class="user-row" [routerLink]="['user-detail', user.id]" routerLinkActive="active" style="cursor: pointer;">
-          <td>{{user.name}} {{user.surname}}</td>
-          <td>{{user.email}}</td>
-          <td>{{user.businessUnit.name}}</td>
-      </tr>
+      @if(usersFiltered().length === 0){
+        <tr class="user-row-empty">
+            <td>E possibile che la combinazione di filtri inserita non abbia attuali utenti</td>
+        </tr>
+      }
+      @else{
+        @for(user of usersFiltered(); track user.id)
+        {
+          @if(user.userType === 'ADMIN'){
+            <tr class="user-row" [routerLink]="['user-detail', user.id]" routerLinkActive="active" style="cursor: pointer;">
+            <td>{{user.name}} {{user.surname}}</td>
+            <td>{{user.email}}</td>
+            <td>{{user.businessUnit.name}}</td>
+          </tr>
+          }
+          @else {
+            <tr class="user-row" [routerLink]="['user-standard', user.id]" routerLinkActive="active" style="cursor: pointer;">
+            <td>{{user.name}} {{user.surname}}</td>
+            <td>{{user.email}}</td>
+            <td>{{user.businessUnit.name}}</td>
+          </tr>
+          }
+        }
       }
       <tr class="table-foot">
         <td>
