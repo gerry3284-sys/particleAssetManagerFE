@@ -1,160 +1,141 @@
-
 // asset-list.component.ts
-import { Component, OnInit, signal, computed } from '@angular/core'; // ← Aggiungi signal e computed
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
+import { FiltersComponent } from '../../../../shared/components/filters/filters'; // ← AGGIUNGI
+import { FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
+import { AssetService } from '../../../../shared/services/asset.service'; // ← AGGIUNGI
+import { Asset } from '../../../../shared/models/asset.interface';
 
-
-interface Asset {
-  id: string;
-  status: 'assigned' | 'available' | 'dismissed';
-  statusLabel: string;
-  brand: string;
-  model: string;
-  serialNumber: string;
-  assignedUser: string;
-  businessUnit: string;
-  assignmentDate: string;
-}
 
 @Component({
   selector: 'app-asset-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [
+  CommonModule,
+  FormsModule,
+  PaginationComponent,
+  FiltersComponent
+], 
   templateUrl: './asset-list.html',
-  styleUrls: ['./asset-list.css']
+  styleUrl: './asset-list.css'
 })
 export class AssetListComponent implements OnInit {
   
-  // Filtri
-  filters = {
-    typology: 'Tutte le Tipologie',
-    businessUnit: 'Tutte le BU',
-    status: 'Tutti gli Stati',
-    searchName: ''
-  };
-
-  // signal 
-  allAssets = signal<Asset[]>([
-    {
-      id: '1',
-      status: 'assigned',
-      statusLabel: 'Assegnato',
-      brand: 'Apple',
-      model: 'MacBook Pro 14',
-      serialNumber: 'C02DXXKX1234',
-      assignedUser: 'Mario Rossi',
-      businessUnit: 'Marketing',
-      assignmentDate: '10/01/2023'
-    },
-    {
-      id: '2',
-      status: 'assigned',
-      statusLabel: 'Assegnato',
-      brand: 'Dell',
-      model: 'Latitude 7420',
-      serialNumber: 'FG5HXXXX5678',
-      assignedUser: 'Giulia Bianchi',
-      businessUnit: 'Vendite',
-      assignmentDate: '15/02/2023'
-    },
-    {
-      id: '3',
-      status: 'dismissed',
-      statusLabel: 'Dismesso',
-      brand: 'Lenovo',
-      model: 'ThinkPad X1',
-      serialNumber: 'PF2AXXXX4321',
-      assignedUser: '-',
-      businessUnit: '-',
-      assignmentDate: '01/06/2024'
-    },
-    {
-      id: '4',
-      status: 'available',
-      statusLabel: 'Disponibile',
-      brand: 'Samsung',
-      model: 'Galaxy S23',
-      serialNumber: 'RF8TXXXX3456',
-      assignedUser: '-',
-      businessUnit: '-',
-      assignmentDate: '-'
-    },
-    {
-      id: '5',
-      status: 'dismissed',
-      statusLabel: 'Dismesso',
-      brand: 'Vodafone',
-      model: 'SIM Dati',
-      serialNumber: '893BXXXXXXXX789',
-      assignedUser: 'Mario Rossi',
-      businessUnit: 'Marketing',
-      assignmentDate: '25/05/2024'
-    },
-    
-  ]);
-
   
+  
+
+  // Filtri correnti (signal)
+  currentFilters = signal<FilterValues>({});
+
+  // Assets (signal)
+ allAssets = signal<Asset[]>([]);
+ loading = signal(true);
+ error = signal<string | null>(null); // segnala eventuali errori
+
+  // Assets filtrati in base ai filtri correnti
+  filteredAssets = computed(() => {
+  const filters = this.currentFilters();
+  let assets = this.allAssets();
+
+  // Filtra per Tipologia
+  if (filters.assetType) {
+    // contorllo se "a"(singolo asset dell'array assets) è ugualea filters.assetType , se è vero rimane (array filtrato) se è falso viene scartato
+    assets = assets.filter(a => a.assetType === filters.assetType); 
+  }
+
+  // Filtra per Business Unit
+  if (filters.businessUnit) {
+    assets = assets.filter(a => a.businessUnit === filters.businessUnit);
+  }
+
+  // Filtra per Status
+  if (filters.status) {
+    assets = assets.filter(a => a.status === filters.status);
+  }
+
+  // Filtra per Nome assegnatario (ricerca parziale)
+  if (filters.assignedUser) {
+    const search = filters.assignedUser.toLowerCase();
+    assets = assets.filter(a =>
+      a.assignedUser?.toLowerCase().includes(search)
+    );
+  }
+
+  return assets;
+});
+
+
+  // Paginazione
   currentPage = signal(1);
-  
-  
   itemsPerPage = signal(5);
 
-  // ricalcolo e aggiorno  automaticamente quando allAssets o itemsPerPage cambiano
   totalPages = computed(() => {
-    return Math.ceil(this.allAssets().length / this.itemsPerPage());
+    return Math.ceil(this.filteredAssets().length / this.itemsPerPage());
   });
 
-  // paginatedAssets si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi assets
   paginatedAssets = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage();
     const end = start + this.itemsPerPage();
-    return this.allAssets().slice(start, end);
+    return this.filteredAssets().slice(start, end);
   });
 
-  //creazione stringa display range. 
   displayRange = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
-    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.allAssets().length);
-    return `Mostrando ${start}-${end} di ${this.allAssets().length}`;
+    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.filteredAssets().length);
+    return `Mostrando ${start}-${end} di ${this.filteredAssets().length}`;
   });
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private readonly assetService: AssetService
+  ) {}
 
   ngOnInit(): void {
-    // Qui in futuro caricherai i dati dal servizio
-    console.log('Asset list initialized');
+  this.loadAssets();
+}
+  private loadAssets(): void {
+    this.loading.set(true);
+    this.assetService.getAssets().subscribe({
+      next: (assets) => {
+        this.allAssets.set(assets);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.error.set('Errore nel caricamento degli asset');
+        this.loading.set(false);
+      }
+    });
   }
 
-  // Naviga al dettaglio asset
-  goToAssetDetail(assetId: string): void {
-    // TODO: abilita quando esisterà il componente dettaglio
-    return;
+ 
+  onFiltersChange(filters: FilterValues): void {
+    console.log('Filtri applicati:', filters);
+    this.currentFilters.set(filters);
+    
+    // Reset alla prima pagina quando i filtri cambiano
+    this.currentPage.set(1);
   }
 
-  // Naviga alla creazione nuovo asset
+  goToAssetDetail(assetCode: string): void {
+  this.router.navigate(['/assets', assetCode]);
+}
+
   createNewAsset(): void {
-    // TODO: abilita quando esisterà il componente creazione
-    return;
-  }
+  this.router.navigate(['/assets/new']);
+}
 
-  // Applica filtri
-  applyFilters(): void {
-    console.log('Filtri applicati:', this.filters);
-    // Implementare logica filtro qui 
-  }
-
-  //  Aggiorna goToPage per usare signals
   goToPage(page: number): void {
-    this.currentPage.set(page); 
+    this.currentPage.set(page);
     console.log('Pagina:', page);
     
-    //scroll alla tabella
     const tableCard = document.querySelector('.table-card');
     if (tableCard) {
       tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
+  
 }

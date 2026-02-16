@@ -5,10 +5,10 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
   selector: 'app-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
-  styleUrls: ['./sidebar.css'],
+  styleUrl: './sidebar.css',
   templateUrl: './sidebar.html',
 })
-export class Sidebar {
+export class SidebarComponent {
 
   constructor(private readonly router: Router) {}
 

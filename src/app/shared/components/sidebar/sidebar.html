@@ -1,26 +1,25 @@
-<!-- sidebar.component.html -->
-<div class="sidebar d-flex flex-column">
+<div class="sidebar">
   
   <!-- Header utente -->
-  <div class="user-header d-flex align-items-center gap-3 p-3 border-bottom">
+  <div class="user-header">
     <div class="avatar">
-      <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
+      <img src="/assets/logo_Utente.png" alt="Avatar">
     </div>
     <div class="user-info">
-      <div class="user-name fw-semibold">Mario Rossi</div>
-      <div class="user-role text-muted small">Amministrazione</div>
+      <div class="user-name">Mario Rossi</div>
+      <div class="user-role">Amministrazione</div>
     </div>
   </div>
 
   <!-- Menu di navigazione -->
-  <nav class="menu flex-grow-1 py-2">
+  <nav class="sidebar-content">
     <a routerLink="/assets" 
        routerLinkActive="active"
        [routerLinkActiveOptions]="{exact: false}"
-       class="menu-item d-flex align-items-center gap-3 text-decoration-none mx-2 px-3 py-2 rounded-2">
-      <span class="icon d-flex align-items-center justify-content-center">
+       class="menu-item">
+      <span class="icon">
         <!-- logo lista assets  -->
-       <img src="/assets/list.png" alt="Avatar" class="img-fluid">
+       <img src="/assets/list.png" alt="Avatar">
       </span>
       <span class="label">Lista Asset</span>
     </a>
@@ -28,8 +27,8 @@
     <a routerLink="/users" 
        routerLinkActive="active"
        [routerLinkActiveOptions]="{exact: false}"
-       class="menu-item d-flex align-items-center gap-3 text-decoration-none mx-2 px-3 py-2 rounded-2">
-      <span class="icon d-flex align-items-center justify-content-center">
+       class="menu-item">
+      <span class="icon">
         <img src="/assets/logo_Utente.png" alt="Utenti" width="20" height="20">
       </span>
       <span class="label">Utenti</span>
@@ -37,10 +36,10 @@
   </nav>
 
   <!-- Logout -->
-  <div class="logout border-top py-3">
-    <a (click)="onLogout()" 
-       class="logout-btn d-flex align-items-center gap-3 text-decoration-none mx-2 px-3 py-2 rounded-2">
-      <span class="icon d-flex align-items-center justify-content-center">
+  <div class="sidebar-footer">
+    <button (click)="onLogout()" 
+       class="logout-btn">
+      <span class="icon">
         <!-- Qui metterai il tuo SVG per Logout -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path d="M9 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -49,7 +48,7 @@
         </svg>
       </span>
       <span class="label">Logout</span>
-    </a>
+    </button>
   </div>
 
 </div>

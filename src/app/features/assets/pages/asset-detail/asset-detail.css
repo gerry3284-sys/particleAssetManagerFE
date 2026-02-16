@@ -1,0 +1,360 @@
+.asset-detail-page {
+  min-height: 100vh;
+  background-color: #F9FAFB;
+  padding: 2rem;
+}
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===================================
+   HEADER
+   =================================== */
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  margin-bottom: 1rem;
+}
+
+.btn-back:hover {
+  background-color: #F3F4F6;
+  color: #374151;
+}
+
+.header-content {
+  margin-left: 8px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+/* ===================================
+   GRID LAYOUT
+   =================================== */
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===================================
+   CARDS
+   =================================== */
+
+.info-card,
+.movements-card,
+.actions-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFEFEF;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 20px 0;
+}
+
+/* ===================================
+   INFO GRID
+   =================================== */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #1F2937;
+  font-weight: 500;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.status-assigned {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.status-available {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.status-dismissed {
+  background-color: #F3F4F6;
+  color: #6B7280;
+}
+
+/* ===================================
+   MOVEMENTS TABLE
+   =================================== */
+
+.movements-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.movements-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 140px;
+  gap: 16px;
+  padding: 12px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.movements-row:last-child {
+  border-bottom: none;
+}
+
+.movements-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6B7280;
+  padding-bottom: 12px;
+}
+
+.movements-data {
+  color: #374151;
+  cursor: default;
+  transition: background-color 0.15s ease;
+  padding-left: 12px;
+  padding-right: 12px;
+  margin-left: -12px;
+  margin-right: -12px;
+  border-radius: 8px;
+}
+
+.movements-data.expandable {
+  cursor: pointer;
+}
+
+.movements-data.expandable:hover {
+  background-color: #F9FAFB;
+}
+
+.col-movement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.movement-label {
+  font-weight: 600;
+}
+
+.movement-toggle {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-left: 8px;
+}
+
+.movements-data.expanded {
+  background-color: #F9FAFB;
+}
+
+.movement-note {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding: 0 0 6px 132px;
+  font-size: 12px;
+  color: #6B7280;
+  display: flex;
+  gap: 6px;
+}
+
+.movement-note-label {
+  font-weight: 600;
+  color: #9CA3AF;
+}
+
+.arrow-icon {
+  color: #9CA3AF;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+/* ===================================
+   ACTIONS CARD
+   =================================== */
+
+.actions-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 8px 0;
+}
+
+.actions-subtitle {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 24px 0;
+}
+
+.actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Button styles specifici per asset-detail */
+.btn {
+  width: 100%; /* Full width per questa sezione */
+}
+
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: grayscale(1);
+}
+
+/* Rende molto evidente lo stato disabilitato per ogni variante */
+.btn.btn-primary:disabled,
+.btn.btn-primary.btn-disabled {
+  background-color: #FDE6DD;
+  color: #9CA3AF;
+}
+
+.btn.btn-secondary:disabled,
+.btn.btn-secondary.btn-disabled {
+  background-color: #F3F4F6;
+  border-color: #E5E7EB;
+  color: #9CA3AF;
+}
+
+.btn.btn-danger:disabled,
+.btn.btn-danger.btn-disabled {
+  background-color: #FEE2E2;
+  color: #9CA3AF;
+}
+
+/* ===================================
+   STATES
+   =================================== */
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #6B7280;
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .right-column {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .asset-detail-page {
+    padding: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .movements-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .col-movement {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+}

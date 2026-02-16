@@ -1,0 +1,217 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  padding: 22px 22px 18px;
+  border: 1px solid #EEF0F4;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #EAF2FF;
+  color: #2F6AE5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1F2937;
+  font-weight: 700;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.input-with-icon,
+.dropdown {
+  position: relative;
+}
+
+.input-with-icon input,
+.dropdown input,
+textarea {
+  width: 100%;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #374151;
+  outline: none;
+  background: #FFFFFF;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Nasconde l'icona nativa del date input */
+.input-with-icon input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.input-with-icon input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+
+.input-with-icon input {
+  padding-right: 40px;
+}
+
+.input-with-icon .input-icon,
+.dropdown .dropdown-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.input-with-icon .input-icon svg,
+.dropdown .dropdown-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+textarea {
+  resize: none;
+  min-height: 80px;
+}
+
+.input-with-icon input:focus,
+.dropdown input:focus,
+textarea:focus {
+  border-color: #E56A3D;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.12);
+}
+
+.input-with-icon.error input,
+.dropdown.error input {
+  border-color: #DC2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.dropdown-panel button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1F2937;
+}
+
+.dropdown-panel button:hover {
+  background: #F9FAFB;
+}
+
+.dropdown-panel small {
+  color: #9CA3AF;
+  font-size: 11px;
+}
+
+.dropdown-empty {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.helper-text {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.error-text {
+  font-size: 11px;
+  color: #DC2626;
+  margin: 0;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-footer .btn {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .modal-card {
+    padding: 18px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
