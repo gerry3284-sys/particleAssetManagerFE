@@ -1,12 +1,10 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, RouterLinkActive } from "@angular/router";
 import { ApiService } from '../../services/api';
 import { User, MovementByuserID } from '../../models/user.model';
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 
-
-//TODO aggiungere destroyref ai subscribe
 //TODO se si mettono troppi valori nel movement la sidebar segue lo scorrimento verso il basso invece di rimanere bloccata
 
 @Component({
@@ -16,8 +14,9 @@ import { forkJoin } from 'rxjs';
   styleUrl: './user-detail.css',
 })
 export class UserDetail{
-  user = signal<User | null>(null)
-  movements = signal<MovementByuserID[]>([])
+  user = signal<User | null>(null);
+  movements = signal<MovementByuserID[]>([]);
+  destroyRef = inject(DestroyRef);
 
   fullName = computed(() => {
     const user = this.user();
@@ -44,7 +43,7 @@ export class UserDetail{
   constructor(private apiService: ApiService, public route: ActivatedRoute) {
   const id = this.route.snapshot.paramMap.get('id');
   if (!id) return;
-  forkJoin({
+  const subscription = forkJoin({
     user: this.apiService.getUsersById(+id),
     movements: this.apiService.getMovementByUserId(+id),
   }).subscribe({
@@ -59,6 +58,7 @@ export class UserDetail{
       this.user.set(null);
     }
   });
+  this.destroyRef.onDestroy(() => subscription.unsubscribe())
   }
   mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
   const toDelete = new Set<number>();

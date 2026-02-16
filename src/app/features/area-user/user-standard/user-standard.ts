@@ -1,4 +1,4 @@
- import { Component, computed, signal } from '@angular/core';
+ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
  import { ActivatedRoute, Router } from "@angular/router";
 import { ApiService } from '../../../services/api';
 import { User, MovementByuserID } from '../../../models/user.model';
@@ -11,10 +11,8 @@ import { forkJoin } from 'rxjs';
   templateUrl: './user-standard.html',
   styleUrl: './user-standard.css',
 })
-export class UserStandard {
-//TODO aggiungere destroyref ai subscribe
-//TODO se si mettono troppi valori nel movement la sidebar segue lo scorrimento verso il basso invece di rimanere bloccata
-
+export class UserStandard{
+  private destroyRef = inject(DestroyRef);
   user = signal<User | null>(null)
   movements = signal<MovementByuserID[]>([])
 
@@ -22,6 +20,11 @@ export class UserStandard {
     const user = this.user();
     if (!user) return '-';
     return `${user.name} ${user.surname}`;
+  });
+  justName = computed(() => {
+    const user = this.user();
+    if(!user) return '-';
+    return `${user.name}`;
   });
   businessUnit = computed(() => {
     const user = this.user();
@@ -43,7 +46,7 @@ export class UserStandard {
   constructor(private apiService: ApiService, private route: ActivatedRoute, private router: Router) {
   const id = this.route.snapshot.paramMap.get('id');
   if (!id) return;
-  forkJoin({
+  const subscription = forkJoin({
     user: this.apiService.getUsersById(+id),
     movements: this.apiService.getMovementByUserId(+id),
   }).subscribe({
@@ -58,7 +61,9 @@ export class UserStandard {
       this.user.set(null);
     }
   });
+  this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
+  
   mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
   const toDelete = new Set<number>();
 
@@ -78,8 +83,8 @@ export class UserStandard {
   });
   return result.filter(m => !toDelete.has(m.id));
   }
-  onNavigate(){
-  this.router.navigate(['/users', 'user-detail', 2]);
-  console.log('Navigation triggered');
-  }
+  // onNavigate(){
+  // this.router.navigate(['/users', 'user-detail', 2]);
+  // console.log('Navigation triggered');
+  // }
 }

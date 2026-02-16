@@ -6,9 +6,9 @@
 .user-standard-page {
 	display: flex;
 	flex-direction: column;
-	gap: 18px;
-  padding-top: 70px; /* Altezza dell'header + margine */
-  padding-bottom: 80px; /* Altezza del footer + margine */
+	gap: 1.2rem; /* 18px */
+  padding-top: clamp(4rem, 8vh, 5rem); /* Header responsivo */
+  padding-bottom: clamp(4.5rem, 10vh, 6rem); /* Footer responsivo */
 }
 .user-standard-subpage{
   display: flex;
@@ -28,68 +28,68 @@
   /* z-index: 100; */
 }
 .over-page-1{
-  padding: 13px;
+  padding: 1rem;
   min-width: 50%;
   text-align: start;
 }
 .over-page-2{
-  padding: 13px;
+  padding: 1rem;
   min-width: 50%;
   text-align: end;
 }
 .avatar-mini {
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
   background-color: #F6C08A;
   overflow: hidden;
   flex-shrink: 0;
-  margin-left: 10px;
+  margin-left: 0.5rem;
 }
 .avatar-file {
-  width: 30px;
-  height: 30px;
+  width: 2rem;
+  height: 2rem;
   flex-shrink: 0;
-  margin-right: 10px;
+  margin-right: 0.5rem;
 }
 .user-button{
   color: #718096;
 }
 .page-header {
-	margin-bottom: 2px;
+	margin-bottom: 0.2rem;
 }
 .page-title {
 	margin: 0;
-	font-size: 40px;
+	font-size: clamp(2rem, 5vw, 2.5rem);
 	font-weight: 600;
 	color: #1F2937;
 }
 .page-subtitle {
 	margin: 0;
-	font-size: 14px;
+	font-size: 1rem;
 	font-weight: 600;
 	color: #718096;
 }
 .user-union {
-  border-radius: 12px;
+  border-radius: 1rem;
 	background-color: #FFFFFF;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-  margin-right: 30px;
-  margin-top: 30px;
-  margin-bottom: 20px;
+  margin-right: clamp(1rem, 3vw, 2rem); /* 30px responsive */
+  margin-top: clamp(1.5rem, 4vh, 2rem); /* 30px responsive */
+  margin-bottom: 1.5rem;
 }
 .user-card {
 	background-color: #FFFFFF;
 	border: 1px solid #EFEFEF;
-	border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+	border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 .user-info{
-  gap: 14px;
+  gap: 1rem;
 	align-items: start;
-	padding: 25px;
-  padding-right: 100px;
+	padding: 1.5rem; /* 25px / 16 = 1.5625rem */
+  padding-right: 6rem; /* 100px / 16 = 6.25rem */
 	font-weight: 700;
 	letter-spacing: 0.05em;
   display: flex;
@@ -100,8 +100,8 @@
 	flex-direction: row;
 }
 .avatar {
-  width: 60px;
-  height: 60px;
+  width: 4rem;
+  height: 4rem;
   border-radius: 50%;
   background-color: #F6C08A;
   display: flex;
@@ -116,61 +116,61 @@
   object-fit: cover;
 }
 .user-name {
-  padding-top: 10px;
-  padding-left: 10px;
-  font-size: 17px;
+  padding-top: 0.5rem;
+  padding-left: 0.5rem;
+  font-size: 1rem;
   color: #1F2937;
   line-height: 1.4;
 }
 .user-role {
-  padding-left: 10px;
-  font-size: 12px;
+  padding-left: 0.5rem;
+  font-size: 0.8rem;
   color: #718096;
   line-height: 1.4;
 }
 .user-text {
-  font-size: 14px;
+  font-size: 1rem;
   color: #718096;
   line-height: 1.4;
-  padding-top: 3px;
+  padding-top: 0.2rem;
 }
 .email img{
-  width: 30px;
-  height: 30px;
-  margin-right: 12px;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 1rem;
 }
 .telefono img{
-  width: 25px;
-  height: 25px;
-  margin-right: 12px;
+  width: 2rem;
+  height: 1.5rem;
+  margin-right: 1rem;
 }
 .email{
   display: flex;
   text-align: center;
-  margin-top: 10px;
-  margin-left: 5px;
+  margin-top: 1rem;
+  margin-left: 0.5rem;
 }
 .telefono{
   display: flex;
   text-align: center;
-  margin-top: 10px;
-  margin-left: 5px;
+  margin-top: 1rem;
+  margin-left: 0.5rem;
 }
 .table-card {
-  margin-top: 18px;
+  margin-top: 1rem;
   width: 100%;
 	background-color: #FFFFFF;
-	border-radius: 12px;
+	border-radius: 1rem;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   align-items: center;
   table-layout: fixed;
 }
 .user-title{
 	align-items: center;
-	padding: 12px;
-	font-size: 22px;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+	padding: 1rem;
+	font-size: 1.5rem;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
 	border: 1px solid #F3F4F6;
 	font-weight: 600;
   background-color: #F9FAFB;
@@ -178,12 +178,11 @@
 .user-header {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  gap: 1rem;
 	align-items: center;
-	padding: 12px;
-	font-size: 12px;
+	padding: 1rem;
 	border-bottom: 1px solid #F3F4F6;
-	font-size: 11px;
+	font-size: 1rem;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
@@ -191,9 +190,9 @@
 }
 .user-row{
   display: grid;
-  padding: 12px;
+  padding: 1rem;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  gap: 1rem;
   text-align: start;
   vertical-align: middle;
 }
@@ -202,9 +201,9 @@
 }
 .user-row-empty{
   display: grid;
-  padding: 12px;
+  padding: 1rem;
   grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 14px;
+  gap: 1rem;
   text-align: center;
   vertical-align: middle;
 }
@@ -214,9 +213,9 @@
   left: 0;
   min-width: 100%;
   text-align: center;
-  font-size: 30px;
+  font-size: 2rem;
   border-top: 1px solid #EFEFEF;
   background-color: #FFFFFF; /* Aggiungi questo per evitare trasparenze */
-  padding: 10px 0;
+  padding: 0.5rem 0;
   /* z-index: 100;  Per stare sopra altri elementi */
 }

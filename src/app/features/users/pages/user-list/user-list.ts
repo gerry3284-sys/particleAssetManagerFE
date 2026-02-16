@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { BusinessType, User } from '../../../../models/user.model';
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
@@ -18,6 +18,7 @@ export class UserList{
   users = signal<User[]>([]);
   usersFiltered = signal<User[]>([]);
   businessTypes = signal<BusinessType[]>([]);
+  destroyRef = inject(DestroyRef);
   initialName = '';
   filter = '';
 

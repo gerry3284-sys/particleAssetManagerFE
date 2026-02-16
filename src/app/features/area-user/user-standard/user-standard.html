@@ -5,21 +5,21 @@
             <span style="font-weight: bold;">Gestione Asset</span>
         </div>
         <div class="over-page-2">
-            <button (click)="onNavigate()" style="cursor: pointer; padding-right: 10px;">{{fullName()}}</button>
+            <a>{{fullName()}}</a>
             <img src="/assets/logo_Utente.png" alt="Avatar-mini" class="img-fluid avatar-mini">
         </div>
     </div>
     <div class="user-standard-page">
         <div class="page-header d-flex align-items-start justify-content-between gap-3">
             <div>
-                <h2 class="page-title">{{fullName()}}!</h2>
+                <h2 class="page-title">Ciao {{justName()}}!</h2>
                 <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
             </div>
         </div>
         <!-- informazioni dell'utente -->
         <div class="user-standard-subpage">
             <div class="user-union">
-                <div class="user-title">Il Mio Profilo</div>
+                <div class="user-title">Il mio Profilo</div>
                 <div class="user-card"> 
                     <div class="user-info">
                         <div class="user-item">
@@ -28,7 +28,7 @@
                             </div>
                             <div>
                             <div class="user-name fw-bold">{{fullName()}}</div>
-                            <div class="user-role">Bussiness Unit: {{businessUnit()}}</div>
+                            <div class="user-role">Business Unit: {{businessUnit()}}</div>
                             </div>
                         </div>
                         <div class="email">
@@ -45,7 +45,7 @@
             <!-- tabella storico degli asset -->
             <table class="table-card ">
                 <thead>
-                    <div class="user-title"> I Miei Asset Assegnati</div>
+                    <div class="user-title"> I miei Asset assegnati</div>
                     <!-- <tr class="user-title"> I Miei Asset Assegnati</tr> -->
                 </thead>
                 <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">

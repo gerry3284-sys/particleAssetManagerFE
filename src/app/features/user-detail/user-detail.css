@@ -1,40 +1,38 @@
 a {
   text-decoration: none;
+  color: #718096;
 }
 .user-detail-page {
 	display: flex;
 	flex-direction: column;
-	gap: 18px;
-}
-.user-button{
-  color: #718096;
+	gap: 1.2rem;
 }
 .page-header {
-	margin-bottom: 2px;
+	margin-bottom: 0.2rem;
 }
 .page-title {
 	margin: 0;
-	font-size: 40px;
+	font-size: clamp(2rem, 5vw, 2.5rem);
 	font-weight: 600;
 	color: #1F2937;
 }
 .page-subtitle {
 	margin: 0;
-	font-size: 20px;
+	font-size: 1.3rem;
 	font-weight: 600;
 	color: #1F2937;
 }
 .user-card {
 	background-color: #FFFFFF;
 	border: 1px solid #EFEFEF;
-	border-radius: 12px;
-	padding: 14px 16px;
+	border-radius: 1rem;
+	padding: 1rem 1rem;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 .user-info{
-  gap: 14px;
+  gap: 1rem;
 	align-items: start;
-	padding: 12px;
+	padding: 1rem;
 	font-weight: 700;
 	letter-spacing: 0.05em;
   display: flex;
@@ -45,8 +43,8 @@ a {
 	flex-direction: row;
 }
 .avatar {
-  width: 60px;
-  height: 60px;
+  width: 4rem;
+  height: 4rem;
   border-radius: 50%;
   background-color: #F6C08A;
   display: flex;
@@ -61,52 +59,52 @@ a {
   object-fit: cover;
 }
 .user-name {
-  padding-top: 10px;
-  padding-left: 10px;
-  font-size: 17px;
+  padding-top: 0.5rem;
+  padding-left: 0.5rem;
+  font-size: 1rem;
   color: #1F2937;
   line-height: 1.4;
 }
 .user-role {
-  padding-left: 10px;
-  font-size: 12px;
+  padding-left: 0.5rem;
+  font-size: 0.8rem;
   color: #718096;
   line-height: 1.4;
 }
 .user-text {
-  font-size: 14px;
+  font-size: 1rem;
   color: #718096;
   line-height: 1.4;
-  padding-top: 3px;
+  padding-top: 0.2rem;
 }
 .email img{
-  width: 30px;
-  height: 30px;
-  margin-right: 12px;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 1rem;
 }
 .telefono img{
-  width: 25px;
-  height: 25px;
-  margin-right: 12px;
+  width: 2rem;
+  height: 1.5rem;
+  margin-right: 1rem;
 }
 .email{
   display: flex;
   text-align: center;
-  margin-top: 10px;
-  margin-left: 5px;
+  margin-top: 1rem;
+  margin-left: 0.5rem;
 }
 .telefono{
   display: flex;
   text-align: center;
-  margin-top: 10px;
-  margin-left: 5px;
+  margin-top: 1rem;
+  margin-left: 0.5rem;
 }
 .table-card {
-  margin-top: 18px;
+  margin-top: 1rem;
   width: 100%;
 	background-color: #FFFFFF;
 	border: 1px solid #EFEFEF;
-	border-radius: 12px;
+	border-radius: 1rem;
 	overflow: hidden;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   align-items: center;
@@ -115,14 +113,13 @@ a {
 .user-header {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  gap: 1rem;
 	align-items: center;
-	padding: 12px;
-	font-size: 12px;
+	padding: 1rem;
 	color: #4B5563;
 	border-bottom: 1px solid #F3F4F6;
 	background-color: #F9FAFB;
-	font-size: 11px;
+	font-size: 0.7rem;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
@@ -130,9 +127,9 @@ a {
 }
 .user-row{
   display: grid;
-  padding: 12px;
+  padding: 1rem;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  gap: 1rem;
   text-align: start;
   vertical-align: middle;
 }
@@ -141,9 +138,9 @@ a {
 }
 .user-row-empty{
   display: grid;
-  padding: 12px;
+  padding: 1rem;
   grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 14px;
+  gap: 1rem;
   text-align: center;
   vertical-align: middle;
 }

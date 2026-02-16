@@ -9,7 +9,7 @@ import { UserStandard } from './features/area-user/user-standard/user-standard';
 import { UserLayoutComponent } from './core/layout/user-layout/user-layout';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'user-standard/2', pathMatch: 'full' },
+  { path: '', redirectTo: 'user-standard/:id', pathMatch: 'full' },
   {
     path: 'login',
     component: AuthLayoutComponent, // <- qui
@@ -20,7 +20,7 @@ export const routes: Routes = [
   {
     path: '', component: UserLayoutComponent,
     children: [
-      { path: 'user-standard/2', component: UserStandard }
+      { path: 'user-standard/:id', component: UserStandard }
     ]
   },
   {
@@ -36,5 +36,5 @@ export const routes: Routes = [
       { path: '', redirectTo: 'assets', pathMatch: 'full' }
     ]
   },
-  { path: '**', redirectTo: 'user-standard/2' }
+  { path: '**', redirectTo: 'login' }
 ];
