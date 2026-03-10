@@ -10,10 +10,14 @@
         </div>
     </div>
     <div class="user-standard-page">
-        <div class="page-header d-flex align-items-start justify-content-between gap-3">
-            <div>
+        <div class="header-union">
+            <div class="page-header d-flex align-items-start justify-content-between gap-3">
                 <h2 class="page-title">Ciao {{justName()}}!</h2>
                 <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
+            </div>
+            <div class="div-btn">
+                <button type="button" (click)="onLogout()" class="btn"> Logout </button>
+                <button type="button" class="btn"> Modifica </button>
             </div>
         </div>
         <!-- informazioni dell'utente -->
@@ -43,39 +47,40 @@
                 </div>
             </div>
             <!-- tabella storico degli asset -->
-            <table class="table-card ">
-                <thead>
-                    <div class="user-title"> I miei Asset assegnati</div>
-                    <!-- <tr class="user-title"> I Miei Asset Assegnati</tr> -->
-                </thead>
-                <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-                    <tr class="user-header">
-                        <th> MARCA </th>
-                        <th> MODELLO </th>
-                        <th> NUMERO SERIALE </th>
-                        <th> DATA ASSEGNAZIONE </th>
-                        <th> DATA RICONSEGNA </th>
-                    </tr>
-                    @if(movements().length === 0){
-                        <tr class="user-row-empty">
-                            <td>Tabella attualmente vuota da movimenti</td>
+            <div class="user-union-2">
+                <div class="user-title"> I miei Asset assegnati</div>
+                <table class="table-card ">
+                    <thead>
+                        <tr class="user-header">
+                            <th> MARCA </th>
+                            <th> MODELLO </th>
+                            <th> NUMERO SERIALE </th>
+                            <th> DATA ASSEGNAZIONE </th>
+                            <th> DATA RICONSEGNA </th>
                         </tr>
-                    }
-                    @else{
-                        @for(movement of movements(); track movement.id){
-                            <tr class="user-row" [class.muted]="movement.movementType === 'Dismissed'">
-                            <td>{{movement.asset.brand}}</td>
-                            <td>{{movement.asset.model}}</td>
-                            <td>{{movement.asset.serialNumber}}</td>
-                            <td>{{movement.date | date: 'longDate'}}</td>
-                            @if(movement.updateDate === undefined){
-                                <td> - </td>
-                            }
-                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                    </thead>
+                    <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                        @if(movements().length === 0){
+                            <tr class="user-row-empty">
+                                <td>Tabella attualmente vuota da movimenti</td>
+                            </tr>
                         }
-                    }
-                </tbody>
-            </table>
+                        @else{
+                            @for(movement of movements(); track movement.id){
+                                <tr class="user-row" [class.muted]="movement.movementType === 'Dismissed'">
+                                <td>{{movement.asset.brand}}</td>
+                                <td>{{movement.asset.model}}</td>
+                                <td>{{movement.asset.serialNumber}}</td>
+                                <td>{{movement.date | date: 'longDate'}}</td>
+                                @if(movement.updateDate === undefined){
+                                    <td> - </td>
+                                }
+                                @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="under-page-union">

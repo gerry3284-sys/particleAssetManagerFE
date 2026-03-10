@@ -39,7 +39,7 @@ export class UserStandard{
   phoneNumber = computed(() => {
     const user = this.user();
     if (!user) return '-';
-    return `${user.phoneNumber}`;
+    return `${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
     
   });
 
@@ -83,8 +83,7 @@ export class UserStandard{
   });
   return result.filter(m => !toDelete.has(m.id));
   }
-  // onNavigate(){
-  // this.router.navigate(['/users', 'user-detail', 2]);
-  // console.log('Navigation triggered');
-  // }
+  onLogout() {
+    this.router.navigate(['/login']);
+  }
 }

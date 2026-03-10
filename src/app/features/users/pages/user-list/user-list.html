@@ -1,6 +1,6 @@
 <div class="user-page">
   <!-- titolo -->
-  <div class="page-header d-flex align-items-start justify-content-between gap-3">
+  <div class="page-header d-flex align-items-start gap-3">
     <div>
       <h2 class="page-title">Utenti</h2>
       <p class="page-subtitle">Visualizza e gestisci tutti gli utenti.</p>
@@ -11,20 +11,25 @@
     <div class="filters-grid">
       <div class="filter-item">
         <label class="filter-label">Nome</label>
-        <input type="text" class="form-control filter-control" name="nome" placeholder="Cerca per nome..." [(ngModel)]="initialName">
+        <input type="text" class="form-control filter-control" name="nome" 
+        placeholder="Cerca per nome..." 
+        [(ngModel)]="initialName">
       </div>
       <div class="filter-item">
         <label class="filter-label">Business Unit</label>
-        <select class="form-select filter-control" [(ngModel)]="filter">
+        <select class="filter-control" [(ngModel)]="filter">
           <option value="">Tutte le categorie</option>
           @for(businessType of businessTypes(); track businessType.id)
           {
-              <option [value]="businessType.name"> {{businessType.name}} </option>
+            <option [value]="businessType.name"> {{businessType.name}} </option>
           }
         </select>
       </div>
     </div>
   </div>
+  @if(loading()){
+    <div class="loading">Caricamento in corso...</div>
+  }
   <!-- tabella di users -->
   <table class="table-card ">
     <thead>
@@ -37,37 +42,38 @@
     <tbody>
       @if(usersFiltered().length === 0){
         <tr class="user-row-empty">
-            <td>E possibile che la combinazione di filtri inserita non abbia attuali utenti</td>
+            <td style="color:#b4abb9">
+              E possibile che la combinazione di filtri inserita non abbia attuali utenti
+            </td>
         </tr>
       }
       @else{
         @for(user of usersFiltered(); track user.id)
         {
-          @if(user.userType === 'ADMIN'){
-            <tr class="user-row" [routerLink]="['user-detail', user.id]" routerLinkActive="active" style="cursor: pointer;">
+          <tr class="user-row" 
+          [routerLink]="['user-detail', user.id]" 
+          routerLinkActive="active">
             <td>{{user.name}} {{user.surname}}</td>
             <td>{{user.email}}</td>
             <td>{{user.businessUnit.name}}</td>
           </tr>
-          }
-          @else {
-            <tr class="user-row" [routerLink]="['user-standard', user.id]" routerLinkActive="active" style="cursor: pointer;">
-            <td>{{user.name}} {{user.surname}}</td>
-            <td>{{user.email}}</td>
-            <td>{{user.businessUnit.name}}</td>
-          </tr>
-          }
         }
       }
-      <tr class="table-foot">
-        <td>
+      @if(usersFiltered().length > 1){
+        <tr class="table-foot">
+        <td class="table-info">
           {{displayRange()}}
         </td>
         <td></td>
-        <td>
-          <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)" style="width: min-content;"></app-pagination>
+        <td style="display: flex; justify-content: flex-end;">
+          <app-pagination 
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          [maxVisible]="5"(pageChange)="goToPage($event)">
+          </app-pagination>
         </td>
       </tr>
+      }
     </tbody>
   </table>
 </div>

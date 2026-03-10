@@ -79,6 +79,7 @@
 .menu-item .icon {
   width: 22px;
   height: 22px;
+  padding-top: 3px;
   flex-shrink: 0;
   color: #9CA3AF;
 }

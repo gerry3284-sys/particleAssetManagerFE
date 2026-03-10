@@ -10,9 +10,10 @@ import { AssetCreateComponent } from './features/assets/pages/asset-create/asset
 import { LoginComponent } from './features/auth/login/login';
 import { AssetDetailComponent } from './features/assets/pages/asset-detail/asset-detail';
 import { NotFoundComponent } from './features/errors/pages/not-found/not-found';
+import { AssetTypeList } from './features/asset-type-list/asset-type-list';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'user-standard/:id', pathMatch: 'full' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   
   // Layout per autenticazione (senza sidebar)
   {
@@ -37,7 +38,8 @@ export const routes: Routes = [
       // Assets
       { path: 'assets', component: AssetListComponent },
       { path: 'assets/new', component: AssetCreateComponent },
-      { path: 'assets/:assetCode', component: AssetDetailComponent },      
+      { path: 'assets/:assetCode', component: AssetDetailComponent },
+      { path: 'asset-types', component: AssetTypeList},
       // Users
       { path: 'users', component: UserList },
       { path: 'users/user-detail/:id', component: UserDetail },

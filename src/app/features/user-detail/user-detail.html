@@ -6,6 +6,9 @@
             <h2 class="page-title">{{fullName()}}</h2>
         </div>
     </div>
+    @if(loading()){
+    <div class="loading">Caricamento in corso...</div>
+  }
     <!-- informazioni dell'utente -->
     <div class="user-card">
         <div class="user-info">
@@ -14,8 +17,8 @@
                     <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
                 </div>
                 <div>
-                <div class="user-name fw-bold">{{fullName()}}</div>
-                <div class="user-role">Business Unit: {{businessUnit()}}</div>
+                    <div class="user-name fw-bold">{{fullName()}}</div>
+                    <div class="user-role">Business Unit: {{businessUnit()}}</div>
                 </div>
             </div>
             <div class="email">
@@ -24,7 +27,7 @@
             </div>
             <div class="telefono">
                 <img src="/assets/icona-telefono.svg" alt="telefono">
-                <div class="user-text">{{phoneNumber()}}</div>
+                <div class="user-text">+39 {{phoneNumber()}}</div>
             </div>
         </div>
     </div>
@@ -33,6 +36,7 @@
     <table class="table-card ">
         <thead>
             <tr class="user-header">
+                <th> STATO </th>
                 <th> MARCA </th>
                 <th> MODELLO </th>
                 <th> NUMERO SERIALE </th>
@@ -43,20 +47,43 @@
         <tbody>
             @if(movements().length === 0){
                 <tr class="user-row-empty">
-                    <td>Tabella attualmente vuota da movimenti</td>
+                    <td style="color:#b4abb9">Tabella attualmente vuota da movimenti</td>
                 </tr>
             }
             @else{
                 @for(movement of movements(); track movement.id){
-                    <tr class="user-row" [class.muted]="movement.movementType === 'Dismissed'">
-                    <td>{{movement.asset.brand}}</td>
-                    <td>{{movement.asset.model}}</td>
-                    <td>{{movement.asset.serialNumber}}</td>
-                    <td>{{movement.date | date: 'longDate'}}</td>
-                    @if(movement.updateDate === undefined){
-                        <td> - </td>
+                    @if(controlActivatedAsset(movement.asset.code)){
+                        <tr class="user-row" 
+                            [class.muted]="movement.movementType === 'Dismissed'" 
+                            (click)="onNavigate(movement.asset.serialNumber)" style="cursor: pointer;"
+                        >
+                            <td style="color:green"> ATTIVO </td>
+                            <td>{{movement.asset.brand}}</td>
+                            <td>{{movement.asset.model}}</td>
+                            <td>{{movement.asset.serialNumber}}</td>
+                            <td>{{movement.date | date: 'longDate'}}</td>
+                            @if(movement.updateDate === undefined){
+                                <td> - </td>
+                            }
+                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                        </tr>
                     }
-                    @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                    @else {
+                        <tr class="user-row"
+                            [class.muted]="movement.movementType === 'Dismissed'"
+                            style="cursor: pointer; cursor:default;"
+                        >
+                            <td style="color:red"> DISATTIVO </td>
+                            <td>{{movement.asset.brand}}</td>
+                            <td>{{movement.asset.model}}</td>
+                            <td>{{movement.asset.serialNumber}}</td>
+                            <td>{{movement.date | date: 'longDate'}}</td>
+                            @if(movement.updateDate === undefined){
+                                <td> - </td>
+                            }
+                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                        </tr>
+                    }
                 }
             }
         </tbody>

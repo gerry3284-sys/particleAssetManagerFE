@@ -15,7 +15,7 @@ export interface MovementByuserID {
   id: number,
   movementType: 'Assigned' | 'Returned' | 'Dismissed',
   asset: {
-    id: number,
+    code: string,
     brand: string,
     model: string,
     serialNumber: string,
