@@ -1,20 +1,26 @@
-import { Component, EventEmitter, Output, OnInit, signal } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, computed, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { FilterService } from '../../services/filter.service';
-import { User, AssetType, BusinessUnit, AssetStatusType } from '../../models/filter-config.interface';
+import { AssetType, BusinessUnit, AssetStatusType } from '../../models/filter-config.interface';
 import { merge } from 'rxjs';
 import { debounceTime, map } from 'rxjs/operators';
+import { DropdownComponent } from '../dropdown/dropdown';
+import { DropdownOption } from '../../models/dropdown-option.interface';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Component({
   selector: 'app-filters',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule], // serve per ngFor, ngIf e Reactive Forms
+  imports: [CommonModule, ReactiveFormsModule, DropdownComponent], // serve per ngFor, ngIf e Reactive Forms
   templateUrl: './filters.html',
   styleUrl: './filters.css',
 })
 export class FiltersComponent implements OnInit {
+  // DestroyRef + takeUntilDestroyed: chiude automaticamente i subscribe
+  // quando il componente viene distrutto (best practice Angular 21).
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   // output  emette i filtri al padre quando cambiano
   @Output() filtersChange = new EventEmitter<{
@@ -28,7 +34,31 @@ export class FiltersComponent implements OnInit {
   assetTypes = signal<AssetType[]>([]);
   businessUnits = signal<BusinessUnit[]>([]);
   assetStatusTypes = signal<AssetStatusType[]>([]);
-  users = signal<User[]>([]);
+
+  // Convert API data into dropdown options for the reusable component.
+  assetTypeOptions = computed<DropdownOption[]>(() => [
+    { value: '', label: 'Tutte le tipologie' },
+    ...this.assetTypes().map(type => ({
+      value: type.name,
+      label: type.name
+    }))
+  ]);
+
+  businessUnitOptions = computed<DropdownOption[]>(() => [
+    { value: '', label: 'Tutte le BU' },
+    ...this.businessUnits().map(unit => ({
+      value: unit.name,
+      label: unit.name
+    }))
+  ]);
+
+  statusOptions = computed<DropdownOption[]>(() => [
+    { value: '', label: 'Tutti gli stati' },
+    ...this.assetStatusTypes().map(status => ({
+      value: status.name,
+      label: status.name
+    }))
+  ]);
 
   // FormGroup per tutti i filtri
   filtersForm = new FormGroup<{
@@ -46,13 +76,26 @@ export class FiltersComponent implements OnInit {
   constructor(private filterService: FilterService) {}
 
   ngOnInit(): void {
-    // 4️⃣ Popoliamo i dropdown tramite API
-    this.filterService.getAssetTypes().subscribe(types => this.assetTypes.set(types));
-    this.filterService.getBusinessUnits().subscribe(bu => this.businessUnits.set(bu));
-    this.filterService.getAssetStatusTypes().subscribe(status => this.assetStatusTypes.set(status));
-    this.filterService.getUsers().subscribe(users => this.users.set(users));
+    // Popoliamo i dropdown tramite API.
+    // Questi stream HTTP in genere completano da soli, ma takeUntilDestroyed
+    // rende il codice robusto anche in scenari futuri (refactor/reuse/test).
+    this.filterService.getAssetTypes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(types => this.assetTypes.set(types));
 
-    // 5️⃣ Emissione filtri: immediata per select, debounced per input nome
+    this.filterService.getBusinessUnits()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(bu => this.businessUnits.set(bu));
+
+    this.filterService.getAssetStatusTypes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(status => this.assetStatusTypes.set(status));
+
+    // valueChanges è un flusso lungo: NON si completa da solo.
+    // Senza teardown il subscribe può restare attivo oltre il lifecycle atteso.
+    // Qui lo chiudiamo in automatico con takeUntilDestroyed.
+
+    // Emissione filtri: immediata per select, debounced per input nome.
     const immediate$ = merge(
       this.filtersForm.controls.assetType.valueChanges,
       this.filtersForm.controls.businessUnit.valueChanges,
@@ -64,7 +107,10 @@ export class FiltersComponent implements OnInit {
     );
 
     merge(immediate$, debounced$)
-      .pipe(map(() => this.filtersForm.getRawValue()))
+      .pipe(
+        map(() => this.filtersForm.getRawValue()),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(values => {
         this.filtersChange.emit(values);
       });

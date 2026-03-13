@@ -1,0 +1,130 @@
+.return-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.return-modal {
+  width: min(680px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+  padding: 28px;
+}
+
+.return-modal-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.return-modal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e7f1ff;
+  color: #2563eb;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.return-modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.return-modal-subtitle {
+  margin: 6px 0 0 0;
+  color: #475569;
+}
+
+.return-modal-warning {
+  margin: 6px 0 0 0;
+  color: #b45309;
+  font-size: 13px;
+}
+
+.return-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.return-modal-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.return-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.return-modal-field.full {
+  grid-column: 1 / -1;
+}
+
+.return-modal-field input,
+.return-modal-field select,
+.return-modal-field textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.return-modal-field textarea {
+  resize: vertical;
+}
+
+.return-modal-error {
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.return-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-cancel,
+.btn-confirm {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-confirm {
+  background: #ea580c;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .return-modal {
+    padding: 20px;
+  }
+
+  .return-modal-row {
+    grid-template-columns: 1fr;
+  }
+}

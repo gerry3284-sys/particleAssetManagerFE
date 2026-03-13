@@ -1,0 +1,58 @@
+@if (isOpen()) {
+  <div class="dismiss-modal-backdrop" (click)="onOverlayClick()">
+    <div class="dismiss-modal" (click)="$event.stopPropagation()">
+      <div class="dismiss-modal-header">
+        <div class="dismiss-modal-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3L22 20H2L12 3Z" stroke="currentColor" stroke-width="1.6" />
+            <path d="M12 9V13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <circle cx="12" cy="17" r="1" fill="currentColor" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="dismiss-modal-title">Conferma Dismissione Asset</h3>
+          <p class="dismiss-modal-subtitle">{{ subtitle() }}</p>
+          <p class="dismiss-modal-warning">
+            L'azione e' irreversibile e tutti i campi non saranno piu modificabili.
+          </p>
+        </div>
+      </div>
+
+      <div class="dismiss-modal-body">
+        <div class="dismiss-modal-field">
+          <label for="dismiss-reason">Motivazione*</label>
+          <app-dropdown
+            [options]="reasonOptions()"
+            [error]="reasonError()"
+            placeholder="Seleziona"
+            [ngModel]="reason()"
+            (ngModelChange)="reason.set($event)">
+          </app-dropdown>
+          @if (reasonError()) {
+            <span class="dismiss-modal-error">Seleziona una motivazione.</span>
+          }
+        </div>
+
+        <div class="dismiss-modal-field">
+          <label for="dismiss-notes">Note*</label>
+          <textarea
+            id="dismiss-notes"
+            rows="4"
+            placeholder="Es. Schermo rotto, batteria esausta"
+            class="dismiss-modal-textarea"
+            [class.error]="notesError()"
+            [value]="notes()"
+            (input)="notes.set($any($event.target).value)"></textarea>
+          @if (notesError()) {
+            <span class="dismiss-modal-error">Inserisci una nota.</span>
+          }
+        </div>
+      </div>
+
+      <div class="dismiss-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="close.emit()">Annulla</app-button>
+        <app-button type="button" variant="danger" (pressed)="submit()">Conferma Dismissione</app-button>
+      </div>
+    </div>
+  </div>
+}

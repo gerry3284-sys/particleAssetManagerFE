@@ -105,24 +105,6 @@
 	accent-color: #E56A3D;
 }
 
-.btn-login {
-	margin-top: 4px;
-	background-color: #E56A3D;
-	border: 1px solid #E56A3D;
-	color: #FFFFFF;
-	font-weight: 600;
-	font-size: 13px;
-	padding: 10px 14px;
-	border-radius: 10px;
-	cursor: pointer;
-	box-shadow: 0 6px 14px rgba(229, 106, 61, 0.2);
-	transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.btn-login:hover {
-	background-color: #D85E33;
-	border-color: #D85E33;
-}
 
 .login-footer {
 	font-size: 12px;
@@ -145,16 +127,6 @@
 input.invalid {
   border-color: #f51010;
   box-shadow: 0 0 0 2px #e40a0a;
-}
-
-/* Pulsante disabilitato */
-button:disabled,
-.btn-login:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-  background-color: #E56A3D; /* mantiene colore ma più chiaro con opacity */
-  border-color: #E56A3D;
 }
 
 @media (max-width: 480px) {

@@ -55,13 +55,14 @@
       </div>
 
       <!-- Submit -->
-      <button
+      <app-button
         type="submit"
-        class="btn-login"
+        variant="login"
+        [fullWidth]="true"
         [disabled]="loginForm.invalid"
       >
         Accedi
-      </button>
+      </app-button>
     </form>
 
     <!-- Footer -->

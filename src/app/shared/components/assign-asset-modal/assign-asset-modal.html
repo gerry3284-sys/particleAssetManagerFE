@@ -9,6 +9,7 @@
       </div>
 
       <div class="modal-body">
+        <!--
         <div class="field">
           <label>Data di assegnazione</label>
           <div class="input-with-icon" [class.error]="dateError()">
@@ -30,41 +31,18 @@
             <p class="error-text">Seleziona una data valida.</p>
           }
         </div>
+        -->
 
         <div class="field">
           <label>Seleziona l'utente a cui assegnare l'asset</label>
-          <div class="dropdown" [class.error]="userError()">
-            <input
-              #searchInput
-              type="text"
-              placeholder="Inizia a scrivere..."
-              [value]="searchTerm()"
-              (input)="onSearchChange(searchInput.value)"
-              (focus)="onInputFocus()"
-              (blur)="onInputBlur()"
-              required
-            />
-            <span class="dropdown-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-            @if (dropdownOpen()) {
-              <div class="dropdown-panel">
-                @for (user of filteredUsers(); track user.id) {
-                  <button type="button" (mousedown)="onUserSelect(user)">
-                    <span>{{ user.name }}</span>
-                    @if (user.businessUnit) {
-                      <small>{{ user.businessUnit }}</small>
-                    }
-                  </button>
-                }
-                @if (filteredUsers().length === 0) {
-                  <div class="dropdown-empty">Nessun risultato</div>
-                }
-              </div>
-            }
-          </div>
+          <app-dropdown-search
+            [options]="userOptions()"
+            [error]="userError()"
+            placeholder="Inizia a scrivere..."
+            [ngModel]="selectedUserId()"
+            (ngModelChange)="selectedUserId.set($event); userError.set(false)"
+            required
+          ></app-dropdown-search>
           <p class="helper-text">
             TUTTI gli utenti indipendentemente da BU. mostrare alert se bu diversa
           </p>
@@ -86,8 +64,8 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-secondary" type="button" (click)="close.emit()">Annulla</button>
-        <button class="btn btn-primary" type="button" (click)="submit()">Assegna</button>
+        <app-button variant="secondary" type="button" (pressed)="close.emit()">Annulla</app-button>
+        <app-button variant="primary" type="button" (pressed)="submit()">Assegna</app-button>
       </div>
     </div>
   </div>

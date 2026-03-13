@@ -9,16 +9,21 @@ export interface User {
 export interface AssetType {
   id: number;
   name: string;
+  code?: string;
+  ram?: boolean;
+  hardDisk?: boolean;
 }
 
 export interface BusinessUnit {
   id: number;
   name: string;
+  code?: string;
 }
 
 export interface AssetStatusType {
   id: number;
   name: string;
+  code?: string;
 }
 
 export interface FilterValues {

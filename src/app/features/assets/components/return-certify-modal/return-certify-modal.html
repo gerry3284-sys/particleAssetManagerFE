@@ -1,0 +1,66 @@
+@if (isOpen()) {
+  <div class="return-modal-backdrop" (click)="onOverlayClick()">
+    <div class="return-modal" (click)="$event.stopPropagation()">
+      <div class="return-modal-header">
+        <div class="return-modal-icon">i</div>
+        <div>
+          <h3 class="return-modal-title">Conferma riconsegna asset</h3>
+          <p class="return-modal-subtitle">{{ subtitle() }}</p>
+          <p class="return-modal-warning">L'azione non puo essere annullata.</p>
+        </div>
+      </div>
+
+      <div class="return-modal-body">
+        <div class="return-modal-row">
+          <div class="return-modal-field full">
+            <label for="return-reason">Motivazione*</label>
+            <app-dropdown
+              [options]="reasons"
+              [error]="reasonError()"
+              placeholder="Seleziona"
+              [ngModel]="reason()"
+              (ngModelChange)="onReasonChange($event)">
+            </app-dropdown>
+            @if (reasonError()) {
+              <span class="return-modal-error">Seleziona una motivazione.</span>
+            }
+          </div>
+        </div>
+
+        @if (isResignation()) {
+          <div class="return-modal-row">
+            <div class="return-modal-field full">
+              <label for="private-email">Indirizzo e-mail privato*</label>
+              <input
+                id="private-email"
+                type="email"
+                placeholder="nome@email.com"
+                [value]="privateEmail()"
+                (input)="onPrivateEmailInput($any($event.target).value)" />
+              @if (emailError()) {
+                <span class="return-modal-error">Inserisci un indirizzo valido.</span>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="return-modal-row">
+          <div class="return-modal-field full">
+            <label for="return-notes">Note (opzionale)</label>
+            <textarea
+              id="return-notes"
+              rows="4"
+              placeholder="Es. schermo rotto, batteria esaurita"
+              [value]="notes()"
+              (input)="notes.set($any($event.target).value)"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="return-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="close.emit()">Annulla</app-button>
+        <app-button type="button" variant="primary" (pressed)="submit()">Conferma riconsegna</app-button>
+      </div>
+    </div>
+  </div>
+}
