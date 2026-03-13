@@ -18,7 +18,7 @@
 
     <!-- Form Card -->
     <div class="form-card">
-      <form (ngSubmit)="createAsset()">
+      <form [formGroup]="assetForm" (ngSubmit)="openConfirm()" novalidate>
         
         <!-- Prima riga: Marca, Modello, Tipologia -->
         <div class="form-row">
@@ -31,8 +31,7 @@
               id="brand"
               class="form-control"
               placeholder="Es. Apple"
-              [value]="assetForm().brand"
-              (input)="updateField('brand', $any($event.target).value)"
+              formControlName="brand"
               required />
           </div>
 
@@ -45,25 +44,22 @@
               id="model"
               class="form-control"
               placeholder="Es. MacBook Pro 16&quot;"
-              [value]="assetForm().model"
-              (input)="updateField('model', $any($event.target).value)"
+              formControlName="model"
               required />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="assetType">
+            <label class="form-label">
               Tipologia Asset <span class="required">*</span>
             </label>
-            <select
-              id="assetType"
-              class="form-select"
-              [value]="assetForm().assetType"
-              (change)="updateField('assetType', $any($event.target).value)"
-              required>
-              @for (option of assetTypeOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
-              }
-            </select>
+            <app-dropdown
+              [options]="assetTypeOptions()"
+              placeholder="Seleziona una tipologia"
+              formControlName="assetType"
+            ></app-dropdown>
+            @if (assetTypesError()) {
+              <div class="field-error">{{ assetTypesError() }}</div>
+            }
           </div>
         </div>
 
@@ -78,29 +74,85 @@
               id="serialNumber"
               class="form-control"
               placeholder="Inserisci il numero seriale"
-              [value]="assetForm().serialNumber"
-              (input)="updateField('serialNumber', $any($event.target).value)"
+              formControlName="serialNumber"
               required />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="businessUnit">
+            <label class="form-label">
               Business Unit <span class="required">*</span>
             </label>
-            <select
-              id="businessUnit"
-              class="form-select"
-              [value]="assetForm().businessUnit"
-              (change)="updateField('businessUnit', $any($event.target).value)"
-              required>
-              @for (option of businessUnitOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
-              }
-            </select>
+            <app-dropdown
+              [options]="businessUnitOptions()"
+              placeholder="Seleziona una Business Unit"
+              formControlName="businessUnit"
+            ></app-dropdown>
+            @if (businessUnitsError()) {
+              <div class="field-error">{{ businessUnitsError() }}</div>
+            }
           </div>
         </div>
 
         <!-- Terza riga: Note (full width) -->
+        @if (selectedAssetType()?.ram || selectedAssetType()?.hardDisk) {
+          <div class="form-row">
+            @if (selectedAssetType()?.ram) {
+              <div class="form-group">
+                <label class="form-label" for="ramGb">
+                  RAM (GB)
+                </label>
+                <input
+                  type="text"
+                  id="ramGb"
+                  class="form-control"
+                  placeholder="Es. 16"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  formControlName="ramGb"
+                  required />
+                @if (assetForm.controls.ramGb.touched && assetForm.controls.ramGb.invalid) {
+                  <div class="field-error">
+                    @if (assetForm.controls.ramGb.errors?.['required']) {
+                      <span>Inserisci la RAM.</span>
+                    } @else if (assetForm.controls.ramGb.errors?.['pattern']) {
+                      <span>Solo numeri interi.</span>
+                    } @else if (assetForm.controls.ramGb.errors?.['min']) {
+                      <span>Minimo 2 GB.</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            @if (selectedAssetType()?.hardDisk) {
+              <div class="form-group">
+                <label class="form-label" for="hardDiskGb">
+                  Hard Disk (GB)
+                </label>
+                <input
+                  type="text"
+                  id="hardDiskGb"
+                  class="form-control"
+                  placeholder="Es. 512"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  formControlName="hardDiskGb"
+                  required />
+                @if (assetForm.controls.hardDiskGb.touched && assetForm.controls.hardDiskGb.invalid) {
+                  <div class="field-error">
+                    @if (assetForm.controls.hardDiskGb.errors?.['required']) {
+                      <span>Inserisci l'hard disk.</span>
+                    } @else if (assetForm.controls.hardDiskGb.errors?.['pattern']) {
+                      <span>Solo numeri interi.</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Quarta riga: Note (full width) -->
         <div class="form-row">
           <div class="form-group full-width">
             <label class="form-label" for="notes">
@@ -111,31 +163,28 @@
               class="form-control textarea"
               rows="4"
               placeholder="Es. numero di telefono, note varie..."
-              [value]="assetForm().notes || ''"
-              (input)="updateField('notes', $any($event.target).value)">
-            </textarea>
+              formControlName="notes"></textarea>
           </div>
         </div>
 
         <!-- Bottoni azione -->
         <div class="form-actions">
-          <button 
-            type="button" 
-            class="btn btn-cancel"
-            (click)="cancel()"
-            [disabled]="isSubmitting()">
+          <app-button
+            variant="secondary"
+            type="button"
+            [disabled]="isSubmitting()"
+            (pressed)="cancel()">
             Annulla
-          </button>
-          <button 
-            type="submit" 
-            class="btn btn-submit"
-            [disabled]="!isFormValid() || isSubmitting()">
-            @if (isSubmitting()) {
-              <span>Creazione in corso...</span>
-            } @else {
-              <span>Crea Asset</span>
-            }
-          </button>
+          </app-button>
+          <app-button
+            variant="primary"
+            type="button"
+            [disabled]="!assetForm.valid"
+            [loading]="isSubmitting()"
+            loadingLabel="Creazione in corso..."
+            (pressed)="openConfirm()">
+            Crea Asset
+          </app-button>
         </div>
 
       </form>
@@ -143,3 +192,81 @@
 
   </div>
 </div>
+
+@if (showConfirm()) {
+  <div class="confirm-overlay" (click)="closeConfirm()">
+    <div class="confirm-card" (click)="$event.stopPropagation()">
+      <div class="confirm-header">
+        <h3>Conferma creazione asset</h3>
+        <p>Controlla i dati prima di procedere.</p>
+      </div>
+
+      <div class="confirm-section">
+        <h4>Dati asset</h4>
+        <div class="summary-grid">
+          <div class="summary-row">
+            <span class="summary-label">Marca</span>
+            <span class="summary-value">{{ formValue().brand }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Modello</span>
+            <span class="summary-value">{{ formValue().model }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Numero Seriale</span>
+            <span class="summary-value">{{ formValue().serialNumber }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Tipologia</span>
+            <span class="summary-value">{{ selectedAssetType()?.name }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Business Unit</span>
+            <span class="summary-value">{{ selectedBusinessUnit()?.name }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Stato iniziale</span>
+            <span class="summary-value">{{ defaultStatusLabel() }}</span>
+          </div>
+        </div>
+      </div>
+
+      @if (selectedAssetType()?.ram || selectedAssetType()?.hardDisk) {
+        <div class="confirm-section">
+          <h4>Specifiche tecniche</h4>
+          <div class="summary-grid">
+            @if (selectedAssetType()?.ram) {
+              <div class="summary-row">
+                <span class="summary-label">RAM</span>
+                <span class="summary-value">{{ formValue().ramGb }} GB</span>
+              </div>
+            }
+            @if (selectedAssetType()?.hardDisk) {
+              <div class="summary-row">
+                <span class="summary-label">Hard Disk</span>
+                <span class="summary-value">{{ formValue().hardDiskGb }} GB</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="confirm-section">
+        <h4>Note</h4>
+        <p class="summary-notes">{{ formValue().notes || 'Nessuna nota' }}</p>
+      </div>
+
+      <div class="confirm-actions">
+        <app-button type="button" variant="secondary" (pressed)="closeConfirm()">Modifica</app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="isSubmitting()"
+          loadingLabel="Creazione in corso..."
+          (pressed)="confirmCreate()">
+          Conferma e crea
+        </app-button>
+      </div>
+    </div>
+  </div>
+}

@@ -5,34 +5,31 @@
     <!-- Tipologia Asset -->
     <div class="filter-item">
       <label class="filter-label" for="assetType">Tipologia Asset</label>
-      <select id="assetType" formControlName="assetType" class="filter-control">
-        <option value="">Tutte le tipologie</option>
-        <option *ngFor="let type of assetTypes()" [value]="type.name">
-          {{ type.name }}
-        </option>
-      </select>
+      <app-dropdown
+        formControlName="assetType"
+        [options]="assetTypeOptions()"
+        placeholder="Tutte le tipologie"
+      ></app-dropdown>
     </div>
 
     <!-- Business Unit -->
     <div class="filter-item">
       <label class="filter-label" for="businessUnit">Business Unit</label>
-      <select id="businessUnit" formControlName="businessUnit" class="filter-control">
-        <option value="">Tutte le BU</option>
-        <option *ngFor="let bu of businessUnits()" [value]="bu.name">
-          {{ bu.name }}
-        </option>
-      </select>
+      <app-dropdown
+        formControlName="businessUnit"
+        [options]="businessUnitOptions()"
+        placeholder="Tutte le BU"
+      ></app-dropdown>
     </div>
 
     <!-- Stato Asset -->
     <div class="filter-item">
       <label class="filter-label" for="status">Stato Asset</label>
-      <select id="status" formControlName="status" class="filter-control">
-        <option value="">Tutti gli stati</option>
-        <option *ngFor="let status of assetStatusTypes()" [value]="status.name">
-          {{ status.name }}
-        </option>
-      </select>
+      <app-dropdown
+        formControlName="status"
+        [options]="statusOptions()"
+        placeholder="Tutti gli stati"
+      ></app-dropdown>
     </div>
 
     <!-- Nome Assegnatario (input con debounce) -->

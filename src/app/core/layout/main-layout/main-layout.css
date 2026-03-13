@@ -12,7 +12,7 @@ app-sidebar {
 .content {
 	min-width: 0;
 	flex: 1;
-	padding: 1.5rem;
+	padding: 0;
 }
 
 

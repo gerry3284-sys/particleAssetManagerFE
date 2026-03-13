@@ -1,0 +1,33 @@
+<div class="dropdown" [class.error]="error()" [class.disabled]="isDisabled()">
+  <input
+    #searchInput
+    type="text"
+    [placeholder]="placeholder()"
+    [value]="searchTerm()"
+    (input)="onSearchChange(searchInput.value)"
+    (focus)="onInputFocus()"
+    (blur)="onInputBlur()"
+    [disabled]="isDisabled()"
+  />
+  <span class="dropdown-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </span>
+
+  @if (dropdownOpen()) {
+    <div class="dropdown-panel">
+      @for (option of filteredOptions(); track option.value) {
+        <button type="button" (mousedown)="selectOption(option)">
+          <span>{{ option.label }}</span>
+          @if (option.subLabel) {
+            <small>{{ option.subLabel }}</small>
+          }
+        </button>
+      }
+      @if (filteredOptions().length === 0) {
+        <div class="dropdown-empty">{{ emptyLabel() }}</div>
+      }
+    </div>
+  }
+</div>

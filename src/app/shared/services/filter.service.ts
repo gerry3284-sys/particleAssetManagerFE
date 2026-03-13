@@ -1,7 +1,8 @@
 // src/app/services/filter.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 import { User, AssetType, BusinessUnit, AssetStatusType, FilterValues } from '../models/filter-config.interface';
 
 
@@ -9,7 +10,11 @@ import { User, AssetType, BusinessUnit, AssetStatusType, FilterValues } from '..
   providedIn: 'root', // disponibile in tutta l'app
 })
 export class FilterService {
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
+
+  private readonly assetStatusTypes$ = this.http
+    .get<AssetStatusType[]>('http://localhost:8080/assetStatusType')
+    .pipe(shareReplay(1));
 
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>('http://localhost:8080/user');
@@ -24,6 +29,10 @@ export class FilterService {
   }
 
   getAssetStatusTypes(): Observable<AssetStatusType[]> {
-    return this.http.get<AssetStatusType[]>('http://localhost:8080/assetStatusType');
+    return this.assetStatusTypes$;
+  }
+
+  createAssetStatusType(payload: { name: string }): Observable<void> {
+    return this.http.post<void>('http://localhost:8080/assetStatusType', payload);
   }
 }

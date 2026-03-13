@@ -5,12 +5,14 @@ export interface AssetCreateForm {
   serialNumber: string;
   businessUnit: string;
   notes?: string;
+  ramGb?: number | null;
+  hardDiskGb?: number | null;
 }
 
 export interface Asset {
   id: string;
   assetCode: string;
-  status: 'Assigned' | 'Available' | 'Dismissed';
+  status: 'Assigned' | 'Available' | 'Dismissed' | 'Unavailable';
   statusLabel: string;
   brand: string;
   model: string;
@@ -36,22 +38,27 @@ export interface AssetDetail {
   id: string;
   assetCode: string;
   businessUnit: string;
+  businessUnitCode?: string;
   brand: string;
   model: string;
   serialNumber: string;
+  hardDisk?: string | null;
+  ram?: number | null;
   assignedUser: string | null;
   assignedUserId: string | null;
   assignmentDate: string | null;
   returnDate: string | null;
   notes: string;
-  status: 'Assigned' | 'Available' | 'Dismissed';
+  status: 'Assigned' | 'Available' | 'Dismissed' | 'Unavailable';
   statusLabel: string;
   assetType: string;
+  assetTypeCode?: string;
+  assetStatusTypeCode?: string;
   movements: AssetMovement[];
 }
 
 export interface AssignAssetForm {
-  assignmentDate: string;
+  assignmentDate?: string;
   userId: string;
   userName: string;
   notes?: string;

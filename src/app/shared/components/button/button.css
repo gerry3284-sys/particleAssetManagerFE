@@ -1,0 +1,118 @@
+.btn {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background-color: #E56A3D;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(229, 106, 61, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #D85E33;
+  box-shadow: 0 6px 16px rgba(229, 106, 61, 0.3);
+}
+
+.btn-secondary {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+.btn-danger {
+  background-color: #DC2626;
+  color: #FFFFFF;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #B91C1C;
+}
+
+.btn-login {
+  background-color: #E56A3D;
+  border: 1px solid #E56A3D;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(229, 106, 61, 0.2);
+}
+
+.btn-login:hover:not(:disabled) {
+  background-color: #D85E33;
+  border-color: #D85E33;
+}
+
+.btn-sidebar {
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.btn-sidebar:hover:not(:disabled) {
+  background-color: #FFEBEE;
+  color: #D32F2F;
+}
+
+/* Evidenzia lo stato disabled anche a livello colore variante. */
+.btn.btn-primary:disabled,
+.btn.btn-primary.btn-disabled {
+  background-color: #FDE6DD;
+  color: #9CA3AF;
+}
+
+.btn.btn-secondary:disabled,
+.btn.btn-secondary.btn-disabled {
+  background-color: #F3F4F6;
+  border-color: #E5E7EB;
+  color: #9CA3AF;
+}
+
+.btn.btn-danger:disabled,
+.btn.btn-danger.btn-disabled {
+  background-color: #FEE2E2;
+  color: #9CA3AF;
+}
+
+.btn.btn-login:disabled,
+.btn.btn-sidebar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}

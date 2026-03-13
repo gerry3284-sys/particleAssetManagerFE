@@ -37,8 +37,12 @@
 
   <!-- Logout -->
   <div class="sidebar-footer">
-    <button (click)="onLogout()" 
-       class="logout-btn">
+    <app-button
+      class="sidebar-logout"
+      variant="sidebar"
+      type="button"
+      [fullWidth]="true"
+      (pressed)="onLogout()">
       <span class="icon">
         <!-- Qui metterai il tuo SVG per Logout -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -48,7 +52,7 @@
         </svg>
       </span>
       <span class="label">Logout</span>
-    </button>
+    </app-button>
   </div>
 
 </div>

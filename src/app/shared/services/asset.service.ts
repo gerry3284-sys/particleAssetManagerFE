@@ -24,6 +24,8 @@ export interface AssetDetailApi {
   model: string;
   serialNumber: string;
   note: string | null;
+  hardDisk?: string | null;
+  ram?: number | null;
   creationDate: string;
   updateDate: string | null;
   code: string;
@@ -78,7 +80,7 @@ export class AssetService {
 
   // DETTAGLIO ASSET
   getAssetByCode(assetCode: string): Observable<AssetDetail> {
-    const safeCode = encodeURIComponent(assetCode);
+    const safeCode = this.toSafeAssetCode(assetCode);
     return this.http.get<AssetDetailApi>(`${this.apiUrl}/${safeCode}`).pipe(
       map(item => this.mapAssetDetail(item))
     );
@@ -86,10 +88,73 @@ export class AssetService {
 
   // MOVIMENTI ASSET
   getAssetMovements(assetCode: string): Observable<AssetMovement[]> {
-    const safeCode = encodeURIComponent(assetCode);
+    const safeCode = this.toSafeAssetCode(assetCode);
     return this.http.get<AssetMovementApi[]>(`${this.apiUrl}/${safeCode}/movement`).pipe(
       map(items => items.map(item => this.mapAssetMovement(item)))
     );
+  }
+
+  // CREA MOVIMENTO ASSET
+  createAssetMovement(assetCode: string, payload: {
+    note: string;
+    movementType: string;
+    user: number;
+    receiptBase64?: string;
+  }): Observable<void> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    // Costruisce body senza receiptBase64 se non fornito
+    const body: Record<string, unknown> = {
+      note: payload.note,
+      movementType: payload.movementType,
+      user: payload.user
+    };
+    if (payload.receiptBase64) {
+      body['receiptBase64'] = payload.receiptBase64;
+    }
+    return this.http.post<void>(`${this.apiUrl}/${safeCode}/movement`, body);
+  }
+
+  // AGGIORNA ASSET
+  updateAsset(assetCode: string, payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    hardDisk: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    ram: number;
+  }): Observable<void> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    return this.http.put<void>(`${this.apiUrl}/${safeCode}`, payload);
+  }
+
+  // AGGIORNA SOLO LO STATUS ASSET (nuovo endpoint backend)
+  updateAssetStatus(assetCode: string, assetStatusTypeCode: string): Observable<void> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    return this.http.put<void>(`${this.apiUrl}/updateAssetStatus/${safeCode}`, {
+      assetStatusTypeCode
+    });
+  }
+
+  // Normalizza il codice prima di usarlo in URL.
+  // Evita 404/400 dovuti a spazi accidentali in route o binding.
+  private toSafeAssetCode(assetCode: string): string {
+    return encodeURIComponent((assetCode ?? '').trim());
+  }
+
+  // CREA ASSET
+  createAsset(payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    hardDisk: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    ram: number;
+  }): Observable<void> {
+    return this.http.post<void>(this.apiUrl, payload);
   }
 
   // MAPPA ASSET LISTA → FRONTEND
@@ -113,15 +178,19 @@ export class AssetService {
 
   // MAPPA DETTAGLIO ASSET → FRONTEND
   private mapAssetDetail(item: AssetDetailApi): AssetDetail {
-    const status = this.parseStatus(item.assetStatusType.name);
+    // Usa prima code per la logica (piu affidabile), name solo come fallback/UI.
+    const status = this.parseStatus(item.assetStatusType.code, item.assetStatusType.name);
 
     return {
       id: item.code,
       assetCode: item.code,
       businessUnit: item.businessUnit.name,
+      businessUnitCode: item.businessUnit.code,
       brand: item.brand,
       model: item.model,
       serialNumber: item.serialNumber,
+      hardDisk: item.hardDisk ?? null,
+      ram: item.ram ?? null,
       assignedUser: null,
       assignedUserId: null,
       assignmentDate: null,
@@ -130,6 +199,8 @@ export class AssetService {
       status,
       statusLabel: item.assetStatusType.name,
       assetType: item.assetType.name,
+      assetTypeCode: item.assetType.code,
+      assetStatusTypeCode: item.assetStatusType.code,
       movements: []
     };
   }
@@ -160,10 +231,49 @@ export class AssetService {
   }
 
   // NORMALIZZA STATUS
-  private parseStatus(status: string): Asset['status'] {
-    if (status === 'Assigned' || status === 'Available' || status === 'Dismissed') {
-      return status;
+  private parseStatus(primary?: string | null, fallback?: string | null): Asset['status'] {
+    const candidates = [primary, fallback]
+      .filter((value): value is string => !!value)
+      .map(value => value.trim())
+      .filter(Boolean);
+
+    if (!candidates.length) {
+      return 'Unavailable';
     }
-    return 'Available';
+
+    for (const candidate of candidates) {
+      const normalized = candidate
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '');
+
+      // Code brevi backend (AS*, AV*, DI*)
+      if (normalized.startsWith('AS')) {
+        return 'Assigned';
+      }
+
+      if (normalized.startsWith('AV')) {
+        return 'Available';
+      }
+
+      if (normalized.startsWith('DI')) {
+        return 'Dismissed';
+      }
+
+      // Label complete EN/IT
+      if (normalized.includes('ASSIGN') || normalized.includes('ASSEGN')) {
+        return 'Assigned';
+      }
+
+      if (normalized.includes('DISMISS') || normalized.includes('DISMESS')) {
+        return 'Dismissed';
+      }
+
+      if (normalized.includes('AVAIL') || normalized.includes('DISPONIBIL')) {
+        return 'Available';
+      }
+    }
+
+    // Stati speciali (es. Under Maintenance) non consentono movimenti.
+    return 'Unavailable';
   }
 }

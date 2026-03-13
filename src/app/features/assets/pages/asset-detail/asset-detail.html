@@ -102,7 +102,7 @@
               </div>
 
               <!-- Rows -->
-              @for (movement of movements(); track movement.id) {
+              @for (movement of movementState().data; track movement.id) {
                 <div 
                   class="movements-row movements-data"
                   (click)="movement.note && goToMovementDetail(movement.id)"
@@ -132,7 +132,7 @@
               }
 
               <!-- Empty State -->
-              @if (movements().length === 0) {
+              @if (movementState().data.length === 0) {
                 <div class="empty-state">
                   <p>Nessun movimento registrato</p>
                 </div>
@@ -150,32 +150,32 @@
             <p class="actions-subtitle">Gestisci il ciclo di vita e lo stato dell'asset.</p>
             
             <div class="actions-buttons">
-              <button 
-                class="btn btn-primary"
+              <app-button
+                variant="primary"
                 type="button"
+                [fullWidth]="true"
                 [disabled]="!canAssign()"
-                [class.btn-disabled]="!canAssign()"
-                (click)="assignAsset()">
+                (pressed)="assignAsset()">
                 Assegna Asset
-              </button>
+              </app-button>
 
-              <button 
-                class="btn btn-secondary"
+              <app-button
+                variant="secondary"
                 type="button"
+                [fullWidth]="true"
                 [disabled]="!canCertifyReturn()"
-                [class.btn-disabled]="!canCertifyReturn()"
-                (click)="certifyReturn()">
+                (pressed)="certifyReturn()">
                 Certifica Riconsegna
-              </button>
+              </app-button>
 
-              <button 
-                class="btn btn-danger"
+              <app-button
+                variant="danger"
                 type="button"
+                [fullWidth]="true"
                 [disabled]="!canDismiss()"
-                [class.btn-disabled]="!canDismiss()"
-                (click)="dismissAsset()">
+                (pressed)="dismissAsset()">
                 Dismetti Asset
-              </button>
+              </app-button>
             </div>
           </div>
         </div>
@@ -187,7 +187,7 @@
     @if (!isLoading() && !asset()) {
       <div class="error-state">
         <p>Asset non trovato</p>
-        <button class="btn btn-primary" (click)="goBack()">Torna alla lista</button>
+        <app-button variant="primary" type="button" (pressed)="goBack()">Torna alla lista</app-button>
       </div>
     }
 
@@ -200,5 +200,21 @@
     (close)="closeAssignModal()"
     (assign)="onAssetAssigned($event)">
   </app-assign-asset-modal>
+
+  <!-- Modal riconsegna -->
+  <app-return-certify-modal
+    [isOpen]="showReturnModal()"
+    [assetSummary]="assetSummary()"
+    (close)="closeReturnModal()"
+    (confirm)="onReturnCertified($event)">
+  </app-return-certify-modal>
+
+  <!-- Modal dismissione -->
+  <app-dismiss-asset-modal
+    [isOpen]="showDismissModal()"
+    [assetSummary]="assetSummary()"
+    (close)="closeDismissModal()"
+    (confirm)="onDismissConfirmed($event)">
+  </app-dismiss-asset-modal>
 
 </div>

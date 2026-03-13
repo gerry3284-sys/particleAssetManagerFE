@@ -1,0 +1,11 @@
+<button
+  [attr.type]="type()"
+  [ngClass]="resolvedClass()"
+  [disabled]="isDisabled()"
+  (click)="onClick($event)">
+  @if (loading()) {
+    <span>{{ loadingLabel() }}</span>
+  } @else {
+    <ng-content></ng-content>
+  }
+</button>

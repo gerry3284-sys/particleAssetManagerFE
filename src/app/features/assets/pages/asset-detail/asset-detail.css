@@ -157,6 +157,11 @@
   color: #6B7280;
 }
 
+.status-unavailable {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
 /* ===================================
    MOVEMENTS TABLE
    =================================== */
@@ -274,39 +279,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-/* Button styles specifici per asset-detail */
-.btn {
-  width: 100%; /* Full width per questa sezione */
-}
-
-.btn-disabled,
-.btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  box-shadow: none;
-  filter: grayscale(1);
-}
-
-/* Rende molto evidente lo stato disabilitato per ogni variante */
-.btn.btn-primary:disabled,
-.btn.btn-primary.btn-disabled {
-  background-color: #FDE6DD;
-  color: #9CA3AF;
-}
-
-.btn.btn-secondary:disabled,
-.btn.btn-secondary.btn-disabled {
-  background-color: #F3F4F6;
-  border-color: #E5E7EB;
-  color: #9CA3AF;
-}
-
-.btn.btn-danger:disabled,
-.btn.btn-danger.btn-disabled {
-  background-color: #FEE2E2;
-  color: #9CA3AF;
 }
 
 /* ===================================
