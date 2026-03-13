@@ -1,10 +1,11 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { BusinessType, User } from '../../../../models/user.model';
+import { User } from '../../../../models/user.model';
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
 import { ApiService } from '../../../../services/api';
 import { FormsModule } from "@angular/forms";
 import { forkJoin } from 'rxjs';
+import { BusinessUnit } from '../../../../shared/services/business-unit.service';
 
 @Component({
   selector: 'app-user-list',
@@ -16,7 +17,7 @@ import { forkJoin } from 'rxjs';
 export class UserList{
   users = signal<User[]>([]);
   usersFiltered = signal<User[]>([]);
-  businessTypes = signal<BusinessType[]>([]);
+  businessUnits = signal<BusinessUnit[]>([]);
   loading = signal(true);
   destroyRef = inject(DestroyRef);
   initialName = '';
@@ -26,11 +27,11 @@ export class UserList{
   constructor(private apiService: ApiService) {
     const subscription = forkJoin({
       users: this.apiService.getUsers(),
-      businessTypes: this.apiService.getBusinessUnitType()
+      businessUnits: this.apiService.getBusinessUnits()
     }).subscribe({
-      next:({users, businessTypes}) =>{
+      next:({users, businessUnits}) =>{
         this.users.set(users ?? ['placeholder']);
-        this.businessTypes.set(businessTypes ?? ['placeholder'])
+        this.businessUnits.set(businessUnits ?? ['placeholder'])
 
         this.usersFiltered.set(this.users());
         this.loading.set(false);
@@ -38,7 +39,7 @@ export class UserList{
       error: err => {
         console.error('API error user', err);
         this.users.set([]);
-        this.businessTypes.set([]);
+        this.businessUnits.set([]);
 
         this.usersFiltered.set(this.users());
         this.loading.set(false);
@@ -85,6 +86,6 @@ export class UserList{
       filtered = filtered.filter(user => user.businessUnit.name === this.filter);
     }
 
-    this.usersFiltered.set(filtered);
+    this.usersFiltered.set(filtered); 
   }
 }

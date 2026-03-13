@@ -30,17 +30,14 @@ a {
 	border: 1px solid #FCD34D;
 	border-radius: 8px;
 }
-.user-card {
-	background-color: #FFFFFF;
+.user-info{
+  background-color: #FFFFFF;
 	border: 1px solid #EFEFEF;
 	border-radius: 1rem;
 	padding: 1rem 1rem;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-}
-.user-info{
   gap: 1rem;
 	align-items: start;
-	padding: 1rem;
 	font-weight: 700;
 	letter-spacing: 0.05em;
   display: flex;
@@ -108,7 +105,7 @@ a {
   margin-left: 0.5rem;
 }
 .table-card {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   width: 100%;
 	background-color: #FFFFFF;
 	border: 1px solid #EFEFEF;

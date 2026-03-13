@@ -7,28 +7,26 @@
         </div>
     </div>
     @if(loading()){
-    <div class="loading">Caricamento in corso...</div>
-  }
+        <div class="loading">Caricamento in corso...</div>
+    }
     <!-- informazioni dell'utente -->
-    <div class="user-card">
-        <div class="user-info">
-            <div class="user-item">
-                <div class="avatar">
-                    <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
-                </div>
-                <div>
-                    <div class="user-name fw-bold">{{fullName()}}</div>
-                    <div class="user-role">Business Unit: {{businessUnit()}}</div>
-                </div>
+    <div class="user-info">
+        <div class="user-item">
+            <div class="avatar">
+                <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
             </div>
-            <div class="email">
-                <img src="/assets/icona-email.svg" alt="email">
-                <div class="user-text">{{email()}}</div>
+            <div>
+                <div class="user-name fw-bold">{{fullName()}}</div>
+                <div class="user-role">Business Unit: {{businessUnit()}}</div>
             </div>
-            <div class="telefono">
-                <img src="/assets/icona-telefono.svg" alt="telefono">
-                <div class="user-text">+39 {{phoneNumber()}}</div>
-            </div>
+        </div>
+        <div class="email">
+            <img src="/assets/icona-email.svg" alt="email">
+            <div class="user-text">{{email()}}</div>
+        </div>
+        <div class="telefono">
+            <img src="/assets/icona-telefono.svg" alt="telefono">
+            <div class="user-text">+39 {{phoneNumber()}}</div>
         </div>
     </div>
     <h5 class="page-subtitle">Storico degli asset</h5>
@@ -36,7 +34,7 @@
     <table class="table-card ">
         <thead>
             <tr class="user-header">
-                <th> STATO </th>
+                <th> TIPOLOGIA </th>
                 <th> MARCA </th>
                 <th> MODELLO </th>
                 <th> NUMERO SERIALE </th>
@@ -57,11 +55,12 @@
                             [class.muted]="movement.movementType === 'Dismissed'" 
                             (click)="onNavigate(movement.asset.serialNumber)" style="cursor: pointer;"
                         >
-                            <td style="color:green"> ATTIVO </td>
+                            <td style="color:green"> ATTIVA </td>
                             <td>{{movement.asset.brand}}</td>
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
                             <td>{{movement.date | date: 'longDate'}}</td>
+
                             @if(movement.updateDate === undefined){
                                 <td> - </td>
                             }
@@ -73,11 +72,12 @@
                             [class.muted]="movement.movementType === 'Dismissed'"
                             style="cursor: pointer; cursor:default;"
                         >
-                            <td style="color:red"> DISATTIVO </td>
+                            <td style="color:red"> DISATTIVA </td>
                             <td>{{movement.asset.brand}}</td>
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
                             <td>{{movement.date | date: 'longDate'}}</td>
+                            
                             @if(movement.updateDate === undefined){
                                 <td> - </td>
                             }

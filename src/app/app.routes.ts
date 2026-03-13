@@ -11,6 +11,7 @@ import { LoginComponent } from './features/auth/login/login';
 import { AssetDetailComponent } from './features/assets/pages/asset-detail/asset-detail';
 import { NotFoundComponent } from './features/errors/pages/not-found/not-found';
 import { AssetTypeList } from './features/asset-type-list/asset-type-list';
+import { BusinessUnitList } from './features/business-unit/business-unit-list';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -40,6 +41,8 @@ export const routes: Routes = [
       { path: 'assets/new', component: AssetCreateComponent },
       { path: 'assets/:assetCode', component: AssetDetailComponent },
       { path: 'asset-types', component: AssetTypeList},
+      // BusinessUnit
+      { path: 'businessUnits', component: BusinessUnitList},
       // Users
       { path: 'users', component: UserList },
       { path: 'users/user-detail/:id', component: UserDetail },

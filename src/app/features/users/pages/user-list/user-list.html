@@ -19,9 +19,11 @@
         <label class="filter-label">Business Unit</label>
         <select class="filter-control" [(ngModel)]="filter">
           <option value="">Tutte le categorie</option>
-          @for(businessType of businessTypes(); track businessType.id)
+          @for(businessUnit of businessUnits(); track businessUnit.id)
           {
-            <option [value]="businessType.name"> {{businessType.name}} </option>
+            @if(businessUnit.active){
+              <option [value]="businessUnit.name"> {{businessUnit.name}} </option>
+            }
           }
         </select>
       </div>
@@ -50,29 +52,31 @@
       @else{
         @for(user of usersFiltered(); track user.id)
         {
-          <tr class="user-row" 
-          [routerLink]="['user-detail', user.id]" 
-          routerLinkActive="active">
-            <td>{{user.name}} {{user.surname}}</td>
-            <td>{{user.email}}</td>
-            <td>{{user.businessUnit.name}}</td>
-          </tr>
+          @if(user.businessUnit.active){
+            <tr class="user-row" 
+            [routerLink]="['user-detail', user.id]" 
+            routerLinkActive="active">
+              <td>{{user.name}} {{user.surname}}</td>
+              <td>{{user.email}}</td>
+              <td>{{user.businessUnit.name}}</td>
+            </tr>
+          }
         }
       }
       @if(usersFiltered().length > 1){
         <tr class="table-foot">
-        <td class="table-info">
-          {{displayRange()}}
-        </td>
-        <td></td>
-        <td style="display: flex; justify-content: flex-end;">
-          <app-pagination 
-          [currentPage]="currentPage()"
-          [totalPages]="totalPages()"
-          [maxVisible]="5"(pageChange)="goToPage($event)">
-          </app-pagination>
-        </td>
-      </tr>
+          <td class="table-info">
+            {{displayRange()}}
+          </td>
+          <td></td>
+          <td style="display: flex; justify-content: flex-end;">
+            <app-pagination 
+            [currentPage]="currentPage()"
+            [totalPages]="totalPages()"
+            [maxVisible]="5"(pageChange)="goToPage($event)">
+            </app-pagination>
+          </td>
+        </tr>
       }
     </tbody>
   </table>

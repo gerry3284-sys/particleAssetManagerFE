@@ -1,0 +1,83 @@
+<div class="business-unit-page">
+    <!-- titolo -->
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Business Units</h2>
+      <p class="page-subtitle">Visualizza e gestisci tutte le business units.</p>
+    </div>
+    <button class="btn-business"style="height: fit-content; margin-top: 0.5rem;" (click)="OnOpenNewDialog()">
+      Nuova Business Unit
+    </button>
+  </div>
+<!-- Tabella -->
+  <div class="table-card" #tableCard>
+    <!-- Header -->
+    <div class="business-row business-header">
+      <div>Nome</div>
+    </div>
+    @if(loading()){
+      <div class="loading">Caricamento in corso...</div>
+    }
+    <!-- Righe dinamiche -->
+    @if(isVisible()){
+      @for(businessUnit of businessUnits(); track businessUnit.code){
+        @if(businessUnit.active){
+          <div class="business-row" style="color: #4B5563;">
+            <div>{{ businessUnit.name }}</div>
+            <div class="btn-position" style="gap: 4rem">
+              <button class="btn-business" (click)="OnOpenDialog(businessUnit)">Modifica</button>
+              <button class="btn-business" style="margin-right: 3.1rem;" (click)="changeStatus(businessUnit)">Disattiva</button>
+            </div>
+          </div>
+        }
+        @else{
+          <div class="business-row" style="color: #9CA3AF;">
+            <div>{{ businessUnit.name }}</div>
+            <div class="btn-position" style="gap: 5.1rem">
+              <button class="btn-business" (click)="OnOpenDialog(businessUnit)">Modifica</button>
+              <button class="btn-business"
+                style="
+                margin-right: 3.1rem;
+                  background-color: #F3F4F6; 
+                  border-color: #F3F4F6; 
+                  box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
+                  color: #70757f;"
+                (click)="changeStatus(businessUnit)
+              ">
+                Attiva
+              </button>
+            </div>
+          </div>
+        }
+      }
+    }
+  </div> 
+  <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
+  <dialog #myDialog class="popup-window">
+    <div class="window-header">
+        <h2>Modifiche la Business Unit</h2>
+    </div>
+    <div class="window-body" (change)="onModify()">
+        <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+        <input type="text" name="nome" [placeholder]="editableBusinessUnit?.name || ''" class="input" [(ngModel)]="initialName">
+    </div>
+    <div class="window-footer">
+        <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
+        <button [disabled]="isInvalid()" (click)="onConfirmEdit()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo per aggiungere un tipo di asset -->
+    <dialog #newDialog class="popup-window">
+        <div class="window-header">
+            <h2>Aggiungi un nuovo Business Unit</h2>
+        </div>
+        <div class="window-body" (change)="onAdd()">
+            <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+            <input type="text" name="nome" placeholder="scrivere il nome della nuova business unit" class="input" [(ngModel)]="initialName">
+        </div>
+        <div class="window-footer">
+            <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
+            <button [disabled]="isInvalid()" (click)="onConfirmCreate()" class="confirm-icon">Conferma</button>
+        </div>
+    </dialog>
+</div>

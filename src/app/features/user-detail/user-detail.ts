@@ -49,28 +49,28 @@ export class UserDetail implements OnInit{
   constructor(private apiService: ApiService,
     public route: ActivatedRoute,
     private assetService: AssetService,
-    private router: Router) {
+    private router: Router) 
+  {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) return;
+    const subscription = forkJoin({
+      user: this.apiService.getUsersById(+id),
+      movements: this.apiService.getMovementByUserId(+id)
+    }).subscribe({
+      next: ({ user, movements }) => {
+        this.user.set(user ?? {});
 
-  const id = this.route.snapshot.paramMap.get('id');
-  if (!id) return;
-  const subscription = forkJoin({
-    user: this.apiService.getUsersById(+id),
-    movements: this.apiService.getMovementByUserId(+id)
-  }).subscribe({
-    next: ({ user, movements }) => {
-      this.user.set(user ?? {});
-
-      const processed = this.mergeMovements(movements ?? []);
-      this.movements.set(processed);
-      this.loading.set(false);
-    },
-    error: err => {
-      console.error('API error', err);
-      this.user.set(null);
-      this.loading.set(false);
-    }
-  });
-  this.destroyRef.onDestroy(() => subscription.unsubscribe())
+        const processed = this.mergeMovements(movements ?? []);
+        this.movements.set(processed);
+        this.loading.set(false);
+      },
+      error: err => {
+        console.error('API error', err);
+        this.user.set(null);
+        this.loading.set(false);
+      }
+    });
+    this.destroyRef.onDestroy(() => subscription.unsubscribe())
   }
 
   ngOnInit(): void {
@@ -91,32 +91,33 @@ export class UserDetail implements OnInit{
         console.error('Errore nel caricamento delle tipologie di asset', err);
         this.assetTypes.set([]);
       }
-    })
+    });
   }
 
   mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
-  const toDelete = new Set<number>();
+    const toDelete = new Set<number>();
 
-  const result = movements.map(move => {
-    if (move.movementType === 'Assigned') {
-      const returned = movements.find(
-        m =>
-          m.asset.serialNumber === move.asset.serialNumber &&
-          m.movementType === 'Returned'
-      );
-      if (returned) {
-        toDelete.add(returned.id);
-        return { ...move, updateDate: returned.date };
+    const result = movements.map(move => {
+      if (move.movementType === 'Assigned') {
+        const returned = movements.find(
+          m =>
+            m.asset.serialNumber === move.asset.serialNumber &&
+            m.movementType === 'Returned'
+        );
+        if (returned) {
+          toDelete.add(returned.id);
+          return { ...move, updateDate: returned.date };
+        }
       }
-    }
-    return move;
-  });
-  return result.filter(m => !toDelete.has(m.id));
+      return move;
+    });
+    return result.filter(m => !toDelete.has(m.id));
   }
 
   controlActivatedAsset(code: string): boolean {
     const asset = this.assets().find(a => a.assetCode === code);
     if (!asset) return false;
+
     const assetType = this.assetTypes().find(t => t.name === asset.assetType);
     return assetType?.active ?? false;
   }
@@ -124,6 +125,7 @@ export class UserDetail implements OnInit{
   onNavigate(assetSerialNumber: string){
     if (!this.assets()) return;
     const asset = this.assets().find(a => a.serialNumber === assetSerialNumber);
+    
     if (!asset) return;
     this.router.navigate(['assets', asset.assetCode], { relativeTo: this.route.parent });
   }

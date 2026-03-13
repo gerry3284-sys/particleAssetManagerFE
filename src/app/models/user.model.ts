@@ -23,7 +23,3 @@ export interface MovementByuserID {
   date: string,
   updateDate: string,
 }
-export interface BusinessType {
-  id: number,
-  name: string
-}

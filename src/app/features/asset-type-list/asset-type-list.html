@@ -5,131 +5,99 @@
       <h2 class="page-title">Tipologie di Asset</h2>
       <p class="page-subtitle">Visualizza e gestisci tutte le tipologie di asset.</p>
     </div>
-    <button class="btn-asset-type" (click)="OnOpenNewDialog()" style="height: fit-content; margin-top: 0.5rem;">Nuovo Tipo di Asset</button>
+    <button class="btn-asset-type" (click)="OnOpenNewDialog()" style="height: fit-content; margin-top: 0.5rem;">
+      Nuovo Tipo di Asset
+    </button>
   </div>
 <!-- Tabella -->
   <div class="table-card" #tableCard>
-    <div class="asset-table">
-      <!-- Header -->
-      <div class="asset-row asset-header">
-        <div>Nome</div>
-        <div>Hard Disk</div>
-        <div>Ram</div>
-      </div>
-      @if(loading()){
-        <div class="loading">Caricamento in corso...</div>
-      }
-      <!-- Righe dinamiche -->
-       @for(assetType of assetTypes(); track assetType.id){
-        @if(isVisible){
-          @if(assetType.active){
-            <div class="asset-row" style="color: #4B5563;">
-              <div>{{ assetType.name }}</div>
-              <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
-              <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-              <div class="btn-position" style="gap: 3.5rem;">
-                <button class="btn-asset-type" (click)="OnOpenDialog(assetType)">Modifica</button>
-                <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
-              </div>
-            </div>
-          }
-          @else {
-            <div class="asset-row" style="color: #9CA3AF;">
-              <div>{{ assetType.name }}</div>
-              <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
-              <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-              <div class="btn-position" style="gap: 4.4rem;">
-                <button class="btn-asset-type"(click)="OnOpenDialog(assetType)">
-                  Modifica
-                </button>
-                <button class="btn-asset-type" style="
-                  background-color: #F3F4F6; 
-                  border-color: #F3F4F6; 
-                  box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
-                  color: #70757f;
-                  " (click)="changeStatus(assetType)
-                ">
-                  Attiva
-                </button>
-              </div>
-            </div>
-          }
-        }
-        @else{
-          @if(assetType.active){
-            <div class="asset-row" style="color: #4B5563;">
-              <div>{{ assetType.name }}</div>
-              <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
-              <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-              <div class="btn-position" style="gap: 3.5rem;">
-                <button class="btn-asset-type" (click)="OnOpenDialog(assetType)">Modifica</button>
-                <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
-              </div>
-            </div>
-          }
-          @else {
-            <div class="asset-row" style="color: #9CA3AF;">
-              <div>{{ assetType.name }}</div>
-              <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
-              <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-              <div class="btn-position" style="gap: 4.4rem;">
-                <button class="btn-asset-type" (click)="OnOpenDialog(assetType)"> Modifica </button>
-                <button class="btn-asset-type" style="
-                  background-color: #F3F4F6; 
-                  border-color: #F3F4F6; 
-                  box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
-                  color: #70757f;
-                  " (click)="changeStatus(assetType)
-                ">
-                  Attiva
-                </button>
-              </div>
-            </div>
-          }
-        }
-       }
-       </div>
+    <!-- Header -->
+    <div class="asset-row asset-header">
+      <div>Nome</div>
+      <div>Hard Disk</div>
+      <div>Ram</div>
     </div>
-    <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
-    <dialog #myDialog class="popup-window">
-        <div class="window-header">
-            <h2>Modifiche al tipo di Asset</h2>
-        </div>
-        <div class="window-body" (change)="onModify()">
-            <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-            <input type="text" name="nome" [placeholder]="editableAssetType?.name || ''" class="input" [(ngModel)]="initialName">
-            <div class="combo-btn">
-                <label class="label">Hard Disk</label>
-                <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
-
-                <label class="label">Ram</label>
-                <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+    @if(loading()){
+      <div class="loading">Caricamento in corso...</div>
+    }
+    <!-- Righe dinamiche -->
+    @if(isVisible()){
+      @for(assetType of assetTypes(); track assetType.code){
+        @if(assetType.active){
+          <div class="asset-row" style="color: #4B5563;">
+            <div>{{ assetType.name }}</div>
+            <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
+            <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
+            <div class="btn-position" style="gap: 3.5rem;">
+              <button class="btn-asset-type" (click)="OnOpenDialog(assetType)">Modifica</button>
+              <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
             </div>
-        </div>
-        <div class="window-footer">
-            <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
-            <button [disabled]="isInvalid()" (click)="onConfirmEdit()" class="confirm-icon">Conferma</button>
-        </div>
-    </dialog>
-    <!-- finestra di dialogo per aggiungere un tipo di asset -->
-    <dialog #newDialog class="popup-window">
-        <div class="window-header">
-            <h2>Aggiungi un nuovo tipo di Asset</h2>
-        </div>
-        <div class="window-body" (change)="onAdd()">
-            <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-            <input type="text" name="nome" placeholder="scrivere il nome del tipo di asset" class="input" [(ngModel)]="initialName">
-            <div class="combo-btn">
-                <label class="label">Hard Disk</label>
-                <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
-
-                <label class="label">Ram</label>
-                <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+          </div>
+        }
+        @else {
+          <div class="asset-row" style="color: #9CA3AF;">
+            <div>{{ assetType.name }}</div>
+            <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
+            <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
+            <div class="btn-position" style="gap: 4.4rem;">
+              <button class="btn-asset-type"(click)="OnOpenDialog(assetType)">
+                Modifica
+              </button>
+              <button class="btn-asset-type" style="
+                background-color: #F3F4F6; 
+                border-color: #F3F4F6; 
+                box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
+                color: #70757f;
+                " (click)="changeStatus(assetType)
+              ">
+                Attiva
+              </button>
             </div>
-        </div>
-        <div class="window-footer">
-            <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
-            <button [disabled]="isInvalid()" (click)="onConfirmCreate()" class="confirm-icon">Conferma</button>
-        </div>
-    </dialog>
+          </div>
+        }
+      }
+    }
+  </div>
+  <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
+  <dialog #myDialog class="popup-window">
+    <div class="window-header">
+      <h2>Modifiche al tipo di Asset</h2>
+    </div>
+    <div class="window-body" (change)="onModify()">
+      <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+      <input type="text" name="nome" [placeholder]="editableAssetType?.name || ''" class="input" [(ngModel)]="initialName">
+      <div class="combo-btn">
+        <label class="label">Hard Disk</label>
+        <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
+
+        <label class="label">Ram</label>
+        <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+      </div>
+    </div>
+    <div class="window-footer">
+      <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
+      <button [disabled]="isInvalid()" (click)="onConfirmEdit()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo per aggiungere un tipo di asset -->
+  <dialog #newDialog class="popup-window">
+    <div class="window-header">
+      <h2>Aggiungi un nuovo tipo di Asset</h2>
+    </div>
+    <div class="window-body" (change)="onAdd()">
+      <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+      <input type="text" name="nome" placeholder="scrivere il nome del tipo di asset" class="input" [(ngModel)]="initialName">
+      <div class="combo-btn">
+        <label class="label">Hard Disk</label>
+        <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
+
+        <label class="label">Ram</label>
+        <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+      </div>
+    </div>
+    <div class="window-footer">
+      <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
+      <button [disabled]="isInvalid()" (click)="onConfirmCreate()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
 </div>

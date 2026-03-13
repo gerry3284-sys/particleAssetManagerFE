@@ -1,4 +1,4 @@
-.asset-type-page{
+.business-unit-page{
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
@@ -28,21 +28,20 @@
 	overflow: hidden;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
-
-.asset-row {
+.business-row {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	align-items: center;
 	padding: 0.8rem 1rem;
 	font-size: 0.875rem;
 	border-bottom: 1px solid #F3F4F6;
 }
 
-.asset-row:last-child {
+.business-row:last-child {
 	border-bottom: none;
 }
 
-.asset-header {
+.business-header {
 	background-color: #F9FAFB;
 	font-size: 11px;
 	font-weight: 700;
@@ -50,7 +49,7 @@
 	letter-spacing: 0.04em;
 	color: #6B7280;
 }
-.btn-asset-type {
+.btn-business {
 	background-color: #E56A3D;
 	border-color: #E56A3D;
 	color: #FFFFFF;
@@ -63,13 +62,13 @@
 	border-radius: 0.5rem;
 	box-shadow: 0 6px 14px rgba(229, 106, 61, 0.2);
 }
-.btn-asset-type:hover {
+.btn-business:hover {
 	background-color: #D85E33;
 	border-color: #D85E33;
 }
 .btn-position {
 	display: flex;
-	justify-content: center;
+	justify-content: flex-end;
 }
 dialog.popup-window {
   position: fixed;
