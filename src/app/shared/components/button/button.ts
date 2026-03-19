@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'login' | 'sidebar';
+type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'login' | 'sidebar' | 'ghost-orange';
 type ButtonType = 'button' | 'submit' | 'reset';
 
 @Component({
@@ -28,7 +28,8 @@ export class ButtonComponent {
       secondary: 'btn-secondary',
       danger: 'btn-danger',
       login: 'btn-login',
-      sidebar: 'btn-sidebar'
+      sidebar: 'btn-sidebar',
+      'ghost-orange': 'btn-ghost-orange'
     }[this.variant()];
 
     return {

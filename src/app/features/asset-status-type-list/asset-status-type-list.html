@@ -1,0 +1,94 @@
+<div class="asset-status-type-page">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Asset Status Type</h2>
+      <p class="page-subtitle">Visualizza e modifica gli stati asset disponibili.</p>
+    </div>
+    <app-button
+      variant="primary"
+      type="button"
+      [disabled]="isSaving()"
+      (pressed)="openCreateModal()">
+      Nuovo AssetStatusType
+    </app-button>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Caricamento in corso...</div>
+  }
+
+  <div class="table-card">
+    <div class="asset-row asset-header">
+      <div>Code</div>
+      <div>Nome</div>
+      <div class="header-actions">Azioni</div>
+    </div>
+
+    @for (statusType of statusTypes(); track statusType.id) {
+      <div class="asset-row">
+        <div>{{ statusType.code || '-' }}</div>
+        <div>{{ statusType.name }}</div>
+        <div class="cell-actions">
+          <app-button
+            variant="secondary"
+            type="button"
+            [disabled]="isSaving() || !statusType.code"
+            (pressed)="openEditModal(statusType)">
+            Modifica
+          </app-button>
+        </div>
+      </div>
+    }
+
+    @if (!loading() && statusTypes().length === 0) {
+      <div class="empty-state">Nessun AssetStatusType trovato.</div>
+    }
+  </div>
+
+  <app-edit-asset-status-type-modal
+    [isOpen]="showEditModal()"
+    [currentName]="selectedStatusType()?.name || ''"
+    (close)="closeEditModal()"
+    (confirm)="onConfirmEdit($event)">
+  </app-edit-asset-status-type-modal>
+
+  @if (showCreateModal()) {
+    <div class="status-type-modal-backdrop" (click)="closeCreateModal()">
+      <div class="status-type-modal" (click)="$event.stopPropagation()">
+        <div class="status-type-modal-header">
+          <div class="status-type-modal-icon" aria-hidden="true">i</div>
+          <div>
+            <h3 class="status-type-modal-title">Creazione AssetStatusType</h3>
+            <p class="status-type-modal-subtitle">
+              Inserisci il nome del nuovo stato asset da creare.
+            </p>
+          </div>
+        </div>
+
+        <div class="status-type-modal-body">
+          <div class="status-type-modal-field">
+            <label for="asset-status-type-create-name">Nome*</label>
+            <input
+              id="asset-status-type-create-name"
+              type="text"
+              placeholder="Es. In manutenzione"
+              [value]="createName()"
+              (input)="createName.set($any($event.target).value); createNameError.set(false)" />
+            @if (createNameError()) {
+              <span class="status-type-modal-error">Inserisci un nome valido.</span>
+            }
+          </div>
+        </div>
+
+        <div class="status-type-modal-actions">
+          <app-button type="button" variant="secondary" (pressed)="closeCreateModal()">Annulla</app-button>
+          <app-button type="button" variant="primary" [loading]="isSaving()" (pressed)="onCreateStatusType()">Crea AssetStatusType</app-button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -90,8 +90,22 @@ export class AssetService {
   getAssetMovements(assetCode: string): Observable<AssetMovement[]> {
     const safeCode = this.toSafeAssetCode(assetCode);
     return this.http.get<AssetMovementApi[]>(`${this.apiUrl}/${safeCode}/movement`).pipe(
-      map(items => items.map(item => this.mapAssetMovement(item)))
+      map(items =>
+        [...items]
+          .sort((a, b) => this.toMovementTimestamp(b) - this.toMovementTimestamp(a))
+          .map(item => this.mapAssetMovement(item))
+      )
     );
+  }
+
+  private toMovementTimestamp(movement: AssetMovementApi): number {
+    const parsed = Date.parse(movement.date);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+
+    // Fallback stabile se il backend invia una data non parseabile.
+    return Number(movement.id) || 0;
   }
 
   // CREA MOVIMENTO ASSET
@@ -159,11 +173,13 @@ export class AssetService {
 
   // MAPPA ASSET LISTA → FRONTEND
   private mapAsset(item: AssetApi): Asset {
+    const status = this.parseStatus(item.status);
+
     return {
       id: item.assetCode,   
       assetCode: item.assetCode,
-      status: this.parseStatus(item.status),
-      statusLabel: item.status,
+      status,
+      statusLabel: this.toItalianStatusLabel(status),
       brand: item.brand,
       model: item.model,
       serialNumber: item.serialNumber,
@@ -197,7 +213,7 @@ export class AssetService {
       returnDate: null,
       notes: item.note ?? '-',
       status,
-      statusLabel: item.assetStatusType.name,
+      statusLabel: this.toItalianStatusLabel(status),
       assetType: item.assetType.name,
       assetTypeCode: item.assetType.code,
       assetStatusTypeCode: item.assetStatusType.code,
@@ -206,6 +222,8 @@ export class AssetService {
   }
 
   private mapAssetMovement(item: AssetMovementApi): AssetMovement {
+    const sanitizedNote = item.note?.trim();
+
     return {
       id: String(item.id),
       date: new Date(item.date).toLocaleDateString(),
@@ -213,7 +231,7 @@ export class AssetService {
       userId: String(item.user.id),
       movementType: item.movementType,
       movementLabel: this.getMovementLabel(item.movementType),
-      note: item.note ?? undefined
+      note: sanitizedNote ? sanitizedNote : undefined
     };
   }
 
@@ -275,5 +293,19 @@ export class AssetService {
 
     // Stati speciali (es. Under Maintenance) non consentono movimenti.
     return 'Unavailable';
+  }
+
+  private toItalianStatusLabel(status: Asset['status']): string {
+    switch (status) {
+      case 'Assigned':
+        return 'Assegnato';
+      case 'Available':
+        return 'Disponibile';
+      case 'Dismissed':
+        return 'Dismesso';
+      case 'Unavailable':
+      default:
+        return 'Non disponibile';
+    }
   }
 }

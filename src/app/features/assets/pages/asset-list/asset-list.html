@@ -6,25 +6,7 @@
       <h2 class="page-title">Gestione asset</h2>
       <p class="page-subtitle">Visualizza e gestisci tutti gli asset aziendali.</p>
     </div>
-    <div class="new-menu-trigger" [class.is-open]="showNewMenu()">
-      <button
-        class="btn-new-asset"
-        type="button"
-        aria-haspopup="menu"
-        [attr.aria-expanded]="showNewMenu()"
-        (click)="toggleNewMenu()">
-        
-        <span>Nuovo</span>
-        <span class="btn-caret">▾</span>
-      </button>
-      @if (showNewMenu()) {
-        <div class="new-menu" role="menu" aria-label="Crea nuovo">
-          <button class="menu-action" type="button" (click)="onCreateAsset()">Nuovo Asset</button>
-          <button class="menu-action" type="button" (click)="onCreateAssetType()">Nuova Tipologia</button>
-          <button class="menu-action" type="button" (click)="openCreateAssetStatusTypeModal()">Creazione AssetStatusType</button>
-        </div>
-      }
-    </div>
+    <app-button variant="primary" type="button" (pressed)="createNewAsset()">Nuovo Asset</app-button>
   </div>
 
   
@@ -100,10 +82,4 @@
       </app-pagination>
     </div>
   </div>
-
-  <app-create-asset-status-type-modal
-    [isOpen]="showCreateAssetStatusTypeModal()"
-    (close)="closeCreateAssetStatusTypeModal()"
-    (confirm)="onCreateAssetStatusType($event)">
-  </app-create-asset-status-type-modal>
 </div>

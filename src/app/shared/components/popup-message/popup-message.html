@@ -1,0 +1,27 @@
+@if (message(); as current) {
+  <div class="popup-wrapper" role="status" aria-live="polite">
+    <div class="popup-message" [class.popup-success]="current.type === 'success'" [class.popup-error]="current.type === 'error'">
+      <span class="popup-icon" aria-hidden="true">
+        @if (icon() === 'check') {
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+            <path d="M8 12.4L10.6 15L16 9.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+            <path d="M12 7.5V12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            <circle cx="12" cy="16.2" r="1" fill="currentColor"></circle>
+          </svg>
+        }
+      </span>
+      <span class="popup-text">{{ current.text }}</span>
+      <button class="popup-close" type="button" (click)="close()" aria-label="Chiudi messaggio">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M7 7L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M17 7L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+}
