@@ -5,11 +5,37 @@
       <h2 class="page-title">Tipologie di Asset</h2>
       <p class="page-subtitle">Visualizza e gestisci tutte le tipologie di asset.</p>
     </div>
-    <button class="btn-asset-type" (click)="OnOpenNewDialog()" style="height: fit-content; margin-top: 0.5rem;">
+    <button class="btn-asset-type" (click)="OnOpenNewDialog()" 
+    style="height: fit-content; margin-top: 0.5rem; display: flex; direction: row;">
+      <div class="plus-inside-btn">+</div>
       Nuovo Tipo di Asset
     </button>
   </div>
-<!-- Tabella -->
+  <!-- filtro per la tabella -->
+  <div class="filters-card" (change)="onFilter()">
+    <div class="filters-grid">
+      <div class="filter-item">
+        <label class="filter-label">Nome</label>
+        <input type="text" class="filter-control" name="nome" 
+        placeholder="Cerca per nome..." 
+        [(ngModel)]="filterName">
+      </div>
+      <div class="filter-item-btn">
+        <label class="filter-label-btn">Hard Disk: </label>
+        <input type="checkbox" name="Hard-disk" class="check-btn" [(ngModel)]="filterHD" (ngModelChange)="onHDorRamChange()">
+
+        <label class="filter-label-btn">Ram: </label>
+        <input type="checkbox" name="Ram" class="check-btn" [(ngModel)]="filterRam" (ngModelChange)="onHDorRamChange()">
+
+        <label class="filter-label-btn">Disattiva Hard Disk e Ram</label>
+        <input type="checkbox" name="neither" class="check-btn" [(ngModel)]="disactiveHDandRam" (ngModelChange)="onDisactiveChange()">
+
+        <label class="filter-label-btn">Attiva Hard Disk e Ram</label>
+        <input type="checkbox" name="both" class="check-btn" [(ngModel)]="activateHDandRam" (ngModelChange)="onActivateBothChange()">
+      </div>
+    </div>
+  </div>
+  <!-- Tabella -->
   <div class="table-card" #tableCard>
     <!-- Header -->
     <div class="asset-row asset-header">
@@ -22,15 +48,14 @@
     }
     <!-- Righe dinamiche -->
     @if(isVisible()){
-      @for(assetType of assetTypes(); track assetType.code){
+      @for(assetType of paginatedAssetType(); track assetType.code){
         @if(assetType.active){
           <div class="asset-row" style="color: #4B5563;">
             <div>{{ assetType.name }}</div>
             <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
             <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-            <div class="btn-position" style="gap: 3.5rem;">
-              <button class="btn-asset-type" (click)="OnOpenDialog(assetType)">Modifica</button>
-              <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
+            <div class="btn-position">
+              <button class="btn-asset-type" (click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">Modifica</button>
             </div>
           </div>
         }
@@ -39,22 +64,24 @@
             <div>{{ assetType.name }}</div>
             <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
             <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-            <div class="btn-position" style="gap: 4.4rem;">
-              <button class="btn-asset-type"(click)="OnOpenDialog(assetType)">
-                Modifica
-              </button>
-              <button class="btn-asset-type" style="
-                background-color: #F3F4F6; 
-                border-color: #F3F4F6; 
-                box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
-                color: #70757f;
-                " (click)="changeStatus(assetType)
-              ">
-                Attiva
-              </button>
+            <div class="btn-position">
+              <button class="btn-asset-type"(click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">Modifica</button>
             </div>
           </div>
         }
+      }
+      <!-- footer di asset type -->
+      @if(totalPages() > 1){
+        <div class="table-foot">
+          <div class="table-info">
+            {{displayRange()}}
+          </div>
+          <div></div>
+          <div style="display: flex; justify-content: flex-end;">
+            <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)">
+            </app-pagination>
+          </div>
+        </div>
       }
     }
   </div>
@@ -65,7 +92,12 @@
     </div>
     <div class="window-body" (change)="onModify()">
       <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-      <input type="text" name="nome" [placeholder]="editableAssetType?.name || ''" class="input" [(ngModel)]="initialName">
+      <input type="text"name="nome"[placeholder]="editableAssetType?.name || ''"class="input"[(ngModel)]="initialName"(input)="touched=true">
+      @if(specifiedError() && touched){
+        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
+          {{specifiedMessage}}
+        </div>
+      }
       <div class="combo-btn">
         <label class="label">Hard Disk</label>
         <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
@@ -76,7 +108,7 @@
     </div>
     <div class="window-footer">
       <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
-      <button [disabled]="isInvalid()" (click)="onConfirmEdit()" class="confirm-icon">Conferma</button>
+      <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
     </div>
   </dialog>
   <!-- finestra di dialogo per aggiungere un tipo di asset -->
@@ -86,7 +118,12 @@
     </div>
     <div class="window-body" (change)="onAdd()">
       <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-      <input type="text" name="nome" placeholder="scrivere il nome del tipo di asset" class="input" [(ngModel)]="initialName">
+      <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true">
+      @if(specifiedError() && touched){
+        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
+          {{specifiedMessage}}
+        </div>
+      }
       <div class="combo-btn">
         <label class="label">Hard Disk</label>
         <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
@@ -97,7 +134,22 @@
     </div>
     <div class="window-footer">
       <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
-      <button [disabled]="isInvalid()" (click)="onConfirmCreate()" class="confirm-icon">Conferma</button>
+      <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
+  <dialog #alertDialog class="popup-window">
+    <div class="window-header">{{alertTitle}}</div>
+    <div class="window-footer">
+      <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
+      <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo che avvisa di un errore o di qualcosa che è andato storto -->
+  <dialog #errorDialog class="popup-window">
+    <div class="window-header">{{errorMessage}}</div>
+    <div class="window-footer">
+      <button (click)="onErrorWindowsClose()" class="close-icon">Ok</button>
     </div>
   </dialog>
 </div>
