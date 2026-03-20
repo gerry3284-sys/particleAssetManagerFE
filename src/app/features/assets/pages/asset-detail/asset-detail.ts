@@ -7,6 +7,7 @@ import { ReturnCertifyModalComponent, ReturnCertifyForm } from '../../components
 import { AssetDetail, AssignAssetForm, AssetMovement } from '../../../../shared/models/asset.interface';
 import { AssetService } from '../../../../shared/services/asset.service';
 import { AssetWorkflowService } from '../../../../shared/services/asset-workflow.service';
+import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonComponent } from '../../../../shared/components/button/button';
 
@@ -56,7 +57,8 @@ export class AssetDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private assetService: AssetService,
-    private assetWorkflowService: AssetWorkflowService
+    private assetWorkflowService: AssetWorkflowService,
+    private popupMessageService: PopupMessageService
   ) {}
 
   ngOnInit(): void {
@@ -143,7 +145,7 @@ export class AssetDetailComponent implements OnInit {
 
     const userId = Number(formData.userId);
     if (!Number.isFinite(userId)) {
-      alert('Utente non valido');
+      this.popupMessageService.error('Utente non valido');
       return;
     }
 
@@ -154,14 +156,14 @@ export class AssetDetailComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          alert(`Asset assegnato a ${formData.userName}`);
+          this.popupMessageService.success(`Asset assegnato a ${formData.userName}`);
           this.closeAssignModal();
           this.loadAssetDetail(this.assetId());
           this.loadAssetMovements(this.assetId());
         },
         error: err => {
           console.error('Errore assegnazione asset:', err);
-          alert('Errore durante l\'assegnazione dell\'asset');
+          this.popupMessageService.error('Errore durante l\'assegnazione dell\'asset');
         }
       });
   }
@@ -193,14 +195,14 @@ export class AssetDetailComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          alert('Riconsegna certificata con successo');
+          this.popupMessageService.success('Riconsegna certificata con successo');
           this.closeReturnModal();
           this.loadAssetDetail(this.assetId());
           this.loadAssetMovements(this.assetId());
         },
         error: err => {
           console.error('Errore certificazione riconsegna:', err);
-          alert('Errore durante la certificazione della riconsegna');
+          this.popupMessageService.error('Errore durante la certificazione della riconsegna');
         }
       });
   }
@@ -256,13 +258,13 @@ export class AssetDetailComponent implements OnInit {
       .subscribe({
         next: () => {
           this.closeDismissModal();
-          alert('Asset dismesso con successo');
+          this.popupMessageService.success('Asset dismesso con successo');
           this.loadAssetDetail(this.assetId());
           this.loadAssetMovements(this.assetId());
         },
         error: err => {
           console.error('Errore dismissione asset:', err);
-          alert('Errore durante la dismissione dell\'asset');
+          this.popupMessageService.error('Errore durante la dismissione dell\'asset');
         }
       });
   }

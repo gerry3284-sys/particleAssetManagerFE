@@ -1,0 +1,34 @@
+@if (isOpen()) {
+  <div class="status-type-modal-backdrop" (click)="onOverlayClick()">
+    <div class="status-type-modal" (click)="$event.stopPropagation()">
+      <div class="status-type-modal-header">
+        <div class="status-type-modal-icon" aria-hidden="true">i</div>
+        <div>
+          <h3 class="status-type-modal-title">Modifica AssetStatusType</h3>
+          <p class="status-type-modal-subtitle">
+            Aggiorna il nome dello stato asset.
+          </p>
+        </div>
+      </div>
+
+      <div class="status-type-modal-body">
+        <div class="status-type-modal-field">
+          <label for="edit-asset-status-type-name">Nome*</label>
+          <input
+            id="edit-asset-status-type-name"
+            type="text"
+            [value]="name()"
+            (input)="onNameChange($any($event.target).value)" />
+          @if (nameError()) {
+            <span class="status-type-modal-error">Inserisci un nome valido.</span>
+          }
+        </div>
+      </div>
+
+      <div class="status-type-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="close.emit()">Annulla</app-button>
+        <app-button type="button" variant="primary" (pressed)="submit()">Conferma</app-button>
+      </div>
+    </div>
+  </div>
+}

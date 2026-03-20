@@ -8,11 +8,7 @@ import { FiltersComponent } from '../../../../shared/components/filters/filters'
 import { FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
 import { AssetService } from '../../../../shared/services/asset.service'; // ← AGGIUNGI
 import { Asset } from '../../../../shared/models/asset.interface';
-import { FilterService } from '../../../../shared/services/filter.service';
-import {
-  CreateAssetStatusTypeForm,
-  CreateAssetStatusTypeModalComponent
-} from '../../components/create-asset-status-type-modal/create-asset-status-type-modal';
+import { ButtonComponent } from '../../../../shared/components/button/button';
 
 
 @Component({
@@ -23,7 +19,7 @@ import {
   FormsModule,
   PaginationComponent,
   FiltersComponent,
-  CreateAssetStatusTypeModalComponent
+  ButtonComponent
 ], 
   templateUrl: './asset-list.html',
   styleUrl: './asset-list.css'
@@ -40,10 +36,6 @@ export class AssetListComponent implements OnInit {
  allAssets = signal<Asset[]>([]);
  loading = signal(true);
  error = signal<string | null>(null); // segnala eventuali errori
-
-  // Stato menu "Nuovo"
-  showNewMenu = signal(false);
-  showCreateAssetStatusTypeModal = signal(false);
 
   // Assets filtrati in base ai filtri correnti
   filteredAssets = computed(() => {
@@ -103,8 +95,7 @@ export class AssetListComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private readonly assetService: AssetService,
-    private readonly filterService: FilterService
+    private readonly assetService: AssetService
   ) {}
 
   ngOnInit(): void {
@@ -141,47 +132,6 @@ export class AssetListComponent implements OnInit {
   createNewAsset(): void {
   this.router.navigate(['/assets/new']);
 }
-
-  toggleNewMenu(): void {
-    this.showNewMenu.update(value => !value);
-  }
-
-  closeNewMenu(): void {
-    this.showNewMenu.set(false);
-  }
-
-  onCreateAsset(): void {
-    this.closeNewMenu();
-    this.createNewAsset();
-  }
-
-  onCreateAssetType(): void {
-    this.closeNewMenu();
-    alert('Funzionalita in arrivo');
-  }
-
-  openCreateAssetStatusTypeModal(): void {
-    this.closeNewMenu();
-    this.showCreateAssetStatusTypeModal.set(true);
-  }
-
-  closeCreateAssetStatusTypeModal(): void {
-    this.showCreateAssetStatusTypeModal.set(false);
-  }
-
-  onCreateAssetStatusType(formData: CreateAssetStatusTypeForm): void {
-    this.filterService.createAssetStatusType({ name: formData.name })
-      .subscribe({
-        next: () => {
-          this.closeCreateAssetStatusTypeModal();
-          alert('AssetStatusType creato con successo');
-        },
-        error: err => {
-          console.error('Errore creazione AssetStatusType:', err);
-          alert('Errore durante la creazione di AssetStatusType');
-        }
-      });
-  }
 
   goToPage(page: number): void {
     this.currentPage.set(page);

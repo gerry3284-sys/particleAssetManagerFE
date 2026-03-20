@@ -34,14 +34,28 @@
 }
 
 .btn-secondary {
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  color: #374151;
+  background-color: transparent;
+  border: 1px solid #E56A3D;
+  color: #C2410C;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
+  background-color: #FFF7ED;
+  border-color: #D85E33;
+  color: #9A3412;
+}
+
+/* Alias esplicito per usare lo stesso look in modo semantico. */
+.btn-ghost-orange {
+  background-color: transparent;
+  border: 1px solid #E56A3D;
+  color: #C2410C;
+}
+
+.btn-ghost-orange:hover:not(:disabled) {
+  background-color: #FFF7ED;
+  border-color: #D85E33;
+  color: #9A3412;
 }
 
 .btn-danger {
@@ -99,9 +113,16 @@
 
 .btn.btn-secondary:disabled,
 .btn.btn-secondary.btn-disabled {
-  background-color: #F3F4F6;
-  border-color: #E5E7EB;
-  color: #9CA3AF;
+  background-color: #FFF1EA;
+  border-color: #FBD1BF;
+  color: #D8A08B;
+}
+
+.btn.btn-ghost-orange:disabled,
+.btn.btn-ghost-orange.btn-disabled {
+  background-color: #FFF1EA;
+  border-color: #FBD1BF;
+  color: #D8A08B;
 }
 
 .btn.btn-danger:disabled,

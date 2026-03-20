@@ -8,6 +8,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown';
 import { ButtonComponent } from '../../../../shared/components/button/button';
+import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 
 @Component({
   selector: 'app-asset-create',
@@ -20,6 +21,7 @@ export class AssetCreateComponent {
   private readonly router = inject(Router);
   private readonly filterService = inject(FilterService);
   private readonly assetService = inject(AssetService);
+  private readonly popupMessageService = inject(PopupMessageService);
   
   // Reactive form for asset creation.
   assetForm = new FormGroup({
@@ -157,7 +159,7 @@ export class AssetCreateComponent {
 
   openConfirm(): void {
     if (!this.assetForm.valid) {
-      alert('Compila tutti i campi obbligatori');
+      this.popupMessageService.error('Compila tutti i campi obbligatori');
       return;
     }
 
@@ -176,7 +178,7 @@ export class AssetCreateComponent {
   // Crea l'asset
   createAsset(): void {
     if (!this.assetForm.valid) {
-      alert('Compila tutti i campi obbligatori');
+      this.popupMessageService.error('Compila tutti i campi obbligatori');
       return;
     }
 
@@ -203,13 +205,13 @@ export class AssetCreateComponent {
     this.assetService.createAsset(payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        alert('Asset creato con successo!');
+        this.popupMessageService.success('Asset creato con successo');
         this.goBack();
       },
       error: err => {
         console.error('Errore creazione asset:', err);
         this.isSubmitting.set(false);
-        alert('Errore durante la creazione dell\'asset');
+        this.popupMessageService.error('Errore durante la creazione dell\'asset');
       }
     });
   }
