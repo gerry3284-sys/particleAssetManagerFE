@@ -11,7 +11,7 @@
     <div class="filters-grid">
       <div class="filter-item">
         <label class="filter-label">Nome</label>
-        <input type="text" class="form-control filter-control" name="nome" 
+        <input type="text" class="filter-control" name="nome" 
         placeholder="Cerca per nome..." 
         [(ngModel)]="initialName">
       </div>
@@ -42,7 +42,7 @@
       </tr>
     </thead>
     <tbody>
-      @if(usersFiltered().length === 0){
+      @if(paginatedUser().length === 0){
         <tr class="user-row-empty">
             <td style="color:#b4abb9">
               E possibile che la combinazione di filtri inserita non abbia attuali utenti
@@ -50,7 +50,7 @@
         </tr>
       }
       @else{
-        @for(user of usersFiltered(); track user.id)
+        @for(user of paginatedUser(); track user.id)
         {
           @if(user.businessUnit.active){
             <tr class="user-row" 
@@ -63,7 +63,8 @@
           }
         }
       }
-      @if(usersFiltered().length > 1){
+      <!-- footer di user -->
+      @if(totalPages() > 1){
         <tr class="table-foot">
           <td class="table-info">
             {{displayRange()}}

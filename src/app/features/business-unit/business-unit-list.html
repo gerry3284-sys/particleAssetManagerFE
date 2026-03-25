@@ -5,12 +5,21 @@
       <h2 class="page-title">Business Units</h2>
       <p class="page-subtitle">Visualizza e gestisci tutte le business units.</p>
     </div>
+
     <button class="btn-business"style="height: fit-content; margin-top: 0.5rem;" (click)="OnOpenNewDialog()">
       <span class="new-business-unit-btn-content">
         <img src="/assets/line.png" alt="" aria-hidden="true" class="new-business-unit-icon" />
         <span>Nuova Business Unit</span>
       </span>
+
     </button>
+  </div>
+  <!-- filtro per la tabella -->
+  <div class="filters-card" (change)="onFilter()">
+    <div class="filter-item">
+      <label class="filter-label">Nome</label>
+      <input type="text" class="filter-control" name="nome" placeholder="Cerca per nome..." [(ngModel)]="filterName">
+    </div>
   </div>
 <!-- Tabella -->
   <div class="table-card" #tableCard>
@@ -23,13 +32,13 @@
     }
     <!-- Righe dinamiche -->
     @if(isVisible()){
-      @for(businessUnit of businessUnits(); track businessUnit.code){
+      @for(businessUnit of paginatedBusinessUnit(); track businessUnit.code){
         @if(businessUnit.active){
           <div class="business-row" style="color: #4B5563;">
             <div>{{ businessUnit.name }}</div>
             <div class="btn-position" style="gap: 4rem">
               <button class="btn-business" (click)="OnOpenDialog(businessUnit)">Modifica</button>
-              <button class="btn-business" style="margin-right: 3.1rem;" (click)="changeStatus(businessUnit)">Disattiva</button>
+              <button class="btn-business" style="margin-right: 3.1rem;" (click)="onAlertChangeStatus(businessUnit)">Disattiva</button>
             </div>
           </div>
         }
@@ -45,13 +54,26 @@
                   border-color: #F3F4F6; 
                   box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
                   color: #70757f;"
-                (click)="changeStatus(businessUnit)
+                (click)="onAlertChangeStatus(businessUnit)
               ">
                 Attiva
               </button>
             </div>
           </div>
         }
+      }
+      <!-- footer di asset type -->
+      @if(totalPages() > 1){
+        <div class="table-foot">
+          <div class="table-info">
+            {{displayRange()}}
+          </div>
+          <div></div>
+          <div style="display: flex; justify-content: flex-end;">
+            <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)">
+            </app-pagination>
+          </div>
+        </div>
       }
     }
   </div> 
@@ -62,25 +84,58 @@
     </div>
     <div class="window-body" (change)="onModify()">
         <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-        <input type="text" name="nome" [placeholder]="editableBusinessUnit?.name || ''" class="input" [(ngModel)]="initialName">
+        <input type="text"name="nome"[placeholder]="editableBusinessUnit?.name || ''" class="input"[(ngModel)]="initialName"(input)="touched = true">
     </div>
+    @if(specifiedError() && touched){
+        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
+          {{specifiedMessage}}
+        </div>
+      }
     <div class="window-footer">
         <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
-        <button [disabled]="isInvalid()" (click)="onConfirmEdit()" class="confirm-icon">Conferma</button>
+        <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
     </div>
   </dialog>
-  <!-- finestra di dialogo per aggiungere un tipo di asset -->
-    <dialog #newDialog class="popup-window">
-        <div class="window-header">
-            <h2>Aggiungi un nuovo Business Unit</h2>
+  <!-- finestra di dialogo per aggiungere una nuova business unit -->
+  <dialog #newDialog class="popup-window">
+    <div class="window-header">
+      <h2>Aggiungi un nuovo Business Unit</h2>
+    </div>
+    <div class="window-body" (change)="onAdd()">
+      <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+      <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true">
+    </div>
+    @if(specifiedError() && touched){
+        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
+          {{specifiedMessage}}
         </div>
-        <div class="window-body" (change)="onAdd()">
-            <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-            <input type="text" name="nome" placeholder="scrivere il nome della nuova business unit" class="input" [(ngModel)]="initialName">
-        </div>
-        <div class="window-footer">
-            <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
-            <button [disabled]="isInvalid()" (click)="onConfirmCreate()" class="confirm-icon">Conferma</button>
-        </div>
-    </dialog>
+      }
+    <div class="window-footer">
+      <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
+      <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
+  <dialog #alertDialog class="popup-window">
+    <div class="window-header">{{alertTitle}}</div>
+    <div class="window-footer">
+      <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
+      <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo che ti chiede conferma prima di cambiare status di una business unit -->
+  <dialog #alertStatusDialog class="popup-window">
+    <div class="window-header">{{alertTitle}}</div>
+    <div class="window-footer">
+      <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
+      <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+  <!-- finestra di dialogo che avvisa di un errore o di qualcosa che è andato storto -->
+  <dialog #errorDialog class="popup-window">
+    <div class="window-header">{{errorMessage}}</div>
+    <div class="window-footer">
+      <button (click)="onErrorWindowsClose()" class="close-icon">Ok</button>
+    </div>
+  </dialog>
 </div>

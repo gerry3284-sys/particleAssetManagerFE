@@ -1,20 +1,36 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, EventEmitter, inject, Output, signal } from '@angular/core';
 import { User } from '../../../../models/user.model';
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
 import { ApiService } from '../../../../services/api';
-import { FormsModule } from "@angular/forms";
-import { forkJoin } from 'rxjs';
+import { FormControl, FormGroup, FormsModule } from "@angular/forms";
+import { debounceTime, forkJoin, map, merge } from 'rxjs';
 import { BusinessUnit } from '../../../../shared/services/business-unit.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FilterValues } from '../../../../shared/models/filter-config.interface';
+import { DropdownComponent } from "../../../../shared/components/dropdown/dropdown";
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
   templateUrl: './user-list.html',
   styleUrl: './user-list.css',
-  imports: [RouterLink, PaginationComponent, RouterLinkActive, FormsModule]
+  imports: [RouterLink, PaginationComponent, RouterLinkActive, FormsModule, DropdownComponent]
 })
 export class UserList{
+  currentFilters = signal<FilterValues>({});
+  @Output() filtersChange = new EventEmitter<{
+    businessUnit: string;
+    user: string;
+  }>();
+  filtersForm = new FormGroup<{
+    businessUnit: FormControl<string>;
+    user: FormControl<string>;
+  }>({
+    businessUnit: new FormControl<string>('', { nonNullable: true }),
+    user: new FormControl<string>('', { nonNullable: true }),
+  });
+
   users = signal<User[]>([]);
   usersFiltered = signal<User[]>([]);
   businessUnits = signal<BusinessUnit[]>([]);
@@ -46,7 +62,27 @@ export class UserList{
       }
     });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
+
+    const immediate$ = merge(
+      this.filtersForm.controls.businessUnit.valueChanges,
+    );
+    const debounced$ = this.filtersForm.controls.user.valueChanges.pipe(
+      debounceTime(300)
+    );
+    merge(immediate$, debounced$).pipe(
+      map(() => this.filtersForm.getRawValue()),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(values => {
+      this.filtersChange.emit(values);
+    });
   }
+  onFiltersChange(filters: FilterValues): void {
+      console.log('Filtri applicati:', filters);
+      this.currentFilters.set(filters);
+      
+      // Reset alla prima pagina quando i filtri cambiano
+      this.currentPage.set(1);
+    }
   currentPage = signal(1);
   itemsPerPage = signal(5);
 
@@ -86,6 +122,6 @@ export class UserList{
       filtered = filtered.filter(user => user.businessUnit.name === this.filter);
     }
 
-    this.usersFiltered.set(filtered); 
+    this.usersFiltered.set(filtered);
   }
 }
