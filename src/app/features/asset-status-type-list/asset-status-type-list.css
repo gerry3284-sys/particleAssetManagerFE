@@ -26,6 +26,19 @@
   color: #6b7280;
 }
 
+.new-status-type-btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.new-status-type-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
 .loading,
 .error,
 .empty-state {
@@ -62,7 +75,7 @@
 
 .asset-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) 180px;
+  grid-template-columns: minmax(0, 2fr) 180px;
   align-items: center;
   padding: 0.8rem 1rem;
   font-size: 0.875rem;

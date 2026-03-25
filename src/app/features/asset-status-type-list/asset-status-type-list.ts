@@ -1,23 +1,25 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../shared/components/button/button';
+import { FiltersComponent } from '../../shared/components/filters/filters';
 import {
   EditAssetStatusTypeForm,
   EditAssetStatusTypeModalComponent
 } from '../assets/components/edit-asset-status-type-modal/edit-asset-status-type-modal';
 import { FilterService } from '../../shared/services/filter.service';
-import { AssetStatusType } from '../../shared/models/filter-config.interface';
+import { AssetStatusType, FilterValues } from '../../shared/models/filter-config.interface';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
 
 @Component({
   selector: 'app-asset-status-type-list',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, EditAssetStatusTypeModalComponent],
+  imports: [CommonModule, ButtonComponent, EditAssetStatusTypeModalComponent, FiltersComponent],
   templateUrl: './asset-status-type-list.html',
   styleUrl: './asset-status-type-list.css'
 })
 export class AssetStatusTypeListComponent implements OnInit {
   statusTypes = signal<AssetStatusType[]>([]);
+  currentFilters = signal<FilterValues>({});
   loading = signal(true);
   isSaving = signal(false);
   error = signal<string | null>(null);
@@ -27,6 +29,17 @@ export class AssetStatusTypeListComponent implements OnInit {
   showCreateModal = signal(false);
   createName = signal('');
   createNameError = signal(false);
+
+  filteredStatusTypes = computed(() => {
+    const query = this.normalizeName(this.currentFilters().assignedUser ?? '');
+    if (!query) {
+      return this.statusTypes();
+    }
+
+    return this.statusTypes().filter(statusType =>
+      this.normalizeName(statusType.name).includes(query)
+    );
+  });
 
   constructor(
     private readonly filterService: FilterService,
@@ -77,6 +90,10 @@ export class AssetStatusTypeListComponent implements OnInit {
     this.selectedStatusType.set(null);
   }
 
+  onFiltersChange(filters: FilterValues): void {
+    this.currentFilters.set(filters);
+  }
+
   onConfirmEdit(formData: EditAssetStatusTypeForm): void {
     const current = this.selectedStatusType();
     if (!current?.code) {
@@ -84,9 +101,15 @@ export class AssetStatusTypeListComponent implements OnInit {
       return;
     }
 
+    const nextName = formData.name.trim();
+    if (this.isNameDuplicated(nextName, current.id)) {
+      this.popupMessageService.error('Il nome inserito e gia presente in lista. Scegli un nome diverso.');
+      return;
+    }
+
     this.isSaving.set(true);
 
-    this.filterService.updateAssetStatusType(current.code, { name: formData.name }).subscribe({
+    this.filterService.updateAssetStatusType(current.code, { name: nextName }).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.closeEditModal();
@@ -103,8 +126,13 @@ export class AssetStatusTypeListComponent implements OnInit {
 
   onCreateStatusType(): void {
     const name = this.createName().trim();
-    this.createNameError.set(!name);
-    if (!name) {
+    this.createNameError.set(name.length < 2);
+    if (name.length < 2) {
+      return;
+    }
+
+    if (this.isNameDuplicated(name)) {
+      this.popupMessageService.error('Il nome inserito e gia presente in lista. Scegli un nome diverso.');
       return;
     }
 
@@ -123,5 +151,21 @@ export class AssetStatusTypeListComponent implements OnInit {
         this.popupMessageService.error('Errore durante la creazione di AssetStatusType');
       }
     });
+  }
+
+  private isNameDuplicated(name: string, excludedId?: number): boolean {
+    const normalizedName = this.normalizeName(name);
+
+    return this.statusTypes().some(statusType => {
+      if (excludedId !== undefined && statusType.id === excludedId) {
+        return false;
+      }
+
+      return this.normalizeName(statusType.name) === normalizedName;
+    });
+  }
+
+  private normalizeName(value: string): string {
+    return value.trim().toLocaleLowerCase();
   }
 }

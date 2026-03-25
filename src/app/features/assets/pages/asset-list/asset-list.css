@@ -27,6 +27,19 @@
 	color: #9CA3AF;
 }
 
+.new-asset-icon {
+	width: 14px;
+	height: 14px;
+	display: block;
+}
+
+.new-asset-btn-content {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
 
 .loading {
 	padding: 10px 12px;

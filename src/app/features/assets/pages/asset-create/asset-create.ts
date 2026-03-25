@@ -76,6 +76,16 @@ export class AssetCreateComponent {
     { initialValue: [] }
   );
 
+  existingAssets = toSignal(
+    this.assetService.getAssets().pipe(
+      catchError(err => {
+        console.error('Errore caricamento asset per controllo seriale:', err);
+        return of([]);
+      })
+    ),
+    { initialValue: [] }
+  );
+
   // Opzioni per le select derivate dai dati
   assetTypeOptions = computed(() => [
     { value: '', label: 'Seleziona una tipologia' },
@@ -163,6 +173,11 @@ export class AssetCreateComponent {
       return;
     }
 
+    if (this.isSerialNumberDuplicated(this.assetForm.controls.serialNumber.value)) {
+      this.popupMessageService.error('Numero seriale gia presente. Inserisci un numero seriale diverso.');
+      return;
+    }
+
     this.showConfirm.set(true);
   }
 
@@ -179,6 +194,11 @@ export class AssetCreateComponent {
   createAsset(): void {
     if (!this.assetForm.valid) {
       this.popupMessageService.error('Compila tutti i campi obbligatori');
+      return;
+    }
+
+    if (this.isSerialNumberDuplicated(this.assetForm.controls.serialNumber.value)) {
+      this.popupMessageService.error('Numero seriale gia presente. Inserisci un numero seriale diverso.');
       return;
     }
 
@@ -214,6 +234,21 @@ export class AssetCreateComponent {
         this.popupMessageService.error('Errore durante la creazione dell\'asset');
       }
     });
+  }
+
+  private isSerialNumberDuplicated(serialNumber: string): boolean {
+    const normalizedSerial = this.normalizeSerialNumber(serialNumber);
+    if (!normalizedSerial) {
+      return false;
+    }
+
+    return this.existingAssets().some(asset =>
+      this.normalizeSerialNumber(asset.serialNumber) === normalizedSerial
+    );
+  }
+
+  private normalizeSerialNumber(value: string): string {
+    return (value ?? '').trim().toLocaleLowerCase();
   }
 
 }

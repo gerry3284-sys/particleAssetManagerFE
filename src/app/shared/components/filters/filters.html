@@ -1,7 +1,7 @@
 <!-- Card contenitore dei filtri -->
 <div class="filters-card">
   <form [formGroup]="filtersForm" class="filters-grid">
-    
+    @if (!isNameOnlyMode()) {
     <!-- Tipologia Asset -->
     <div class="filter-item">
       <label class="filter-label" for="assetType">Tipologia Asset</label>
@@ -31,14 +31,15 @@
         placeholder="Tutti gli stati"
       ></app-dropdown>
     </div>
+    }
 
     <!-- Nome Assegnatario (input con debounce) -->
     <div class="filter-item input-with-icon">
-      <label class="filter-label" for="assignedUser">Nome Assegnatario</label>
+      <label class="filter-label" for="assignedUser">{{ searchLabel() }}</label>
       <input
         id="assignedUser"
         type="text"
-        placeholder="Cerca per nome..."
+        [placeholder]="searchPlaceholder()"
         formControlName="assignedUser"
         class="filter-control"
       />

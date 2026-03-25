@@ -1,7 +1,7 @@
 <div class="asset-status-type-page">
   <div class="page-header">
     <div>
-      <h2 class="page-title">Asset Status Type</h2>
+      <h2 class="page-title">Stati dell'Asset </h2>
       <p class="page-subtitle">Visualizza e modifica gli stati asset disponibili.</p>
     </div>
     <app-button
@@ -9,7 +9,10 @@
       type="button"
       [disabled]="isSaving()"
       (pressed)="openCreateModal()">
-      Nuovo AssetStatusType
+      <span class="new-status-type-btn-content">
+        <img src="/assets/line.png" alt="" aria-hidden="true" class="new-status-type-icon" />
+        <span>Nuovo Stato Asset</span>
+      </span>
     </app-button>
   </div>
 
@@ -21,16 +24,23 @@
     <div class="loading">Caricamento in corso...</div>
   }
 
+  <app-filters
+    [mode]="'name-only'"
+    [searchLabel]="'Nome AssetStatusType'"
+    [searchPlaceholder]="'Cerca per nome...'"
+    (filtersChange)="onFiltersChange($event)">
+  </app-filters>
+
   <div class="table-card">
     <div class="asset-row asset-header">
-      <div>Code</div>
+      
       <div>Nome</div>
       <div class="header-actions">Azioni</div>
     </div>
 
-    @for (statusType of statusTypes(); track statusType.id) {
+    @for (statusType of filteredStatusTypes(); track statusType.id) {
       <div class="asset-row">
-        <div>{{ statusType.code || '-' }}</div>
+        
         <div>{{ statusType.name }}</div>
         <div class="cell-actions">
           <app-button
@@ -44,7 +54,7 @@
       </div>
     }
 
-    @if (!loading() && statusTypes().length === 0) {
+    @if (!loading() && filteredStatusTypes().length === 0) {
       <div class="empty-state">Nessun AssetStatusType trovato.</div>
     }
   </div>
@@ -79,14 +89,21 @@
               [value]="createName()"
               (input)="createName.set($any($event.target).value); createNameError.set(false)" />
             @if (createNameError()) {
-              <span class="status-type-modal-error">Inserisci un nome valido.</span>
+              <span class="status-type-modal-error">Il nome deve contenere almeno 2 caratteri.</span>
             }
           </div>
         </div>
 
         <div class="status-type-modal-actions">
           <app-button type="button" variant="secondary" (pressed)="closeCreateModal()">Annulla</app-button>
-          <app-button type="button" variant="primary" [loading]="isSaving()" (pressed)="onCreateStatusType()">Crea AssetStatusType</app-button>
+          <app-button
+            type="button"
+            variant="primary"
+            [loading]="isSaving()"
+            [disabled]="createName().trim().length < 2"
+            (pressed)="onCreateStatusType()">
+            Crea AssetStatusType
+          </app-button>
         </div>
       </div>
     </div>
