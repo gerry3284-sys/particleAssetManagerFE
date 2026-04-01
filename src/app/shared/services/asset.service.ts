@@ -115,6 +115,7 @@ export class AssetService {
     movementType: string;
     user: number;
     receiptBase64?: string;
+    recipientEmail?: string;
   }): Observable<void> {
     const safeCode = this.toSafeAssetCode(assetCode);
     // Costruisce body senza receiptBase64 se non fornito
@@ -123,10 +124,26 @@ export class AssetService {
       movementType: payload.movementType,
       user: payload.user
     };
-    if (payload.receiptBase64) {
-      body['receiptBase64'] = payload.receiptBase64;
+    const normalizedReceiptBase64 = this.normalizeReceiptBase64(payload.receiptBase64);
+    if (normalizedReceiptBase64 !== undefined) {
+      body['receiptBase64'] = normalizedReceiptBase64;
+    }
+    if (payload.recipientEmail) {
+      body['recipientEmail'] = payload.recipientEmail;
     }
     return this.http.post<void>(`${this.apiUrl}/${safeCode}/movement`, body);
+  }
+
+  private normalizeReceiptBase64(value?: string): string | undefined {
+    const raw = (value ?? '').trim();
+    if (!raw) {
+      return undefined;
+    }
+
+    const splitIndex = raw.indexOf(',');
+    const base64Part = splitIndex >= 0 ? raw.slice(splitIndex + 1) : raw;
+    const normalized = base64Part.replace(/\s+/g, '');
+    return normalized || undefined;
   }
 
   // AGGIORNA ASSET

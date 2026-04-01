@@ -7,13 +7,12 @@
       <p class="page-subtitle">Visualizza e gestisci tutte le tipologie di asset.</p>
     </div>
 
-    <button class="btn-asset-type" (click)="OnOpenNewDialog()" style="height: fit-content; margin-top: 0.5rem;">
+    <app-button variant="primary" type="button" class="btn-new-appear" (pressed)="OnOpenNewDialog()" style="height: fit-content; margin-top: 0.5rem;">
       <span class="new-asset-type-btn-content">
         <img src="/assets/line.png" alt="" aria-hidden="true" class="new-asset-type-icon" />
         <span>Nuovo Tipo di Asset</span>
       </span>
-
-    </button>
+    </app-button>
   </div>
 
   <!-- filtro per la tabella -->
