@@ -7,6 +7,8 @@ import { DropdownComponent } from '../../../../shared/components/dropdown/dropdo
 import { DropdownOption } from '../../../../shared/models/dropdown-option.interface';
 
 export interface ReturnCertifyForm {
+  reason: 'resignation' | 'change';
+  privateEmail?: string;
   notes?: string;
 }
 
@@ -113,6 +115,8 @@ export class ReturnCertifyModalComponent implements OnDestroy {
     }
 
     this.confirm.emit({
+      reason: reason as 'resignation' | 'change',
+      privateEmail: requiresEmail ? email : undefined,
       notes: this.notes().trim() || undefined
     });
   }

@@ -4,10 +4,11 @@ import { ApiService } from '../../services/api';
 import { FormsModule } from "@angular/forms";
 import { Subject } from 'rxjs';
 import { PaginationComponent } from "../../shared/components/pagination/pagination";
+import { ButtonComponent } from '../../shared/components/button/button';
 
 @Component({
   selector: 'app-asset-type-list',
-  imports: [FormsModule, PaginationComponent],
+  imports: [FormsModule, PaginationComponent, ButtonComponent],
   templateUrl: './asset-type-list.html',
   styleUrl: './asset-type-list.css',
 })

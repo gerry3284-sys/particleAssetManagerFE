@@ -8,6 +8,8 @@ import { AssetDetail, AssignAssetForm, AssetMovement } from '../../../../shared/
 import { AssetService } from '../../../../shared/services/asset.service';
 import { AssetWorkflowService } from '../../../../shared/services/asset-workflow.service';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+import { AssignmentReceiptPdfService } from '../../../../shared/services/assignment-receipt-pdf.service';
+import { ReturnReceiptPdfService } from '../../../../shared/services/return-receipt-pdf.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonComponent } from '../../../../shared/components/button/button';
 
@@ -58,7 +60,9 @@ export class AssetDetailComponent implements OnInit {
     private router: Router,
     private assetService: AssetService,
     private assetWorkflowService: AssetWorkflowService,
-    private popupMessageService: PopupMessageService
+    private popupMessageService: PopupMessageService,
+    private assignmentReceiptPdfService: AssignmentReceiptPdfService,
+    private returnReceiptPdfService: ReturnReceiptPdfService
   ) {}
 
   ngOnInit(): void {
@@ -149,22 +153,45 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
-    this.assetWorkflowService.assignAsset(current, {
-      userId,
-      notes: formData.notes
-    })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.popupMessageService.success(`Asset assegnato a ${formData.userName}`);
-          this.closeAssignModal();
-          this.loadAssetDetail(this.assetId());
-          this.loadAssetMovements(this.assetId());
-        },
-        error: err => {
-          console.error('Errore assegnazione asset:', err);
-          this.popupMessageService.error('Errore durante l\'assegnazione dell\'asset');
+    const assignmentReceiptData = {
+      assetType: current.assetType,
+      brand: current.brand,
+      model: current.model,
+      serialNumber: current.serialNumber,
+      userName: formData.userName,
+      assignmentDate: new Date()
+    };
+
+    void this.assignmentReceiptPdfService.generateBase64(assignmentReceiptData)
+      .then(receiptBase64 => {
+        const normalizedReceiptBase64 = this.normalizeReceiptBase64(receiptBase64);
+        if (!normalizedReceiptBase64) {
+          this.popupMessageService.error('Errore nella generazione della ricevuta PDF');
+          return;
         }
+
+        this.assetWorkflowService.assignAsset(current, {
+          userId,
+          notes: formData.notes,
+          receiptBase64: normalizedReceiptBase64
+        })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.popupMessageService.success(`Asset assegnato a ${formData.userName}`);
+              this.closeAssignModal();
+              this.loadAssetDetail(this.assetId());
+              this.loadAssetMovements(this.assetId());
+            },
+            error: err => {
+              console.error('Errore assegnazione asset:', err);
+              this.popupMessageService.error('Errore durante l\'assegnazione dell\'asset');
+            }
+          });
+      })
+      .catch(err => {
+        console.error('Errore generazione PDF assegnazione:', err);
+        this.popupMessageService.error('Errore nella generazione della ricevuta PDF');
       });
   }
 
@@ -186,16 +213,65 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
+    const latestAssignedMovement = this.getLatestAssignedMovement();
+    const assignedUserName = latestAssignedMovement?.user || 'Utente';
+    const assignmentDate = this.toDateOrNow(latestAssignedMovement?.date);
+    const returnDate = new Date();
+
     const returnUserId = this.getReturnMovementUserId();
 
-    this.assetWorkflowService.certifyReturn(current, {
-      notes: formData.notes,
-      userId: returnUserId
-    })
+    const returnReceiptData = {
+      assetType: current.assetType,
+      brand: current.brand,
+      model: current.model,
+      serialNumber: current.serialNumber,
+      userName: assignedUserName,
+      assignmentDate,
+      returnDate,
+      returnNotes: formData.notes
+    };
+
+    void this.returnReceiptPdfService.generateBase64(returnReceiptData)
+      .then(receiptBase64 => {
+        const normalizedReceiptBase64 = this.normalizeReceiptBase64(receiptBase64);
+        if (!normalizedReceiptBase64) {
+          this.popupMessageService.error('Errore nella generazione della ricevuta PDF');
+          return;
+        }
+
+        this.certifyReturnMovement(current, {
+          reason: formData.reason,
+          privateEmail: formData.privateEmail,
+          notes: formData.notes,
+          userId: returnUserId,
+          receiptBase64: normalizedReceiptBase64
+        });
+      })
+      .catch(err => {
+        console.error('Errore generazione PDF riconsegna:', err);
+        this.popupMessageService.error('Errore nella generazione della ricevuta PDF');
+      });
+  }
+
+  private certifyReturnMovement(
+    asset: AssetDetail,
+    payload: {
+      reason: 'resignation' | 'change';
+      privateEmail?: string;
+      notes?: string;
+      userId: number;
+      receiptBase64?: string;
+    }
+  ): void {
+    this.assetWorkflowService.certifyReturn(asset, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.popupMessageService.success('Riconsegna certificata con successo');
+          const successMessage = payload.reason === 'resignation'
+            ? 'Riconsegna certificata e ricevuta inviata via email'
+            : 'Riconsegna certificata con successo';
+
+          this.popupMessageService.success(successMessage);
           this.closeReturnModal();
           this.loadAssetDetail(this.assetId());
           this.loadAssetMovements(this.assetId());
@@ -228,6 +304,56 @@ export class AssetDetailComponent implements OnInit {
 
     const candidateId = Number(latestAssigned.userId);
     return Number.isFinite(candidateId) ? candidateId : AssetDetailComponent.ADMIN_USER_ID;
+  }
+
+  private getLatestAssignedMovement(): AssetMovement | null {
+    const assignedMovements = this.movementState().data.filter(
+      movement => movement.movementType === 'Assigned'
+    );
+
+    if (!assignedMovements.length) {
+      return null;
+    }
+
+    return assignedMovements.reduce((latest, current) => {
+      const latestId = Number(latest.id);
+      const currentId = Number(current.id);
+      if (Number.isFinite(latestId) && Number.isFinite(currentId)) {
+        return currentId > latestId ? current : latest;
+      }
+      return current;
+    });
+  }
+
+  private toDateOrNow(value?: string | null): Date {
+    if (!value) {
+      return new Date();
+    }
+
+    const [day, month, year] = value.split('/').map(Number);
+    if (
+      Number.isFinite(day)
+      && Number.isFinite(month)
+      && Number.isFinite(year)
+      && day > 0
+      && month > 0
+      && year > 0
+    ) {
+      return new Date(year, month - 1, day);
+    }
+
+    return new Date();
+  }
+
+  private normalizeReceiptBase64(value?: string): string {
+    const raw = (value ?? '').trim();
+    if (!raw) {
+      return '';
+    }
+
+    const splitIndex = raw.indexOf(',');
+    const base64Part = splitIndex >= 0 ? raw.slice(splitIndex + 1) : raw;
+    return base64Part.replace(/\s+/g, '');
   }
 
   // --- Dismetti asset
