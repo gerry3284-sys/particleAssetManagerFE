@@ -16,8 +16,7 @@
                 <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
             </div>
             <div class="div-btn">
-                <button type="button" (click)="onLogout()" class="btn"> Logout </button>
-                <button type="button" class="btn"> Modifica </button>
+                <app-button variant="primary"type="button" (click)="onLogout()" class="btn"> Logout </app-button>
             </div>
         </div>
         <!-- informazioni dell'utente -->
@@ -49,7 +48,7 @@
             <!-- tabella storico degli asset -->
             <div class="user-union-2">
                 <div class="user-title"> I miei Asset assegnati</div>
-                <table class="table-card ">
+                <table class="table-card">
                     <thead>
                         <tr class="user-header">
                             <th> MARCA </th>
@@ -59,27 +58,54 @@
                             <th> DATA RICONSEGNA </th>
                         </tr>
                     </thead>
+                    <!-- righe dinamiche -->
                     <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-                        @if(movements().length === 0){
+                        @if(paginatedMovements().length === 0){
                             <tr class="user-row-empty">
                                 <td>Tabella attualmente vuota da movimenti</td>
                             </tr>
                         }
                         @else{
-                            @for(movement of movements(); track movement.id){
-                                <tr class="user-row" [class.muted]="movement.movementType === 'Dismissed'">
-                                <td>{{movement.asset.brand}}</td>
-                                <td>{{movement.asset.model}}</td>
-                                <td>{{movement.asset.serialNumber}}</td>
-                                <td>{{movement.date | date: 'longDate'}}</td>
-                                @if(movement.updateDate === undefined){
-                                    <td> - </td>
-                                }
-                                @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                            @for(movement of paginatedMovements(); track movement.date){
+                                <tr class="user-row" 
+                                 [class.muted]="movement.movementType === 'Dismissed'"
+                                 (click)="onOpenPDFDialog(movement)"
+                                 style="cursor: pointer;
+                                ">
+                                    <td>{{movement.asset.brand}} & {{ movement.id }}</td>
+                                    <td>{{movement.asset.model}}</td>
+                                    <td>{{movement.asset.serialNumber}}</td>
+                                    <td>{{movement.date | date: 'longDate'}}</td>
+                                    @if(movement.updateDate === undefined){
+                                        <td> - </td>
+                                    }
+                                    @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                                </tr>
                             }
                         }
+                        
                     </tbody>
                 </table>
+                <footer>
+                    <!-- footer di asset type -->
+                    @if(totalPages() > 1){
+                        <div class="table-foot">
+                            <div class="table-info">
+                                {{displayRange()}}
+                            </div>
+                            <div></div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <app-pagination 
+                                 [currentPage]="currentPage()"
+                                 [totalPages]="totalPages()"
+                                 [maxVisible]="5"
+                                 (pageChange)="goToPage($event)"
+                                >
+                                </app-pagination>
+                            </div>
+                        </div>
+                        }
+                </footer>
             </div>
         </div>
     </div>
@@ -88,4 +114,51 @@
             <span class="page-subtitle"> Asset Manager by Particle </span>
         </div>
     </div>
+
+    <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
+  <dialog #myDialog class="popup-window">
+    <div class="asset-type-modal">
+      <div class="asset-type-modal-header">
+        <div class="asset-type-modal-icon" aria-hidden="true">i</div>
+        <div>
+          <h3 class="asset-type-modal-title">Scarica tipo di movement</h3>
+          <p class="asset-type-modal-subtitle">
+            Ecco il riepilogo del Movement.
+          </p>
+        </div>
+      </div>
+
+      <div class="asset-type-modal-body">
+        <div class="asset-type-modal-field">
+            <ul class="movement-summary">
+                <li>Marca: {{downloadableMovement?.asset?.brand}}</li>
+                <li>Modello: {{downloadableMovement?.asset?.model}}</li>
+                <li>Numero Seriale: {{downloadableMovement?.asset?.serialNumber}}</li>
+                <li>Data di assegnazione: {{downloadableMovement?.date | date: 'longDate'}}</li>
+                @if(!downloadableMovement?.updateDate){
+                    <li>Data di riconsegna: - </li>
+                }
+                @else {<li>Data di riconsegna: {{downloadableMovement?.updateDate | date: 'longDate'}}</li>}
+            </ul>
+            <div>
+                <app-button type="button" variant="secondary" style="margin: 0.5rem;" 
+                 (pressed)="onDownloadPDF(downloadableMovement?.asset?.code, downloadableMovement?.id)
+                ">
+                    Scarica ricevuta di assegnazione
+                </app-button>
+                <app-button type="button" variant="secondary" style="margin: 0.5rem;" 
+                 [disabled]="controlReturnedDate()" 
+                 (pressed)="controlReturnedId()
+                ">
+                    Scarica ricevuta di riconsegna
+                </app-button>
+            </div>
+        </div>
+      </div>
+
+      <div class="asset-type-modal-actions">
+        <app-button type="button" variant="primary" (pressed)="onClosePDFDialog()">Annulla</app-button>
+      </div>
+    </div>
+  </dialog>
 </div>

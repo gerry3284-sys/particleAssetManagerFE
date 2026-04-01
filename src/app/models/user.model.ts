@@ -7,6 +7,7 @@ export interface User {
   userType: 'ADMIN'|'USER',
   businessUnit: {
     id: number,
+    code: string,
     name: string,
     active: boolean
   };

@@ -29,6 +29,9 @@ export class ApiService {
   getBusinessUnits(): Observable<BusinessUnit[]>{
     return this.http.get<BusinessUnit[]>(`${this.baseUrl}/businessUnit`);
   }
+  getReceiptByAssetAndMovement(code: string, id: number): Observable<any>{
+    return this.http.get(`${this.baseUrl}/asset/${code}/movement/${id}/receipt`, { responseType: 'blob' });
+  }
   putAssetTypeById(code: string, assetType: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/assetType/${code}`, assetType, { responseType: 'text' });
   }

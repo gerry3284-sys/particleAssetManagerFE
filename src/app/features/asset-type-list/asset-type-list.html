@@ -1,16 +1,16 @@
 <div class="asset-type-page">
+
     <!-- titolo -->
   <div class="page-header">
     <div>
       <h2 class="page-title">Tipologie di Asset</h2>
       <p class="page-subtitle">Visualizza e gestisci tutte le tipologie di asset.</p>
     </div>
-    <button class="btn-asset-type" (click)="OnOpenNewDialog()" 
-    style="height: fit-content; margin-top: 0.5rem; display: flex; direction: row;">
-      <div class="plus-inside-btn">+</div>
+    <app-button variant="primary" type="button" (click)="OnOpenNewDialog()">
       Nuovo Tipo di Asset
-    </button>
+    </app-button>
   </div>
+
   <!-- filtro per la tabella -->
   <div class="filters-card" (change)="onFilter()">
     <div class="filters-grid">
@@ -18,7 +18,7 @@
         <label class="filter-label">Nome</label>
         <input type="text" class="filter-control" name="nome" 
         placeholder="Cerca per nome..." 
-        [(ngModel)]="filterName">
+        [(ngModel)]="filterName" (ngModelChange)="onFilter()">
       </div>
       <div class="filter-item-btn">
         <label class="filter-label-btn">Hard Disk: </label>
@@ -27,25 +27,29 @@
         <label class="filter-label-btn">Ram: </label>
         <input type="checkbox" name="Ram" class="check-btn" [(ngModel)]="filterRam" (ngModelChange)="onHDorRamChange()">
 
-        <label class="filter-label-btn">Disattiva Hard Disk e Ram</label>
+        <label class="filter-label-btn">Senza Hard Disk e Ram: </label>
         <input type="checkbox" name="neither" class="check-btn" [(ngModel)]="disactiveHDandRam" (ngModelChange)="onDisactiveChange()">
 
-        <label class="filter-label-btn">Attiva Hard Disk e Ram</label>
-        <input type="checkbox" name="both" class="check-btn" [(ngModel)]="activateHDandRam" (ngModelChange)="onActivateBothChange()">
+        <!-- <label class="filter-label-btn">Con Hard Disk e Ram: </label>
+        <input type="checkbox" name="both" class="check-btn" [(ngModel)]="activateHDandRam" (ngModelChange)="onActivateBothChange()"> -->
       </div>
     </div>
   </div>
+
+  @if(loading()){
+    <div class="loading">Caricamento in corso...</div>
+  }
+
   <!-- Tabella -->
   <div class="table-card" #tableCard>
+
     <!-- Header -->
     <div class="asset-row asset-header">
       <div>Nome</div>
       <div>Hard Disk</div>
       <div>Ram</div>
     </div>
-    @if(loading()){
-      <div class="loading">Caricamento in corso...</div>
-    }
+
     <!-- Righe dinamiche -->
     @if(isVisible()){
       @for(assetType of paginatedAssetType(); track assetType.code){
@@ -54,8 +58,11 @@
             <div>{{ assetType.name }}</div>
             <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
             <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-            <div class="btn-position">
-              <button class="btn-asset-type" (click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">Modifica</button>
+            <div class="btn-position" style="gap: 4rem">
+              <app-button variant="secondary"type="button" (click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
+                Modifica
+              </app-button>
+              <button class="btn-asset-type" style="margin-right: 3.1rem;" (click)="changeStatus(assetType)">Disattiva</button>
             </div>
           </div>
         }
@@ -64,8 +71,21 @@
             <div>{{ assetType.name }}</div>
             <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
             <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-            <div class="btn-position">
-              <button class="btn-asset-type"(click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">Modifica</button>
+            <div class="btn-position" style="gap: 5.065rem">
+              <app-button variant="secondary"type="button"(click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
+                Modifica
+              </app-button>
+              <button class="btn-asset-type"
+                style="
+                margin-right: 3.1rem;
+                  background-color: #F3F4F6; 
+                  border-color: #F3F4F6; 
+                  box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
+                  color: #70757f;"
+                (click)="changeStatus(assetType)
+              ">
+                Attiva
+              </button>
             </div>
           </div>
         }
@@ -85,58 +105,87 @@
       }
     }
   </div>
+
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
   <dialog #myDialog class="popup-window">
-    <div class="window-header">
-      <h2>Modifiche al tipo di Asset</h2>
-    </div>
-    <div class="window-body" (change)="onModify()">
-      <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-      <input type="text"name="nome"[placeholder]="editableAssetType?.name || ''"class="input"[(ngModel)]="initialName"(input)="touched=true">
-      @if(specifiedError() && touched){
-        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
-          {{specifiedMessage}}
+    <div class="asset-type-modal">
+      <div class="asset-type-modal-header">
+        <div class="asset-type-modal-icon" aria-hidden="true">i</div>
+        <div>
+          <h3 class="asset-type-modal-title">Modifica Asset Type</h3>
+          <p class="asset-type-modal-subtitle">
+            Modifica le attuali caratteristiche di questo stato asset.
+          </p>
         </div>
-      }
-      <div class="combo-btn">
-        <label class="label">Hard Disk</label>
-        <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
+      </div>
 
-        <label class="label">Ram</label>
-        <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+      <div class="asset-type-modal-body">
+        <div class="asset-type-modal-field">
+          <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true">
+          @if(specifiedError() && touched){
+            <div class="error-message">{{specifiedMessage}}</div>
+          }
+          @else {
+            <div></div>
+          }
+          <div class="combo-btn">
+            <label class="label">Hard Disk</label>
+            <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
+
+            <label class="label">Ram</label>
+            <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+          </div>
+        </div>
+      </div>
+
+      <div class="asset-type-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="onCloseDialog()">Annulla</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onConfirmEdit()">Crea Asset Type</app-button>
       </div>
     </div>
-    <div class="window-footer">
-      <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
-      <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
-    </div>
   </dialog>
+
   <!-- finestra di dialogo per aggiungere un tipo di asset -->
   <dialog #newDialog class="popup-window">
-    <div class="window-header">
-      <h2>Aggiungi un nuovo tipo di Asset</h2>
-    </div>
-    <div class="window-body" (change)="onAdd()">
-      <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-      <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true">
-      @if(specifiedError() && touched){
-        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
-          {{specifiedMessage}}
+    <div class="asset-type-modal">
+      <div class="asset-type-modal-header">
+        <div class="asset-type-modal-icon" aria-hidden="true">i</div>
+        <div>
+          <h3 class="asset-type-modal-title">Creazione Asset Type</h3>
+          <p class="asset-type-modal-subtitle">
+            Inserisci le caratteristiche del nuovo stato asset da creare.
+          </p>
         </div>
-      }
-      <div class="combo-btn">
-        <label class="label">Hard Disk</label>
-        <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
+      </div>
 
-        <label class="label">Ram</label>
-        <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+      <div class="asset-type-modal-body">
+        <div class="asset-type-modal-field">
+          <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true">
+          @if(specifiedError() && touched){
+            <div class="error-message">{{specifiedMessage}}</div>
+          }
+          @else {
+            <div></div>
+          }
+          <div class="combo-btn">
+            <label class="label">Hard Disk</label>
+            <input type="checkbox" name="Hard-disk" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="HDCheck">
+
+            <label class="label">Ram</label>
+            <input type="checkbox" name="Ram" style="margin-left: 0.5rem; margin-right: 1rem;" [(ngModel)]="RamCheck">
+          </div>
+        </div>
+      </div>
+
+      <div class="asset-type-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="onCloseNewDialog()">Annulla</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onAlertDialogOpen()">Crea Asset Type</app-button>
       </div>
     </div>
-    <div class="window-footer">
-      <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
-      <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
-    </div>
   </dialog>
+
   <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
   <dialog #alertDialog class="popup-window">
     <div class="window-header">{{alertTitle}}</div>
@@ -145,11 +194,21 @@
       <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
     </div>
   </dialog>
+
+  <!-- finestra di dialogo che ti chiede conferma prima di cambiare status di una business unit -->
+  <!-- <dialog #alertStatusDialog class="popup-window">
+    <div class="window-header">{{alertTitle}}</div>
+    <div class="window-footer">
+      <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
+      <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
+    </div>
+  </dialog>
+   -->
   <!-- finestra di dialogo che avvisa di un errore o di qualcosa che è andato storto -->
-  <dialog #errorDialog class="popup-window">
+  <!-- <dialog #errorDialog class="popup-window">
     <div class="window-header">{{errorMessage}}</div>
     <div class="window-footer">
       <button (click)="onErrorWindowsClose()" class="close-icon">Ok</button>
     </div>
-  </dialog>
+  </dialog> -->
 </div>

@@ -2,17 +2,25 @@ import { ChangeDetectorRef, Component, computed, DestroyRef, ElementRef, inject,
 import { ApiService } from '../../services/api';
 import { BusinessUnit } from '../../shared/services/business-unit.service';
 import { FormsModule } from "@angular/forms";
-import { Subject } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
 import { PaginationComponent } from "../../shared/components/pagination/pagination";
+import { PopupMessageService } from '../../shared/services/popup-message.service';
+import { User } from '../../models/user.model';
+import { Asset } from '../../shared/models/asset.interface';
+import { AssetService } from '../../shared/services/asset.service';
+import { ButtonComponent } from "../../shared/components/button/button";
 
 @Component({
   selector: 'app-business-unit-list',
-  imports: [FormsModule, PaginationComponent],
+  imports: [FormsModule, PaginationComponent, ButtonComponent],
   templateUrl: './business-unit-list.html',
   styleUrl: './business-unit-list.css',
 })
 export class BusinessUnitList {
   businessUnits = signal<BusinessUnit[]>([]);
+  users = signal<User[]>([]);
+  assets = signal<Asset[]>([]);
+
   filteredBusinessUnits = signal<BusinessUnit[]>([]);
   loading = signal(true);
   reload$ = new Subject<boolean>();
@@ -21,42 +29,47 @@ export class BusinessUnitList {
   @ViewChild('myDialog') dialog!: ElementRef<HTMLDialogElement>;
   @ViewChild('newDialog') newDialog!: ElementRef<HTMLDialogElement>;
   @ViewChild('alertDialog') alertDialog!: ElementRef<HTMLDialogElement>;
-  @ViewChild('alertStatusDialog') alertStatusDialog!: ElementRef<HTMLDialogElement>;
-  @ViewChild('errorDialog') errorDialog!: ElementRef<HTMLDialogElement>;
+  // @ViewChild('alertStatusDialog') alertStatusDialog!: ElementRef<HTMLDialogElement>;
+  // @ViewChild('errorDialog') errorDialog!: ElementRef<HTMLDialogElement>;
 
   editableBusinessUnit: BusinessUnit|null = null
   controlName = '';
   initialName = '';
   filterName = '';
   isVisible = signal(true);
-  newBusinessUnit : BusinessUnit = {
-    id: 0,
-    code: '',
-    active: true,
-    name: ''
-  };
 
-  errorMessage = 'Nessun errore.';
+  // errorMessage = 'Nessun errore.';
   touched = false;
   alertTitle = '';
-  selectedBusinessUnit: BusinessUnit|null = {
-    id: 0,
-    code: '',
-    active: true,
-    name: ''
-  };
+  // selectedBusinessUnit: BusinessUnit|null = {
+  //   id: 0,
+  //   code: '',
+  //   active: true,
+  //   name: ''
+  // };
 
   // Settaggio della businessUnit
-  constructor(private apiService: ApiService, private cdr: ChangeDetectorRef){
-    const subscription = this.apiService.getBusinessUnits().subscribe({
-      next: (types) => {
-        this.businessUnits.set(types ?? []);
+  constructor(private apiService: ApiService,
+    private cdr: ChangeDetectorRef,
+    private assetService: AssetService,
+    private readonly popupMessageService: PopupMessageService
+  ){
+    const subscription = forkJoin({
+      user: this.apiService.getUsers(),
+      asset: this.assetService.getAssets(),
+      businessUnit: this.apiService.getBusinessUnits()
+    }).subscribe({
+      next: ({ user, asset, businessUnit }) => {
+        this.users.set(user ?? []);
+        this.assets.set(asset ?? []);
+        this.businessUnits.set(businessUnit ?? []);
+
         this.filteredBusinessUnits.set(this.businessUnits());
         this.loading.set(false);
       },
       error: (err) => {
-        this.errorMessage = 'API error asset types' + err;
-        this.onErrorOccur();
+        this.popupMessageService.error('Errore del caricamento della business unit');
+        console.error('error API business unit', err);
         this.businessUnits.set([]);
         this.loading.set(false);
       }
@@ -88,27 +101,34 @@ export class BusinessUnitList {
   }
   // Cambia lo status della business unit rendendola attiva o disattiva
   changeStatus(businessUnit: BusinessUnit){
-    this.editableBusinessUnit = businessUnit;
-    if(this.editableBusinessUnit.active === false){
-      this.editableBusinessUnit.active = true;
+    if(this.assets().find(asset => (asset.businessUnit === businessUnit.name)) ||
+       this.users().find(user => (user.businessUnit.code === businessUnit.code))
+      ){
+        this.popupMessageService.error('Errore, impossibile disattivare una business unit associata ad uno user o asset');
     }
     else{
-      if(this.editableBusinessUnit.active === true){
-        this.editableBusinessUnit.active = false;
+      this.editableBusinessUnit = businessUnit;
+      if(this.editableBusinessUnit.active === false){
+        this.editableBusinessUnit.active = true;
       }
+      else{
+        if(this.editableBusinessUnit.active === true){
+          this.editableBusinessUnit.active = false;
+        }
+      }
+      this.apiService.putBusinessActiveChangeById(this.editableBusinessUnit.code, this.editableBusinessUnit.active)
+      .subscribe({
+        next: (updatedAssetType) => {
+          const updatedList = this.businessUnits().map(at => at.code === updatedAssetType.code ? updatedAssetType : at);
+          this.businessUnits.set(updatedList);
+          this.reloadDiv();
+        },
+        error: (err) => {
+          this.popupMessageService.error('Errore durante l\'aggiornamento dell\'attivazione della business unit');
+          console.error('errore attivazione business unit', err);
+        }
+      });
     }
-    this.apiService. putBusinessActiveChangeById(this.editableBusinessUnit.code, this.editableBusinessUnit.active)
-    .subscribe({
-      next: (updatedAssetType) => {
-        const updatedList = this.businessUnits().map(at => at.code === updatedAssetType.code ? updatedAssetType : at);
-        this.businessUnits.set(updatedList);
-        this.reloadDiv();
-      },
-      error: (err) => {
-        this.errorMessage = 'Errore durante l\'aggiornamento dell\'attivazione della business unit: ' + err;
-        this.onErrorOccur();
-      }
-    });
   }
   // funzione che filtra la lista delle business unit
   onFilter() {
@@ -132,38 +152,18 @@ export class BusinessUnitList {
     this.dialog.nativeElement.showModal();
     this.alertTitle = 'Conferma la modifica di questa Business unit?';
   }
-  onModify(){
-    if(this.editableBusinessUnit !== null){
-      let modifiedName = this.initialName.toLowerCase();
-      modifiedName = modifiedName.charAt(0).toUpperCase() + modifiedName.slice(1);
-
-      this.editableBusinessUnit!.name = modifiedName;
-    }
-  }
   onCloseDialog(){
     this.touched = false;
-    const subscription = this.apiService.getBusinessUnits().subscribe({
-      next: (types) => {
-        this.businessUnits.set(types ?? []);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.errorMessage = 'API error asset types' + err;
-        this.onErrorOccur();
-        this.businessUnits.set([]);
-        this.loading.set(false);
-      }
-    })
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
-
     this.reloadDiv();
     this.dialog.nativeElement.close();
   }
   onConfirmEdit(){
     if(this.editableBusinessUnit !== null){
+      let modifiedName = this.initialName.toLowerCase();
+      modifiedName = modifiedName.charAt(0).toUpperCase() + modifiedName.slice(1);
 
       const puttableBusinessUnit = { 
-        name: this.editableBusinessUnit.name
+        name: modifiedName
       };
       this.apiService.putBusinessUnitById(this.editableBusinessUnit?.code, puttableBusinessUnit)
       .subscribe({
@@ -177,8 +177,8 @@ export class BusinessUnitList {
           this.reloadDiv();
         },
         error: (err) => {
-          this.errorMessage = 'Errore durante l\'aggiornamento della business unit: ' + err;
-          this.onErrorOccur();
+          this.popupMessageService.error('Errore durante l\'aggiornamento della business unit');
+          console.error('errore aggiornamento business unit', err);
           this.dialog.nativeElement.close();
           this.initialName = '';
           this.alertTitle = '';
@@ -188,13 +188,13 @@ export class BusinessUnitList {
     }
   }
   isInvalid(): boolean {
-    return !(this.initialName.length > 2 && this.initialName.trim() !== this.controlName);
+    return !(this.initialName.length > 1 && this.controlRepeatedName(this.initialName.trim()));
   }
   get specifiedMessage(): string {
     if (this.initialName.length <= 2) {
-      return 'Nome non valido. Deve essere almeno 2 caratteri';
+      return 'Deve essere almeno 2 caratteri';
     }
-    return 'Nome non valido. Il nome inserito deve essere diverso da quello già presente';
+    return 'Il nome deve essere diverso da uno già presente';
   }
   specifiedError(): boolean {
     return this.initialName.length > 0 && this.isInvalid();
@@ -204,12 +204,12 @@ export class BusinessUnitList {
     this.initialName = '';
     this.alertTitle = 'Conferma la creazione di una nuova business unit?';
   }
-  onAdd(){
-    let cretaedName = this.initialName.toLowerCase();
-    cretaedName = cretaedName.charAt(0).toUpperCase() + cretaedName.slice(1);
+  // onAdd(){
+  //   let cretaedName = this.initialName.toLowerCase();
+  //   cretaedName = cretaedName.charAt(0).toUpperCase() + cretaedName.slice(1);
 
-    this.newBusinessUnit!.name = cretaedName;
-  }
+  //   this.newBusinessUnit!.name = cretaedName;
+  // }
   onCloseNewDialog(){
     this.touched = false;
     this.initialName = '';
@@ -218,35 +218,31 @@ export class BusinessUnitList {
     this.newDialog.nativeElement.close();
   }
   onConfirmCreate(){
+    let cretaedName = this.initialName.toLowerCase();
+    cretaedName = cretaedName.charAt(0).toUpperCase() + cretaedName.slice(1);
+
     const postableBusinessUnit = { 
-      name: this.newBusinessUnit.name
+      name: cretaedName
     };
-    if(this.controlRepeatedName(postableBusinessUnit.name.trim())){
-      this.apiService.postBusinessUnit(postableBusinessUnit)
-      .subscribe({
-        next: (createdBusinessUnit) => {
-          const updatedList = [...this.businessUnits(), createdBusinessUnit];
-          this.businessUnits.set(updatedList);
-          this.newDialog.nativeElement.close();
-          this.initialName = '';
-          this.alertTitle = '';
-          this.cdr.detectChanges();
-          this.reloadDiv();
-        },
-        error: (err) => {
-          this.errorMessage = 'Errore durante la creazione della business unit: ' + err;
-          this.onErrorOccur();
-          this.newDialog.nativeElement.close();
-          this.initialName = '';
-          this.alertTitle = '';
-        }
-      })
-    }
-    else{
-      this.errorMessage = 'Errore nella creazione della business unit, non si può usare lo stesso nome per più business'
-      this.newDialog.nativeElement.close();
-      this.onErrorOccur();
-    }
+    this.apiService.postBusinessUnit(postableBusinessUnit)
+    .subscribe({
+      next: (createdBusinessUnit) => {
+        const updatedList = [...this.businessUnits(), createdBusinessUnit];
+        this.businessUnits.set(updatedList);
+        this.newDialog.nativeElement.close();
+        this.initialName = '';
+        this.alertTitle = '';
+        this.cdr.detectChanges();
+        this.reloadDiv();
+      },
+      error: (err) => {
+        this.popupMessageService.error('Errore durante la creazione della business unit');
+        console.error('errore creazione business unit', err);
+        this.newDialog.nativeElement.close();
+        this.initialName = '';
+        this.alertTitle = '';
+      }
+    })
   }
   reloadDiv() {
     this.isVisible.set(false);
@@ -255,8 +251,11 @@ export class BusinessUnitList {
       this.reload$.next(true);
     }, 0);
   }
-  controlRepeatedName(postableBusinessUnitName: string){
-    if(this.businessUnits().find(unit => (unit.name === postableBusinessUnitName))){
+  controlRepeatedName(BusinessUnitName: string){
+    if(this.businessUnits().find(unit => (
+      unit.name.toLowerCase() === BusinessUnitName.toLowerCase() &&
+      unit.name.toLowerCase() !== this.controlName.toLowerCase()
+    ))){
       return false;
     }
     else{ return true; }
@@ -266,16 +265,15 @@ export class BusinessUnitList {
   }
  onAlertDialogClose(){
     this.alertDialog.nativeElement.close();
-    this.alertStatusDialog.nativeElement.close();
+    // this.alertStatusDialog.nativeElement.close();
     this.alertTitle = '';
-    this.selectedBusinessUnit = null;
+    // this.selectedBusinessUnit = null;
   }
-  onAlertChangeStatus(businessUnit: BusinessUnit){
-    this.selectedBusinessUnit = businessUnit;
-    console.log(this.selectedBusinessUnit.name);
-    this.alertTitle = 'Conferma il cambiamento di status di '+ businessUnit.name +'?'
-    this.alertStatusDialog.nativeElement.showModal();
-  }
+  // onAlertChangeStatus(businessUnit: BusinessUnit){
+  //   this.selectedBusinessUnit = businessUnit;
+  //   this.alertTitle = 'Conferma il cambiamento di status di '+ businessUnit.name +'?'
+  //   this.alertStatusDialog.nativeElement.showModal();
+  // }
   onChoosingPath(){
     if(this.alertTitle === 'Conferma la creazione di una nuova business unit?'){
       this.onConfirmCreate();
@@ -284,23 +282,15 @@ export class BusinessUnitList {
       if(this.alertTitle === 'Conferma la modifica di questa Business unit?'){
         this.onConfirmEdit();
       }
-      else{
-        if(this.alertTitle === 'Conferma il cambiamento di status di '+ this.selectedBusinessUnit!.name +'?'){
-          this.changeStatus(this.selectedBusinessUnit!);
-        }
-        else{
-          this.errorMessage = 'errore nella conferma';
-          this.onErrorOccur();
-        }
-      }
+      else{ this.popupMessageService.error('errore nella conferma'); }
     }
     this.alertDialog.nativeElement.close();
-    this.alertStatusDialog.nativeElement.close();
+    // this.alertStatusDialog.nativeElement.close();
   }
-  onErrorOccur(){
-    this.errorDialog.nativeElement.showModal();
-  }
-  onErrorWindowsClose(){
-    this.errorDialog.nativeElement.close();
-  }
+  // onErrorOccur(){
+  //   this.errorDialog.nativeElement.showModal();
+  // }
+  // onErrorWindowsClose(){
+  //   this.errorDialog.nativeElement.close();
+  // }
 }

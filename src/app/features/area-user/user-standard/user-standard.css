@@ -13,8 +13,7 @@
 }
 .user-standard-subpage{
   display: flex;
-  flex-direction: row;
-  min-width: 50%;
+  flex-direction:row;
 }
 .over-page-union{
   position: fixed;
@@ -24,7 +23,6 @@
   flex-direction: row;
   min-width: 100%;
   border-bottom: 1px solid #EFEFEF;
-  background-color: #FFFFFF;
   /* z-index: 100; */
 }
 .over-page-1{
@@ -85,38 +83,25 @@
   align-items: flex-end;
   flex-direction: column;
 }
-.btn {
-	background-color: #E56A3D;
-	border-color: #E56A3D;
-	color: #FFFFFF;
-  height: fit-content;
-	font-weight: 600;
-  width: 5rem;
-	font-size: 0.8rem;
-	padding: 0.5rem 1rem;
-  margin: 0.5rem;
-	border-radius: 0.4rem;
-	box-shadow: 0 6px 14px rgba(229, 106, 61, 0.2);
-}
 .user-union {
   border-radius: 1rem;
-	background-color: #FFFFFF;
+  height: max-content;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-  margin-right: clamp(1rem, 3vw, 2rem); /* 30px responsive */
-  margin-top: clamp(1.5rem, 4vh, 2rem); /* 30px responsive */
+  margin-right: clamp(1rem, 3vw, 2rem);
+  margin-top: clamp(1.5rem, 4vh, 2rem);
   margin-bottom: 1.5rem;
 }
 .user-card {
 	background-color: #FFFFFF;
-	border: 1px solid #EFEFEF;
+  border: 1px solid #EFEFEF;
 	border-bottom-left-radius: 1rem;
   border-bottom-right-radius: 1rem;
 }
 .user-info{
   gap: 1rem;
 	align-items: start;
-	padding: 1.5rem; /* 25px / 16 = 1.5625rem */
-  padding-right: 6rem; /* 100px / 16 = 6.25rem */
+	padding: 1.5rem;
+  padding-right: 6rem;
 	font-weight: 700;
 	letter-spacing: 0.05em;
   display: flex;
@@ -187,13 +172,15 @@
   margin-right: clamp(1rem, 3vw, 2rem); /* 30px responsive */
   margin-top: clamp(1.5rem, 4vh, 2rem); /* 30px responsive */
   margin-bottom: 1.5rem;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 .table-card {
   width: 100%;
   background-color: #FFFFFF;
 	border-bottom-left-radius: 1rem;
   border-bottom-right-radius: 1rem;
-	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   align-items: center;
   table-layout: fixed;
 }
@@ -250,7 +237,101 @@ th {
   text-align: center;
   font-size: 2rem;
   border-top: 1px solid #EFEFEF;
-  background-color: #FFFFFF; /* Aggiungi questo per evitare trasparenze */
   padding: 0.5rem 0;
-  /* z-index: 100;  Per stare sopra altri elementi */
+}
+.table-foot{
+  display: grid;
+  padding: 0.8rem;
+  border-top: 1px solid #EFEFEF;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  text-align: start;
+  font-size: 0.8rem;
+  color: #9CA3AF;
+}
+.table-info {
+  vertical-align: middle;
+}
+dialog.popup-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: none;
+  border-radius: 0.5rem;
+  padding: 24px;
+  min-width: 25rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+dialog::backdrop {
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(3px);
+}
+.asset-type-modal-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+.asset-type-modal-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e7f1ff;
+  color: #2563eb;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+.asset-type-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.asset-type-modal-subtitle {
+  margin: 6px 0 0 0;
+  color: #475569;
+  font-size: 14px;
+}
+.asset-type-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.asset-type-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.asset-type-modal-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.asset-type-modal-field input {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  color: #374151;
+  background-color: #ffffff;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.asset-type-modal-field input:focus {
+  outline: none;
+  border-color: #e56a3d;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.1);
+}
+.asset-type-modal-error {
+  color: #dc2626;
+  font-size: 12px;
+}
+.asset-type-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+.movement-summary{
+  margin: 1rem;
 }

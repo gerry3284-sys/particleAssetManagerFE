@@ -69,6 +69,7 @@ export class AssetService {
 
   private readonly apiUrl = 'http://localhost:8080/asset';
 
+
   constructor(private readonly http: HttpClient) {}
 
   // LISTA ASSET

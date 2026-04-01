@@ -1,32 +1,41 @@
 <div class="business-unit-page">
+
     <!-- titolo -->
   <div class="page-header">
     <div>
       <h2 class="page-title">Business Units</h2>
       <p class="page-subtitle">Visualizza e gestisci tutte le business units.</p>
     </div>
-    <button class="btn-business"style="height: fit-content; margin-top: 0.5rem; display: flex; direction: row;"
-    (click)="OnOpenNewDialog()">
-      <div class="plus-inside-btn">+</div>
+    <app-button variant="primary" type="button"(click)="OnOpenNewDialog()">
       Nuova Business Unit
-    </button>
+    </app-button>
   </div>
+
   <!-- filtro per la tabella -->
   <div class="filters-card" (change)="onFilter()">
     <div class="filter-item">
       <label class="filter-label">Nome</label>
-      <input type="text" class="filter-control" name="nome" placeholder="Cerca per nome..." [(ngModel)]="filterName">
+      <input type="text"
+        class="filter-control"
+        name="nome"
+        placeholder="Cerca per nome..."
+        [(ngModel)]="filterName"
+        (ngModelChange)="onFilter()"
+      >
     </div>
   </div>
+
+  @if(loading()){
+    <div class="loading">Caricamento in corso...</div>
+  }
+
 <!-- Tabella -->
   <div class="table-card" #tableCard>
     <!-- Header -->
     <div class="business-row business-header">
       <div>Nome</div>
     </div>
-    @if(loading()){
-      <div class="loading">Caricamento in corso...</div>
-    }
+
     <!-- Righe dinamiche -->
     @if(isVisible()){
       @for(businessUnit of paginatedBusinessUnit(); track businessUnit.code){
@@ -34,16 +43,16 @@
           <div class="business-row" style="color: #4B5563;">
             <div>{{ businessUnit.name }}</div>
             <div class="btn-position" style="gap: 4rem">
-              <button class="btn-business" (click)="OnOpenDialog(businessUnit)">Modifica</button>
-              <button class="btn-business" style="margin-right: 3.1rem;" (click)="onAlertChangeStatus(businessUnit)">Disattiva</button>
+              <app-button variant="secondary"type="button" (click)="OnOpenDialog(businessUnit)">Modifica</app-button>
+              <button class="btn-business" style="margin-right: 3.1rem;" (click)="changeStatus(businessUnit)">Disattiva</button>
             </div>
           </div>
         }
         @else{
           <div class="business-row" style="color: #9CA3AF;">
             <div>{{ businessUnit.name }}</div>
-            <div class="btn-position" style="gap: 5.1rem">
-              <button class="btn-business" (click)="OnOpenDialog(businessUnit)">Modifica</button>
+            <div class="btn-position" style="gap: 5.065rem">
+              <app-button variant="secondary"type="button" (click)="OnOpenDialog(businessUnit)">Modifica</app-button>
               <button class="btn-business"
                 style="
                 margin-right: 3.1rem;
@@ -51,7 +60,7 @@
                   border-color: #F3F4F6; 
                   box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
                   color: #70757f;"
-                (click)="onAlertChangeStatus(businessUnit)
+                (click)="changeStatus(businessUnit)
               ">
                 Attiva
               </button>
@@ -59,6 +68,7 @@
           </div>
         }
       }
+
       <!-- footer di asset type -->
       @if(totalPages() > 1){
         <div class="table-foot">
@@ -74,44 +84,75 @@
       }
     }
   </div> 
+
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
   <dialog #myDialog class="popup-window">
-    <div class="window-header">
-        <h2>Modifiche la Business Unit</h2>
-    </div>
-    <div class="window-body" (change)="onModify()">
-        <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-        <input type="text"name="nome"[placeholder]="editableBusinessUnit?.name || ''" class="input"[(ngModel)]="initialName"(input)="touched = true">
-    </div>
-    @if(specifiedError() && touched){
-        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
-          {{specifiedMessage}}
+    <div class="business-unit-modal">
+      <div class="business-unit-modal-header">
+        <div class="business-unit-modal-icon" aria-hidden="true">i</div>
+        <div>
+          <h3 class="business-unit-modal-title">Modifica Business Unit</h3>
+          <p class="business-unit-modal-subtitle">
+            Modifica il nome della business unit da aggiornare.
+          </p>
         </div>
-      }
-    <div class="window-footer">
-        <button (click)="onCloseDialog()" class="close-icon">Cancella</button>
-        <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
+      </div>
+
+      <div class="business-unit-modal-body">
+        <div class="business-unit-modal-field">
+          <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true">
+
+          @if(specifiedError() && touched){
+            <div class="error-message">{{specifiedMessage}}</div>
+          }
+          @else {
+            <div></div>
+          }
+        </div>
+      </div>
+
+      <div class="business-unit-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="onCloseDialog()">Annulla</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onConfirmEdit()">Crea Business Unit</app-button>
+      </div>
     </div>
   </dialog>
+
   <!-- finestra di dialogo per aggiungere una nuova business unit -->
   <dialog #newDialog class="popup-window">
-    <div class="window-header">
-      <h2>Aggiungi un nuovo Business Unit</h2>
-    </div>
-    <div class="window-body" (change)="onAdd()">
-      <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-      <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true">
-    </div>
-    @if(specifiedError() && touched){
-        <div style="color: red; padding-left: 0.5rem; padding-right: 0.5rem; text-align: center;">
-          {{specifiedMessage}}
+    <div class="business-unit-modal">
+      <div class="business-unit-modal-header">
+        <div class="business-unit-modal-icon" aria-hidden="true">i</div>
+        <div>
+          <h3 class="business-unit-modal-title">Creazione Business Unit</h3>
+          <p class="business-unit-modal-subtitle">
+            Inserisci il nome della nuova business unit da creare.
+          </p>
         </div>
-      }
-    <div class="window-footer">
-      <button (click)="onCloseNewDialog()" class="close-icon">Cancella</button>
-      <button [disabled]="isInvalid()" (click)="onAlertDialogOpen()" class="confirm-icon">Conferma</button>
+      </div>
+
+      <div class="business-unit-modal-body">
+        <div class="business-unit-modal-field">
+          <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
+          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true">
+
+          @if(specifiedError() && touched){
+            <div class="error-message">{{specifiedMessage}}</div>
+          }
+          @else {
+            <div></div>
+          }
+        </div>
+      </div>
+
+      <div class="business-unit-modal-actions">
+        <app-button type="button" variant="secondary" (pressed)="onCloseNewDialog()">Annulla</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onAlertDialogOpen()">Crea Business Unit</app-button>
+      </div>
     </div>
   </dialog>
+
   <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
   <dialog #alertDialog class="popup-window">
     <div class="window-header">{{alertTitle}}</div>
@@ -120,19 +161,21 @@
       <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
     </div>
   </dialog>
+
   <!-- finestra di dialogo che ti chiede conferma prima di cambiare status di una business unit -->
-  <dialog #alertStatusDialog class="popup-window">
+  <!-- <dialog #alertStatusDialog class="popup-window">
     <div class="window-header">{{alertTitle}}</div>
     <div class="window-footer">
       <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
       <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
     </div>
   </dialog>
+   -->
   <!-- finestra di dialogo che avvisa di un errore o di qualcosa che è andato storto -->
-  <dialog #errorDialog class="popup-window">
+  <!-- <dialog #errorDialog class="popup-window">
     <div class="window-header">{{errorMessage}}</div>
     <div class="window-footer">
       <button (click)="onErrorWindowsClose()" class="close-icon">Ok</button>
     </div>
-  </dialog>
+  </dialog> -->
 </div>

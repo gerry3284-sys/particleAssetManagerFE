@@ -34,7 +34,7 @@
     <table class="table-card ">
         <thead>
             <tr class="user-header">
-                <th> TIPOLOGIA </th>
+                <!-- <th> TIPOLOGIA </th> -->
                 <th> MARCA </th>
                 <th> MODELLO </th>
                 <th> NUMERO SERIALE </th>
@@ -49,13 +49,13 @@
                 </tr>
             }
             @else{
-                @for(movement of movements(); track movement.id){
+                @for(movement of paginatedMovements(); track movement.date){
                     @if(controlActivatedAsset(movement.asset.code)){
                         <tr class="user-row" 
                             [class.muted]="movement.movementType === 'Dismissed'" 
                             (click)="onNavigate(movement.asset.serialNumber)" style="cursor: pointer;"
                         >
-                            <td style="color:green"> ATTIVA </td>
+                            <!-- <td style="color:green"> ATTIVA </td> -->
                             <td>{{movement.asset.brand}}</td>
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
@@ -67,7 +67,7 @@
                             @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
                         </tr>
                     }
-                    @else {
+                    <!-- @else {
                         <tr class="user-row"
                             [class.muted]="movement.movementType === 'Dismissed'"
                             style="cursor: pointer; cursor:default;"
@@ -83,8 +83,21 @@
                             }
                             @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
                         </tr>
-                    }
+                    } -->
                 }
+            }
+            <!-- footer di user detail -->
+            @if(totalPages() > 1){
+                <div class="table-foot">
+                <div class="table-info">
+                    {{displayRange()}}
+                </div>
+                <div></div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)">
+                    </app-pagination>
+                </div>
+                </div>
             }
         </tbody>
     </table>

@@ -8,14 +8,13 @@ import { debounceTime, forkJoin, map, merge } from 'rxjs';
 import { BusinessUnit } from '../../../../shared/services/business-unit.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FilterValues } from '../../../../shared/models/filter-config.interface';
-import { DropdownComponent } from "../../../../shared/components/dropdown/dropdown";
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
   templateUrl: './user-list.html',
   styleUrl: './user-list.css',
-  imports: [RouterLink, PaginationComponent, RouterLinkActive, FormsModule, DropdownComponent]
+  imports: [RouterLink, PaginationComponent, RouterLinkActive, FormsModule]
 })
 export class UserList{
   currentFilters = signal<FilterValues>({});

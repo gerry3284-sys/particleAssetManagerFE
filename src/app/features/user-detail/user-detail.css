@@ -118,7 +118,7 @@ a {
 }
 .user-header {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 	padding: 1rem;
   color: #6b7284;
 	border-bottom: 1px solid #F3F4F6;
@@ -134,7 +134,7 @@ th {
   padding: 0.7rem;
   color: #4B5563;
   font-size: 0.8rem;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   border-bottom: 1px solid #F3F4F6;
   cursor: pointer;
 }
@@ -154,5 +154,16 @@ th {
   grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: 1rem;
   text-align: center;
+  vertical-align: middle;
+}
+.table-foot{
+  display: grid;
+  padding: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  text-align: start;
+  font-size: 0.8rem;
+  color: #9CA3AF;
+}
+.table-info {
   vertical-align: middle;
 }

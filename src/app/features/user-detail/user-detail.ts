@@ -7,11 +7,11 @@ import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { Asset } from '../../shared/models/asset.interface';
 import { AssetType } from '../../shared/services/asset-type.service';
+import { PaginationComponent } from "../../shared/components/pagination/pagination";
 
-//TODO se si mettono troppi valori nel movement la sidebar segue lo scorrimento verso il basso invece di rimanere bloccata
 @Component({
   selector: 'app-user-detail',
-  imports: [RouterLink, RouterLinkActive, DatePipe],
+  imports: [RouterLink, RouterLinkActive, DatePipe, PaginationComponent],
   templateUrl: './user-detail.html',
   styleUrl: './user-detail.css',
 })
@@ -25,32 +25,34 @@ export class UserDetail implements OnInit{
   loading = signal(true);
   destroyRef = inject(DestroyRef);
 
+  //serie di computed che ottengono le informazioni dell'utente e le rendono visuabilizzabili
   fullName = computed(() => {
     const user = this.user();
-    if (!user) return '-';
+    if (!user) return '';
     return `${user.name} ${user.surname}`;
   });
   businessUnit = computed(() => {
     const user = this.user();
-    if (!user) return '-';
+    if (!user) return '';
     return `${user.businessUnit.name}`;
   });
   email = computed(() => {
     const user = this.user();
-    if (!user) return '-';
+    if (!user) return '';
     return `${user.email}`;
   });
   phoneNumber = computed(() => {
     const user = this.user();
-    if (!user) return '-';
+    if (!user) return '';
     return `${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
   });
 
+  //request che permette di ottenere user e i suoi movement
   constructor(private apiService: ApiService,
     public route: ActivatedRoute,
     private assetService: AssetService,
-    private router: Router) 
-  {
+    private router: Router
+  ){
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
     const subscription = forkJoin({
@@ -73,6 +75,14 @@ export class UserDetail implements OnInit{
     this.destroyRef.onDestroy(() => subscription.unsubscribe())
   }
 
+  //un computed che riordina i movement per essere dal piu recente al piu vecchio
+  sortedMovements = computed(() =>
+    [...this.movements()].sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+  );
+
+  //request per ottenere asset
   ngOnInit(): void {
     this.assetService.getAssets().subscribe({
       next: (data) => {
@@ -94,6 +104,32 @@ export class UserDetail implements OnInit{
     });
   }
 
+  currentPage = signal(1);
+  itemsPerPage = signal(4);
+
+  // ricalcolo e aggiorno automaticamente dopo ogni cambiamento
+  totalPages = computed(() => {
+    return Math.ceil(this.sortedMovements().length / this.itemsPerPage());
+  });
+
+  // si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi users
+  paginatedMovements = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return this.sortedMovements().slice(start, end);
+  });
+
+  //creazione stringa display range.
+  displayRange = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
+    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.sortedMovements().length);
+    return `Mostrando ${start}-${end} di ${this.sortedMovements().length}`;
+  });
+  goToPage(page: number): void {
+    this.currentPage.set(page);
+  }
+
+  //unisce 2 elementi della lista di movimenti che sono uno assegnato e l'altro ritornato visto che in realtà sono lo stesso asset
   mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
     const toDelete = new Set<number>();
 
@@ -114,6 +150,7 @@ export class UserDetail implements OnInit{
     return result.filter(m => !toDelete.has(m.id));
   }
 
+  //controlla se un asset e attivo e quindi se renderlo interagibile sulla tabella
   controlActivatedAsset(code: string): boolean {
     const asset = this.assets().find(a => a.assetCode === code);
     if (!asset) return false;
@@ -122,6 +159,7 @@ export class UserDetail implements OnInit{
     return assetType?.active ?? false;
   }
 
+  //ti porta all'asset specifico se cliccato
   onNavigate(assetSerialNumber: string){
     if (!this.assets()) return;
     const asset = this.assets().find(a => a.serialNumber === assetSerialNumber);
