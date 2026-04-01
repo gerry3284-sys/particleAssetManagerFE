@@ -99,6 +99,20 @@
 	background-color: #D85E33;
 	border-color: #D85E33;
 }
+
+.new-business-unit-btn-content {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+.new-business-unit-icon {
+	width: 14px;
+	height: 14px;
+	display: block;
+}
+
 .btn-position {
 	display: flex;
 	justify-content: flex-end;

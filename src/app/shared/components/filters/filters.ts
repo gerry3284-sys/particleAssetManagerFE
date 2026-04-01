@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit, computed, signal, DestroyRef, inject } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, computed, input, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { FilterService } from '../../services/filter.service';
@@ -18,6 +18,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrl: './filters.css',
 })
 export class FiltersComponent implements OnInit {
+    mode = input<'full' | 'name-only'>('full');
+    searchLabel = input('Nome Assegnatario');
+    searchPlaceholder = input('Cerca per nome...');
+
+    isNameOnlyMode = computed(() => this.mode() === 'name-only');
+
   // DestroyRef + takeUntilDestroyed: chiude automaticamente i subscribe
   // quando il componente viene distrutto (best practice Angular 21).
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
@@ -76,6 +82,7 @@ export class FiltersComponent implements OnInit {
   constructor(private filterService: FilterService) {}
 
   ngOnInit(): void {
+    if (!this.isNameOnlyMode()) {
     // Popoliamo i dropdown tramite API.
     // Questi stream HTTP in genere completano da soli, ma takeUntilDestroyed
     // rende il codice robusto anche in scenari futuri (refactor/reuse/test).
@@ -90,23 +97,26 @@ export class FiltersComponent implements OnInit {
     this.filterService.getAssetStatusTypes()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(status => this.assetStatusTypes.set(status));
+    }
 
     // valueChanges è un flusso lungo: NON si completa da solo.
     // Senza teardown il subscribe può restare attivo oltre il lifecycle atteso.
     // Qui lo chiudiamo in automatico con takeUntilDestroyed.
 
     // Emissione filtri: immediata per select, debounced per input nome.
-    const immediate$ = merge(
-      this.filtersForm.controls.assetType.valueChanges,
-      this.filtersForm.controls.businessUnit.valueChanges,
-      this.filtersForm.controls.status.valueChanges
-    );
-
     const debounced$ = this.filtersForm.controls.assignedUser.valueChanges.pipe(
       debounceTime(500) // aspetta 500ms dall’ultimo carattere digitato
     );
 
-    merge(immediate$, debounced$)
+    const immediateStreams = this.isNameOnlyMode()
+      ? []
+      : [
+          this.filtersForm.controls.assetType.valueChanges,
+          this.filtersForm.controls.businessUnit.valueChanges,
+          this.filtersForm.controls.status.valueChanges
+        ];
+
+    merge(debounced$, ...immediateStreams)
       .pipe(
         map(() => this.filtersForm.getRawValue()),
         takeUntilDestroyed(this.destroyRef)

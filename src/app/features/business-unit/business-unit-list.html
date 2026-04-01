@@ -6,9 +6,14 @@
       <h2 class="page-title">Business Units</h2>
       <p class="page-subtitle">Visualizza e gestisci tutte le business units.</p>
     </div>
-    <app-button variant="primary" type="button"(click)="OnOpenNewDialog()">
-      Nuova Business Unit
-    </app-button>
+
+    <button class="btn-business"style="height: fit-content; margin-top: 0.5rem;" (click)="OnOpenNewDialog()">
+      <span class="new-business-unit-btn-content">
+        <img src="/assets/line.png" alt="" aria-hidden="true" class="new-business-unit-icon" />
+        <span>Nuova Business Unit</span>
+      </span>
+
+    </button>
   </div>
 
   <!-- filtro per la tabella -->

@@ -20,14 +20,20 @@
             [value]="name()"
             (input)="onNameChange($any($event.target).value)" />
           @if (nameError()) {
-            <span class="status-type-modal-error">Inserisci un nome valido.</span>
+            <span class="status-type-modal-error">Il nome deve contenere almeno 2 caratteri.</span>
           }
         </div>
       </div>
 
       <div class="status-type-modal-actions">
         <app-button type="button" variant="secondary" (pressed)="close.emit()">Annulla</app-button>
-        <app-button type="button" variant="primary" (pressed)="submit()">Conferma</app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [disabled]="name().trim().length < 2"
+          (pressed)="submit()">
+          Conferma
+        </app-button>
       </div>
     </div>
   </div>

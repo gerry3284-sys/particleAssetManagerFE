@@ -66,9 +66,9 @@ export class EditAssetStatusTypeModalComponent implements OnDestroy {
 
   submit(): void {
     const value = this.name().trim();
-    this.nameError.set(!value);
+    this.nameError.set(value.length < 2);
 
-    if (!value) {
+    if (value.length < 2) {
       return;
     }
 

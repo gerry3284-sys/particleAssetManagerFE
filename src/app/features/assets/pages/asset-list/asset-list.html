@@ -6,7 +6,12 @@
       <h2 class="page-title">Gestione asset</h2>
       <p class="page-subtitle">Visualizza e gestisci tutti gli asset aziendali.</p>
     </div>
-    <app-button variant="primary" type="button" (pressed)="createNewAsset()">Nuovo Asset</app-button>
+    <app-button variant="primary" type="button" (pressed)="createNewAsset()">
+      <span class="new-asset-btn-content">
+        <img src="/assets/line.png" alt="" aria-hidden="true" class="new-asset-icon" />
+        <span>Nuovo Asset</span>
+      </span>
+    </app-button>
   </div>
 
   
