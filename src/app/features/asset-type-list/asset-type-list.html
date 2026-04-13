@@ -7,7 +7,7 @@
       <p class="page-subtitle">Visualizza e gestisci tutte le tipologie di asset.</p>
     </div>
 
-    <app-button variant="primary" type="button" class="btn-new-appear" (pressed)="OnOpenNewDialog()" style="height: fit-content; margin-top: 0.5rem;">
+    <app-button variant="primary" type="button" class="btn-new-appear" (pressed)="OnOpenNewDialog()">
       <span class="new-asset-type-btn-content">
         <img src="/assets/line.png" alt="" aria-hidden="true" class="new-asset-type-icon" />
         <span>Nuovo Tipo di Asset</span>
@@ -21,7 +21,7 @@
       <div class="filter-item">
         <label class="filter-label">Nome</label>
         <input type="text" class="filter-control" name="nome" 
-        placeholder="Cerca per nome..." 
+        placeholder="Cerca per nome..." style="width: 302.4px; height: 31.2px;"
         [(ngModel)]="filterName" (ngModelChange)="onFilter()">
       </div>
       <div class="filter-item-btn">
@@ -52,6 +52,7 @@
       <div>Nome</div>
       <div>Hard Disk</div>
       <div>Ram</div>
+      <div style="display: flex; justify-content: flex-end;">Azioni</div>
     </div>
 
     <!-- Righe dinamiche -->
@@ -66,7 +67,7 @@
               <app-button variant="secondary"type="button" (click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
                 Modifica
               </app-button>
-              <button class="btn-asset-type" style="margin-right: 3.1rem;" (click)="changeStatus(assetType)">Disattiva</button>
+              <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
             </div>
           </div>
         }
@@ -81,7 +82,6 @@
               </app-button>
               <button class="btn-asset-type"
                 style="
-                margin-right: 3.1rem;
                   background-color: #F3F4F6; 
                   border-color: #F3F4F6; 
                   box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
@@ -111,8 +111,8 @@
   </div>
 
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
-  <dialog #myDialog class="popup-window">
-    <div class="asset-type-modal">
+  <dialog #myDialog class="popup-window" (click)="onDialogBackdropClick($event)">
+    <div class="asset-type-modal" (click)="$event.stopPropagation()">
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
         <div>
@@ -126,12 +126,12 @@
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true">
-          @if(specifiedError() && touched){
+          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true;scheduleErrorCheck()">
+          @if(specifiedError && touched){
             <div class="error-message">{{specifiedMessage}}</div>
           }
           @else {
-            <div></div>
+            <div style="height: 24px;"></div>
           }
           <div class="combo-btn">
             <label class="label">Hard Disk</label>
@@ -145,14 +145,14 @@
 
       <div class="asset-type-modal-actions">
         <app-button type="button" variant="secondary" (pressed)="onCloseDialog()">Annulla</app-button>
-        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onConfirmEdit()">Crea Asset Type</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onAlertDialogOpen()">Conferma</app-button>
       </div>
     </div>
   </dialog>
 
   <!-- finestra di dialogo per aggiungere un tipo di asset -->
-  <dialog #newDialog class="popup-window">
-    <div class="asset-type-modal">
+  <dialog #newDialog class="popup-window" (click)="onNewDialogBackdropClick($event)">
+    <div class="asset-type-modal" (click)="$event.stopPropagation()">
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
         <div>
@@ -166,12 +166,12 @@
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true">
-          @if(specifiedError() && touched){
+          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true; scheduleErrorCheck()">
+          @if(specifiedError && touched){
             <div class="error-message">{{specifiedMessage}}</div>
           }
           @else {
-            <div></div>
+            <div style="height: 24px;"></div>
           }
           <div class="combo-btn">
             <label class="label">Hard Disk</label>
@@ -192,14 +192,17 @@
 
   <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
   <dialog #alertDialog class="popup-window">
-    <div class="window-header">{{alertTitle}}</div>
-    <div class="window-footer">
-      <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
-      <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
+    <div class="asset-type-modal-header">
+      <div class="asset-type-modal-icon" aria-hidden="true">i</div>
+      <div class="asset-type-modal-title">{{alertTitle}}</div>
+    </div>
+    <div class="asset-type-modal-actions">
+      <app-button type="button" variant="secondary" (click)="onAlertDialogClose()">Cancella</app-button>
+      <app-button type="button" variant="primary" (click)="onChoosingPath()">Conferma</app-button>
     </div>
   </dialog>
 
-  <!-- finestra di dialogo che ti chiede conferma prima di cambiare status di una business unit -->
+  <!-- finestra di dialogo che ti chiede conferma prima di cambiare status -->
   <!-- <dialog #alertStatusDialog class="popup-window">
     <div class="window-header">{{alertTitle}}</div>
     <div class="window-footer">

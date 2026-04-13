@@ -30,12 +30,13 @@
 .filter-item {
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
+	gap: 6px;
 }
 .filter-label {
-	font-size: 0.8rem;
+	font-size: 11px;
 	font-weight: 600;
 	color: #6B7280;
+  margin: 0;
 }
 .filter-control {
 	font-size: 0.8rem;
@@ -78,6 +79,8 @@
 	border-bottom: none;
 }
 .business-header {
+  display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	background-color: #F9FAFB;
 	font-size: 11px;
 	font-weight: 700;
@@ -90,7 +93,7 @@
 	border-color: #E56A3D;
 	color: #FFFFFF;
 	font-weight: 600;
-	font-size: 0.0.8rem;
+	font-size: 0.8rem;
 	padding: 0.5rem 0.7rem;
 	border-radius: 0.5rem;
 	box-shadow: 0 6px 14px rgba(229, 106, 61, 0.2);

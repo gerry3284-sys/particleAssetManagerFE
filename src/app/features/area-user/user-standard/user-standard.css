@@ -335,3 +335,53 @@ dialog::backdrop {
 .movement-summary{
   margin: 1rem;
 }
+
+
+.ask-control
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+.select {
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  padding: 10px 14px;
+  color: #374151;
+  background-color: #FFFFFF;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.control::placeholder {
+  color: #9CA3AF;
+}
+.ask-control:focus,
+.select:focus {
+  outline: none;
+  border-color: #E56A3D;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.1);
+}
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  padding: 10px 14px;
+  color: #374151;
+  background-color: #FFFFFF;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}

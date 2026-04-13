@@ -9,6 +9,7 @@ import { User } from '../../models/user.model';
 import { Asset } from '../../shared/models/asset.interface';
 import { AssetService } from '../../shared/services/asset.service';
 import { ButtonComponent } from "../../shared/components/button/button";
+// import { FiltersComponent } from "../../shared/components/filters/filters";
 
 @Component({
   selector: 'app-business-unit-list',
@@ -39,6 +40,8 @@ export class BusinessUnitList {
   isVisible = signal(true);
 
   // errorMessage = 'Nessun errore.';
+  errorTimeout: any = null;
+  specifiedError = false;
   touched = false;
   alertTitle = '';
   // selectedBusinessUnit: BusinessUnit|null = {
@@ -157,10 +160,15 @@ export class BusinessUnitList {
     this.reloadDiv();
     this.dialog.nativeElement.close();
   }
+  onDialogBackdropClick(event: MouseEvent): void {
+    this.onCloseDialog();
+  }
   onConfirmEdit(){
     if(this.editableBusinessUnit !== null){
       let modifiedName = this.initialName.toLowerCase();
       modifiedName = modifiedName.charAt(0).toUpperCase() + modifiedName.slice(1);
+
+      this.editableBusinessUnit.name = modifiedName;
 
       const puttableBusinessUnit = { 
         name: modifiedName
@@ -170,6 +178,13 @@ export class BusinessUnitList {
         next: (updatedBusinessUnit) => {
           const updatedList = this.businessUnits().map(at => at.code === updatedBusinessUnit.code ? updatedBusinessUnit : at);
           this.businessUnits.set(updatedList);
+
+          this.filteredBusinessUnits.set(
+            this.filteredBusinessUnits().map(bu => 
+              bu.code === updatedBusinessUnit.code ? updatedBusinessUnit : bu
+            )
+          );
+
           this.dialog.nativeElement.close();
           this.initialName = '';
           this.controlName = '';
@@ -196,8 +211,11 @@ export class BusinessUnitList {
     }
     return 'Il nome deve essere diverso da uno già presente';
   }
-  specifiedError(): boolean {
-    return this.initialName.length > 0 && this.isInvalid();
+  scheduleErrorCheck(): void {
+    clearTimeout(this.errorTimeout);
+    this.errorTimeout = setTimeout(() => {
+      this.specifiedError = this.initialName.length > 0 && this.isInvalid();
+    }, 200)
   }
   OnOpenNewDialog(){
     this.newDialog.nativeElement.showModal();
@@ -216,6 +234,9 @@ export class BusinessUnitList {
     this.reloadDiv();
 
     this.newDialog.nativeElement.close();
+  }
+  onNewDialogBackdropClick(event: MouseEvent): void {
+    this.onCloseNewDialog();
   }
   onConfirmCreate(){
     let cretaedName = this.initialName.toLowerCase();

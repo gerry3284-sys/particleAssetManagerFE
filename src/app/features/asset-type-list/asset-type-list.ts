@@ -35,6 +35,8 @@ export class AssetTypeList {
   disactiveHDandRam = false;
   // activateHDandRam = false;
 
+  errorTimeout: any = null;
+  specifiedError = false;
   isVisible = signal(true);
   loading = signal(true);
   touched = false;
@@ -129,7 +131,7 @@ export class AssetTypeList {
     this.RamCheck = assetType.ram;
 
     this.dialog.nativeElement.showModal();
-    // this.alertTitle = 'Conferma la modifica di questo asset type?';
+    this.alertTitle = 'Conferma la modifica di questo asset type?';
   }
 
   onConfirmEdit(){
@@ -137,6 +139,7 @@ export class AssetTypeList {
       let modifiedName = this.initialName.toLowerCase();
       modifiedName = modifiedName.charAt(0).toUpperCase() + modifiedName.slice(1);
 
+      this.editableAssetType.name = modifiedName;
       this.editableAssetType.hardDisk = this.HDCheck;
       this.editableAssetType.ram = this.RamCheck;
 
@@ -152,10 +155,17 @@ export class AssetTypeList {
           const updatedList = this.assetTypes().map(at => at.code === updatedAssetType.code ? updatedAssetType : at);
           this.assetTypes.set(updatedList);
 
+          this.filteredAssetType.set(
+            this.filteredAssetType().map(at => 
+              at.code === updatedAssetType.code ? updatedAssetType : at
+            )
+          );
+
           this.popupMessageService.success('Asset type aggiornato con successo');
           this.dialog.nativeElement.close();
           this.reloadDiv();
 
+          this.alertTitle = '';
           this.controlName = '';
           this.controlHD = false;
           this.controlRam = false;
@@ -176,6 +186,9 @@ export class AssetTypeList {
     this.touched = false;
     this.reloadDiv();
     this.dialog.nativeElement.close();
+  }
+  onDialogBackdropClick(event: MouseEvent): void {
+    this.onCloseDialog();
   }
 
   // funzione che filtra la lista di asset type
@@ -318,6 +331,9 @@ onHDorRamChange() {
     this.HDCheck = false;
     this.RamCheck = false;
   }
+  onNewDialogBackdropClick(event: MouseEvent): void {
+    this.onCloseNewDialog();
+  }
 
   // controllo che vengano messe le giuste credenziali
   isInvalid(): boolean {
@@ -333,8 +349,11 @@ onHDorRamChange() {
     }
     return 'Il nome deve essere diverso da uno già presente';
   }
-  specifiedError(): boolean {
-    return this.initialName.length > 0 && this.isInvalid();
+  scheduleErrorCheck(): void {
+    clearTimeout(this.errorTimeout);
+    this.errorTimeout = setTimeout(() => {
+      this.specifiedError = this.initialName.length > 0 && this.isInvalid();
+    }, 200)
   }
   controlRepeatedName(assetTypeName: string){
     if(this.assetTypes().find(asset => (
@@ -365,8 +384,12 @@ onHDorRamChange() {
     if(this.alertTitle === 'Conferma la creazione di un nuovo asset Type?'){
       this.onConfirmCreate();
     }
-    else{ this.popupMessageService.error('Errore nella conferma'); }
-
+    else{
+      if(this.alertTitle === 'Conferma la modifica di questo asset type?'){
+        this.onConfirmEdit();
+      }
+      else{this.popupMessageService.error('Errore nella conferma');}
+    }
     this.alertDialog.nativeElement.close();
     // this.alertStatusDialog.nativeElement.close();
   }

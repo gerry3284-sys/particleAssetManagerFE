@@ -6,6 +6,8 @@ import { DatePipe } from '@angular/common';
 import { forkJoin, Subject } from 'rxjs';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { ButtonComponent } from "../../../shared/components/button/button";
+import { PopupMessageService } from '../../../shared/services/popup-message.service';
+import { AssetType } from '../../../shared/services/asset-type.service';
 
 @Component({
   selector: 'app-user-standard',
@@ -16,11 +18,14 @@ import { ButtonComponent } from "../../../shared/components/button/button";
 export class UserStandard{
   private destroyRef = inject(DestroyRef);
   user = signal<User | null>(null);
+  users = signal<User[]>([]);
+  assetTypes = signal<AssetType[]>([]);
   movements = signal<MovementByuserID[]>([]);
   unmergedMovement: MovementByuserID[] = ([]);
   downloadableMovement: MovementByuserID|null = null;
 
   @ViewChild('myDialog') dialog!: ElementRef<HTMLDialogElement>;
+  @ViewChild('askDialog') askDialog!: ElementRef<HTMLDialogElement>;
 
   //computed per inserire le informazioni dell'utente nella carta
   fullName = computed(() => {
@@ -36,6 +41,7 @@ export class UserStandard{
   businessUnit = computed(() => {
     const user = this.user();
     if (!user) return '-';
+    if (!user.businessUnit) return '-';
     return `${user.businessUnit.name}`;
   });
   email = computed(() => {
@@ -51,23 +57,47 @@ export class UserStandard{
   });
 
   //request per prendere tutte le info
-  constructor(private apiService: ApiService, private route: ActivatedRoute, private router: Router) {
+  constructor(private apiService: ApiService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private readonly popupMessageService: PopupMessageService
+  ) {
   const id = this.route.snapshot.paramMap.get('id');
-  if (!id) return;
+  const userType = this.route.snapshot.paramMap.get('userType');
+  if (!id || isNaN(+id) || userType !== 'USER') {
+    this.router.navigate(['/404']);
+    return;
+  }
+
   const subscription = forkJoin({
     user: this.apiService.getUsersById(+id),
+    users: this.apiService.getUsers(),
+    assetType: this.apiService.getAssetTypes(),
     movements: this.apiService.getMovementByUserId(+id),
   }).subscribe({
-    next: ({ user, movements }) => {
+    next: ({ user, users, assetType, movements }) => {
       this.user.set(user ?? {});
-
+      this.users.set(users ?? []);
+      this.assetTypes.set(assetType ?? []);
+      this.movements.set(movements ?? []);
+      
       this.unmergedMovement = movements;
-      const processed = this.mergeMovements(movements ?? []);
-      this.movements.set(processed);
+      // const processed = this.mergeMovements(movements ?? []);
+      // this.movements.set(processed);
     },
     error: err => {
-      console.error('API error', err);
+      if(err.status === 404){
+        this.router.navigate(['/404']);
+      }
+      else{
+        this.popupMessageService.error('Errore nel caricamento dei dati dell\'utente.');
+        console.error('API error', err);
+      }
       this.user.set(null);
+      this.users.set([]);
+      this.assetTypes.set([]);
+      this.movements.set([]);
+      this.unmergedMovement = [];
     }
   });
   this.destroyRef.onDestroy(() => subscription.unsubscribe());
@@ -111,27 +141,27 @@ export class UserStandard{
   }
   
   //unione dei movement di assigned con il suo returned per occupare una righa sola
-  mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
-  const toDelete = new Set<number>();
+  // mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
+  // const toDelete = new Set<number>();
 
-  const result = movements.map(move => {
-    if (move.movementType === 'Assigned') {
-      const returned = movements.filter(
-        m =>
-          m.asset.serialNumber === move.asset.serialNumber &&
-          m.movementType === 'Returned' &&
-          new Date(m.date) > new Date(move.date)
-      ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+  // const result = movements.map(move => {
+  //   if (move.movementType === 'Assigned') {
+  //     const returned = movements.filter(
+  //       m =>
+  //         m.asset.serialNumber === move.asset.serialNumber &&
+  //         m.movementType === 'Returned' &&
+  //         new Date(m.date) > new Date(move.date)
+  //     ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
 
-      if (returned) {
-        toDelete.add(returned.id);
-        return { ...move, updateDate: returned.date };
-      }
-    }
-    return move;
-  });
-  return result.filter(m => !toDelete.has(m.id));
-  }
+  //     if (returned) {
+  //       toDelete.add(returned.id);
+  //       return { ...move, updateDate: returned.date };
+  //     }
+  //   }
+  //   return move;
+  // });
+  // return result.filter(m => !toDelete.has(m.id));
+  // }
 
   //funzioni riguardo al download del movimento
   onOpenPDFDialog(movement: MovementByuserID){
@@ -143,30 +173,39 @@ export class UserStandard{
     this.downloadableMovement = null;
     this.dialog.nativeElement.close();
   }
-  onDownloadPDF(code: string|undefined, id: number|undefined){
-    this.apiService.getReceiptByAssetAndMovement(code!, id!).subscribe(pdf => {
+  onDownloadPDF(assetCode: string|undefined, movementCode: string|undefined){
+    console.log('Downloading PDF for asset code:', assetCode, 'and movement code:', movementCode);
+    this.apiService.getReceiptByAssetAndMovement(assetCode!, movementCode!).subscribe(pdf => {
       const url = URL.createObjectURL(pdf);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ricevuta_${code}_${id}.pdf`;
+      a.download = `ricevuta_${assetCode}_${movementCode}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     })
     this.dialog.nativeElement.close();
     this.downloadableMovement = null;
   }
-  controlReturnedId(){
-    console.log(this.downloadableMovement?.id)
-    const returned = computed(() => this.sortedUnmergedMovements().find(movement =>
-      movement.asset.serialNumber === this.downloadableMovement!.asset.serialNumber &&
-      movement.movementType === 'Returned' &&
-      movement.date === this.downloadableMovement!.updateDate
-    ));
-    this.onDownloadPDF(returned()?.asset.code, returned()?.id);
+  onOpenAskDialog(){
+    this.askDialog.nativeElement.showModal();
   }
-  controlReturnedDate(): boolean{
-    return !(this.downloadableMovement?.updateDate !== undefined);
+  onCloseAskDialog(){
+    this.askDialog.nativeElement.close();
   }
+  onAskDialogBackdropClick(event: MouseEvent): void {
+    this.onCloseAskDialog();
+  }
+  // controlReturnedId(){
+  //   const returned = computed(() => this.sortedUnmergedMovements().find(movement =>
+  //     movement.asset.serialNumber === this.downloadableMovement!.asset.serialNumber &&
+  //     movement.movementType === 'Returned' &&
+  //     movement.date === this.downloadableMovement!.updateDate
+  //   ));
+  //   this.onDownloadPDF(returned()?.asset.code, returned()?.id);
+  // }
+  // controlReturnedDate(): boolean{
+  //   return !(this.downloadableMovement?.updateDate !== undefined);
+  // }
   //Richiama il login e fa uscire da pagina di user
   onLogout() {
     this.router.navigate(['/login']);

@@ -8,6 +8,7 @@ import { debounceTime, forkJoin, map, merge } from 'rxjs';
 import { BusinessUnit } from '../../../../shared/services/business-unit.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FilterValues } from '../../../../shared/models/filter-config.interface';
+import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 
 @Component({
   selector: 'app-user-list',
@@ -39,7 +40,7 @@ export class UserList{
   filter = '';
 
   // costruttore con tutti i get
-  constructor(private apiService: ApiService) {
+  constructor(private apiService: ApiService, private readonly popupMessageService: PopupMessageService) {
     const subscription = forkJoin({
       users: this.apiService.getUsers(),
       businessUnits: this.apiService.getBusinessUnits()
@@ -50,8 +51,10 @@ export class UserList{
 
         this.usersFiltered.set(this.users());
         this.loading.set(false);
+        console.log(this.users());
       },
       error: err => {
+        this.popupMessageService.error('Errore durante il caricamento degli utenti');
         console.error('API error user', err);
         this.users.set([]);
         this.businessUnits.set([]);
@@ -76,7 +79,6 @@ export class UserList{
     });
   }
   onFiltersChange(filters: FilterValues): void {
-      console.log('Filtri applicati:', filters);
       this.currentFilters.set(filters);
       
       // Reset alla prima pagina quando i filtri cambiano

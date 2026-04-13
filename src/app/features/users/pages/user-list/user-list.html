@@ -13,7 +13,7 @@
         <label class="filter-label">Nome</label>
         <input type="text" class="filter-control" name="nome" 
         placeholder="Cerca per nome..." 
-        [(ngModel)]="initialName">
+        [(ngModel)]="initialName" (ngModelChange)="onFilter()">
       </div>
       <div class="filter-item">
         <label class="filter-label">Business Unit</label>
@@ -52,15 +52,18 @@
       @else{
         @for(user of paginatedUser(); track user.id)
         {
-          @if(user.businessUnit.active){
-            <tr class="user-row" 
-            [routerLink]="['user-detail', user.id]" 
-            routerLinkActive="active">
-              <td>{{user.name}} {{user.surname}}</td>
-              <td>{{user.email}}</td>
+          <tr class="user-row" 
+          [routerLink]="['user-detail', user.id]" 
+          routerLinkActive="active">
+            <td>{{user.name}} {{user.surname}}</td>
+            <td>{{user.email}}</td>
+            @if(user.businessUnit !== null){
               <td>{{user.businessUnit.name}}</td>
-            </tr>
-          }
+            }
+            @else {
+              <td> - </td>
+            }
+          </tr>
         }
       }
       <!-- footer di user -->

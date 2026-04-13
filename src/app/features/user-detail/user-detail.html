@@ -38,8 +38,8 @@
                 <th> MARCA </th>
                 <th> MODELLO </th>
                 <th> NUMERO SERIALE </th>
-                <th> DATA ASSEGNAZIONE </th>
-                <th> DATA RICONSEGNA </th>
+                <th> DATA OPERAZIONE </th>
+                <th> TIPO OPERAZIONE </th>
             </tr>
         </thead>
         <tbody>
@@ -52,38 +52,51 @@
                 @for(movement of paginatedMovements(); track movement.date){
                     @if(controlActivatedAsset(movement.asset.code)){
                         <tr class="user-row" 
-                            [class.muted]="movement.movementType === 'Dismissed'" 
+                            [class.muted]="movement.asset.statusCode === 'DI3'" 
                             (click)="onNavigate(movement.asset.serialNumber)" style="cursor: pointer;"
                         >
                             <!-- <td style="color:green"> ATTIVA </td> -->
                             <td>{{movement.asset.brand}}</td>
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
-                            <td>{{movement.date | date: 'longDate'}}</td>
+                            @if(movement.movementType === 'ASSIGNED'){
+                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>ASSEGNAZIONE</td>
+                            }
+                            @else {
+                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>RICONSEGNA</td>
+                            }
 
-                            @if(movement.updateDate === undefined){
+                            <!-- @if(movement.updateDate === undefined){
                                 <td> - </td>
                             }
-                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                            @else {<td>{{movement.updateDate | date: 'dd/MM/yyyy'}}</td>} -->
                         </tr>
                     }
-                    <!-- @else {
+                    @else {
                         <tr class="user-row"
-                            [class.muted]="movement.movementType === 'Dismissed'"
+                            [class.muted]="movement.movementType === 'DISMISSED'"
                             style="cursor: pointer; cursor:default;"
                         >
-                            <td style="color:red"> DISATTIVA </td>
+                            <!-- <td style="color:red"> DISATTIVA </td> -->
                             <td>{{movement.asset.brand}}</td>
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
-                            <td>{{movement.date | date: 'longDate'}}</td>
-                            
-                            @if(movement.updateDate === undefined){
+                            @if(movement.movementType === 'ASSIGNED'){
+                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>ASSEGNAZIONE</td>
+                            }
+                            @else {
+                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>RICONSEGNA</td>
+                            }
+                            <!-- @if(movement.updateDate === undefined){
                                 <td> - </td>
                             }
-                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>}
+                            @else {<td>{{movement.updateDate | date: 'longDate'}}</td>} -->
                         </tr>
-                    } -->
+                    }
                 }
             }
             <!-- footer di user detail -->

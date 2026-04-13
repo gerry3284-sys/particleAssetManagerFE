@@ -7,12 +7,12 @@
       <p class="page-subtitle">Visualizza e gestisci tutte le business units.</p>
     </div>
 
-    <button class="btn-business btn-new-appear" style="height: fit-content; margin-top: 0.5rem;" (click)="OnOpenNewDialog()">
+    <app-button variant="primary" type="button" class="btn-new-appear" (click)="OnOpenNewDialog()">
       <span class="new-business-unit-btn-content">
-        <img src="/assets/line.png" alt="" aria-hidden="true" class="new-business-unit-icon" />
+        <img src="/assets/line.png" alt="" aria-hidden="true" class="new-business-unit-icon"/>
         <span>Nuova Business Unit</span>
       </span>
-    </button>
+    </app-button>
   </div>
 
   <!-- filtro per la tabella -->
@@ -23,11 +23,20 @@
         class="filter-control"
         name="nome"
         placeholder="Cerca per nome..."
+        style="width: 302.4px; height: 31.2px;"
         [(ngModel)]="filterName"
         (ngModelChange)="onFilter()"
       >
     </div>
   </div>
+  <!-- <app-filters
+    [mode]="'name-only'"
+    [searchLabel]="'Nome AssetStatusType'"
+    [searchPlaceholder]="'Cerca per nome...'"
+    [(ngModel)]="filterName"
+    (ngModelChange)="onFilter()"
+    >
+  </app-filters> -->
 
   @if(loading()){
     <div class="loading">Caricamento in corso...</div>
@@ -38,6 +47,7 @@
     <!-- Header -->
     <div class="business-row business-header">
       <div>Nome</div>
+      <div style="display: flex; justify-content: flex-end;">Azioni</div>
     </div>
 
     <!-- Righe dinamiche -->
@@ -48,7 +58,7 @@
             <div>{{ businessUnit.name }}</div>
             <div class="btn-position" style="gap: 4rem">
               <app-button variant="secondary"type="button" (click)="OnOpenDialog(businessUnit)">Modifica</app-button>
-              <button class="btn-business" style="margin-right: 3.1rem;" (click)="changeStatus(businessUnit)">Disattiva</button>
+              <button class="btn-business" (click)="changeStatus(businessUnit)">Disattiva</button>
             </div>
           </div>
         }
@@ -59,7 +69,6 @@
               <app-button variant="secondary"type="button" (click)="OnOpenDialog(businessUnit)">Modifica</app-button>
               <button class="btn-business"
                 style="
-                margin-right: 3.1rem;
                   background-color: #F3F4F6; 
                   border-color: #F3F4F6; 
                   box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
@@ -90,8 +99,8 @@
   </div> 
 
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
-  <dialog #myDialog class="popup-window">
-    <div class="business-unit-modal">
+  <dialog #myDialog class="popup-window" (click)="onDialogBackdropClick($event)">
+    <div class="business-unit-modal" (click)="$event.stopPropagation()">
       <div class="business-unit-modal-header">
         <div class="business-unit-modal-icon" aria-hidden="true">i</div>
         <div>
@@ -105,27 +114,27 @@
       <div class="business-unit-modal-body">
         <div class="business-unit-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true">
+          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true; scheduleErrorCheck()">
 
-          @if(specifiedError() && touched){
+          @if(specifiedError && touched){
             <div class="error-message">{{specifiedMessage}}</div>
           }
           @else {
-            <div></div>
+            <div style="height: 24px;"></div>
           }
         </div>
       </div>
 
       <div class="business-unit-modal-actions">
         <app-button type="button" variant="secondary" (pressed)="onCloseDialog()">Annulla</app-button>
-        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onConfirmEdit()">Crea Business Unit</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onAlertDialogOpen()">Conferma</app-button>
       </div>
     </div>
   </dialog>
 
   <!-- finestra di dialogo per aggiungere una nuova business unit -->
-  <dialog #newDialog class="popup-window">
-    <div class="business-unit-modal">
+  <dialog #newDialog class="popup-window" (click)="onNewDialogBackdropClick($event)">
+    <div class="business-unit-modal"(click)="$event.stopPropagation()">
       <div class="business-unit-modal-header">
         <div class="business-unit-modal-icon" aria-hidden="true">i</div>
         <div>
@@ -139,13 +148,13 @@
       <div class="business-unit-modal-body">
         <div class="business-unit-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true">
+          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="touched = true; scheduleErrorCheck()">
 
-          @if(specifiedError() && touched){
+          @if(specifiedError && touched){
             <div class="error-message">{{specifiedMessage}}</div>
           }
           @else {
-            <div></div>
+            <div style="height: 24px;"></div>
           }
         </div>
       </div>
@@ -159,14 +168,17 @@
 
   <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
   <dialog #alertDialog class="popup-window">
-    <div class="window-header">{{alertTitle}}</div>
-    <div class="window-footer">
-      <button (click)="onAlertDialogClose()" class="close-icon">Cancella</button>
-      <button (click)="onChoosingPath()" class="confirm-icon">Conferma</button>
+    <div class="business-unit-modal-header">
+      <div class="business-unit-modal-icon" aria-hidden="true">i</div>
+      <div class="business-unit-modal-title">{{alertTitle}}</div>
+    </div>
+    <div class="business-unit-modal-actions">
+      <app-button type="button" variant="secondary" (click)="onAlertDialogClose()">Cancella</app-button>
+      <app-button type="button" variant="primary" (click)="onChoosingPath()">Conferma</app-button>
     </div>
   </dialog>
 
-  <!-- finestra di dialogo che ti chiede conferma prima di cambiare status di una business unit -->
+  <!-- finestra di dialogo che ti chiede conferma prima di cambiare status -->
   <!-- <dialog #alertStatusDialog class="popup-window">
     <div class="window-header">{{alertTitle}}</div>
     <div class="window-footer">

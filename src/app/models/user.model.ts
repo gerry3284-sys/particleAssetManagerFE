@@ -13,14 +13,15 @@ export interface User {
   };
 }
 export interface MovementByuserID {
-  id: number,
-  movementType: 'Assigned' | 'Returned' | 'Dismissed',
+  code: string,
+  movementType: 'ASSIGNED' | 'RETURNED' | 'DISMISSED',
   asset: {
     code: string,
     brand: string,
     model: string,
     serialNumber: string,
+    statusCode: string,
   },
   date: string,
-  updateDate: string,
+  // updateDate: string,
 }

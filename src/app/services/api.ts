@@ -21,6 +21,7 @@ export class ApiService {
     return this.http.get<User>(`${this.baseUrl}/user/${id}`);
   }
   getMovementByUserId(id: number): Observable<MovementByuserID[]>{
+    console.log(`${this.baseUrl}/user/${id}/movement`);
     return this.http.get<MovementByuserID[]>(`${this.baseUrl}/user/${id}/movement`);
   }
   getAssetTypes(): Observable<AssetType[]>{
@@ -29,8 +30,8 @@ export class ApiService {
   getBusinessUnits(): Observable<BusinessUnit[]>{
     return this.http.get<BusinessUnit[]>(`${this.baseUrl}/businessUnit`);
   }
-  getReceiptByAssetAndMovement(code: string, id: number): Observable<any>{
-    return this.http.get(`${this.baseUrl}/asset/${code}/movement/${id}/receipt`, { responseType: 'blob' });
+  getReceiptByAssetAndMovement(assetCode: string, movemenetCode: string): Observable<any>{
+    return this.http.get(`${this.baseUrl}/asset/${assetCode}/movement/${movemenetCode}/receipt`, { responseType: 'blob' });
   }
   putAssetTypeById(code: string, assetType: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/assetType/${code}`, assetType, { responseType: 'text' });

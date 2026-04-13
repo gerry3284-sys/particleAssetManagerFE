@@ -8,6 +8,7 @@ import { forkJoin } from 'rxjs';
 import { Asset } from '../../shared/models/asset.interface';
 import { AssetType } from '../../shared/services/asset-type.service';
 import { PaginationComponent } from "../../shared/components/pagination/pagination";
+import { PopupMessageService } from '../../shared/services/popup-message.service';
 
 @Component({
   selector: 'app-user-detail',
@@ -51,7 +52,8 @@ export class UserDetail implements OnInit{
   constructor(private apiService: ApiService,
     public route: ActivatedRoute,
     private assetService: AssetService,
-    private router: Router
+    private router: Router,
+    private readonly popupMessageService: PopupMessageService
   ){
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
@@ -61,18 +63,19 @@ export class UserDetail implements OnInit{
     }).subscribe({
       next: ({ user, movements }) => {
         this.user.set(user ?? {});
-
-        const processed = this.mergeMovements(movements ?? []);
-        this.movements.set(processed);
+        this.movements.set(movements ?? []);
+        // const processed = this.mergeMovements(movements ?? []);
+        // this.movements.set(processed);
         this.loading.set(false);
       },
       error: err => {
+        this.popupMessageService.error('Errore nel caricamento dell\'utente');
         console.error('API error', err);
         this.user.set(null);
         this.loading.set(false);
       }
     });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe())
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   //un computed che riordina i movement per essere dal piu recente al piu vecchio
@@ -89,6 +92,7 @@ export class UserDetail implements OnInit{
         this.assets.set(data ?? []);
       },
       error: (err) => {
+        this.popupMessageService.error('Errore nel caricamento degli asset');
         console.error('Errore nel caricamento degli asset', err);
         this.assets.set([]);
       }
@@ -98,6 +102,7 @@ export class UserDetail implements OnInit{
         this.assetTypes.set(data ?? []);
       },
       error: (err) => {
+        this.popupMessageService.error('Errore nel caricamento delle tipologie di asset');
         console.error('Errore nel caricamento delle tipologie di asset', err);
         this.assetTypes.set([]);
       }
@@ -105,7 +110,7 @@ export class UserDetail implements OnInit{
   }
 
   currentPage = signal(1);
-  itemsPerPage = signal(4);
+  itemsPerPage = signal(3);
 
   // ricalcolo e aggiorno automaticamente dopo ogni cambiamento
   totalPages = computed(() => {
@@ -130,25 +135,25 @@ export class UserDetail implements OnInit{
   }
 
   //unisce 2 elementi della lista di movimenti che sono uno assegnato e l'altro ritornato visto che in realtà sono lo stesso asset
-  mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
-    const toDelete = new Set<number>();
+  // mergeMovements(movements: MovementByuserID[]): MovementByuserID[]{
+  //   const toDelete = new Set<number>();
 
-    const result = movements.map(move => {
-      if (move.movementType === 'Assigned') {
-        const returned = movements.find(
-          m =>
-            m.asset.serialNumber === move.asset.serialNumber &&
-            m.movementType === 'Returned'
-        );
-        if (returned) {
-          toDelete.add(returned.id);
-          return { ...move, updateDate: returned.date };
-        }
-      }
-      return move;
-    });
-    return result.filter(m => !toDelete.has(m.id));
-  }
+  //   const result = movements.map(move => {
+  //     if (move.movementType === 'Assigned') {
+  //       const returned = movements.find(
+  //         m =>
+  //           m.asset.serialNumber === move.asset.serialNumber &&
+  //           m.movementType === 'Returned'
+  //       );
+  //       if (returned) {
+  //         toDelete.add(returned.id);
+  //         return { ...move, updateDate: returned.date };
+  //       }
+  //     }
+  //     return move;
+  //   });
+  //   return result.filter(m => !toDelete.has(m.id));
+  // }
 
   //controlla se un asset e attivo e quindi se renderlo interagibile sulla tabella
   controlActivatedAsset(code: string): boolean {
