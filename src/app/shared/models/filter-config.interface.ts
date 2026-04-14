@@ -3,7 +3,8 @@ export interface User {
   name: string;
   surname: string;
   email: string;
-  businessUnit: { id: number; name: string };
+  userType?: string;
+  businessUnit: { id: number; name: string; code?: string };
 }
 
 export interface AssetType {

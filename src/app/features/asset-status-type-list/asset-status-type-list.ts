@@ -18,6 +18,12 @@ import { PopupMessageService } from '../../shared/services/popup-message.service
   styleUrl: './asset-status-type-list.css'
 })
 export class AssetStatusTypeListComponent implements OnInit {
+  private static readonly NON_EDITABLE_STATUS_KEYS = new Set([
+    'AVAILABLE',
+    'ASSIGNED',
+    'DISMISSED'
+  ]);
+
   statusTypes = signal<AssetStatusType[]>([]);
   currentFilters = signal<FilterValues>({});
   loading = signal(true);
@@ -69,6 +75,11 @@ export class AssetStatusTypeListComponent implements OnInit {
   }
 
   openEditModal(statusType: AssetStatusType): void {
+    if (this.isNonEditableStatusType(statusType)) {
+      this.popupMessageService.error('Gli stati AVAILABLE, ASSIGNED e DISMISSED non sono modificabili');
+      return;
+    }
+
     this.selectedStatusType.set(statusType);
     this.showEditModal.set(true);
   }
@@ -98,6 +109,12 @@ export class AssetStatusTypeListComponent implements OnInit {
     const current = this.selectedStatusType();
     if (!current?.code) {
       this.popupMessageService.error('Codice AssetStatusType non disponibile');
+      return;
+    }
+
+    if (this.isNonEditableStatusType(current)) {
+      this.popupMessageService.error('Gli stati AVAILABLE, ASSIGNED e DISMISSED non sono modificabili');
+      this.closeEditModal();
       return;
     }
 
@@ -167,5 +184,17 @@ export class AssetStatusTypeListComponent implements OnInit {
 
   private normalizeName(value: string): string {
     return value.trim().toLocaleLowerCase();
+  }
+
+  isNonEditableStatusType(statusType: AssetStatusType): boolean {
+    const normalizedName = this.toStatusKey(statusType.name);
+    const normalizedCode = this.toStatusKey(statusType.code ?? '');
+
+    return AssetStatusTypeListComponent.NON_EDITABLE_STATUS_KEYS.has(normalizedName)
+      || AssetStatusTypeListComponent.NON_EDITABLE_STATUS_KEYS.has(normalizedCode);
+  }
+
+  private toStatusKey(value: string): string {
+    return (value ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
 }

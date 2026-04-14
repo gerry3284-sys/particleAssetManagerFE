@@ -32,6 +32,7 @@ export interface AssetMovement {
   movementType: 'Assigned' | 'Returned' | 'Dismissed';
   movementLabel: string;
   note?: string;
+  receiptAvailable?: boolean;
 }
 
 export interface AssetDetail {

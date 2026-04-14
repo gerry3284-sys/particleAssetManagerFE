@@ -19,7 +19,7 @@
 
   @if (dropdownOpen()) {
     <div class="dropdown-panel">
-      @for (option of options(); track option.value) {
+      @for (option of options(); track option.value || option.label || $index) {
         <button type="button" (mousedown)="selectOption(option)">
           <span>{{ option.label }}</span>
           @if (option.subLabel) {

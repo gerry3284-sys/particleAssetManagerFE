@@ -16,6 +16,8 @@ interface UserOption {
   name: string;
   surname: string;
   businessUnit?: string;
+  businessUnitCode?: string;
+  userType?: string;
 }
 
 @Component({
@@ -31,6 +33,8 @@ export class AssignAssetModalComponent implements OnDestroy {
   private escListenerAttached = false;
   isOpen = input<boolean>(false);
   assetId = input<string>('');
+  assetBusinessUnitCode = input<string>('');
+  assetBusinessUnitName = input<string>('');
   users = input<UserOption[]>([]);
 
   close = output<void>();
@@ -58,7 +62,7 @@ export class AssignAssetModalComponent implements OnDestroy {
   availableUsers = computed(() => {
     const external = this.users();
     if (external.length) {
-      return external;
+      return external.filter(user => this.isAssignableUser(user.userType) && this.isSameBusinessUnit(user));
     }
 
     const api = this.apiUsers();
@@ -67,8 +71,10 @@ export class AssignAssetModalComponent implements OnDestroy {
         id: String(user.id),
         name: user.name,
         surname: user.surname,
-        businessUnit: user.businessUnit?.name
-      }));
+        businessUnit: user.businessUnit?.name,
+        businessUnitCode: user.businessUnit?.code,
+        userType: user.userType
+      })).filter(user => this.isAssignableUser(user.userType) && this.isSameBusinessUnit(user));
     }
 
     return this.fallbackUsers;
@@ -165,6 +171,24 @@ export class AssignAssetModalComponent implements OnDestroy {
     this.selectedUserId.set('');
     this.notes.set('');
     this.userError.set(false);
+  }
+
+  private isAssignableUser(userType?: string): boolean {
+    return (userType ?? '').trim().toUpperCase() !== 'ADMIN';
+  }
+
+  private isSameBusinessUnit(user: UserOption): boolean {
+    const assetCode = (this.assetBusinessUnitCode() ?? '').trim();
+    if (assetCode) {
+      return (user.businessUnitCode ?? '').trim() === assetCode;
+    }
+
+    const assetName = (this.assetBusinessUnitName() ?? '').trim().toLowerCase();
+    if (assetName) {
+      return (user.businessUnit ?? '').trim().toLowerCase() === assetName;
+    }
+
+    return true;
   }
 
   // private getTodayDate(): string {
