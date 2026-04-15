@@ -36,7 +36,7 @@ export class AssetTypeList {
   // activateHDandRam = false;
 
   errorTimeout: any = null;
-  specifiedError = false;
+  specifiedError = signal(false);
   isVisible = signal(true);
   loading = signal(true);
   touched = false;
@@ -108,6 +108,7 @@ export class AssetTypeList {
     this.apiService.putAssetActiveChangeById(this.editableAssetType.code, this.editableAssetType.active)
     .subscribe({
       next: (updatedAssetType) => {
+        console.log(updatedAssetType);
         const updatedList = this.assetTypes().map(at => at.code === updatedAssetType.code ? updatedAssetType : at);
         this.assetTypes.set(updatedList);
         this.reloadDiv();
@@ -162,22 +163,22 @@ export class AssetTypeList {
           );
 
           this.popupMessageService.success('Asset type aggiornato con successo');
-          this.dialog.nativeElement.close();
           this.reloadDiv();
 
           this.alertTitle = '';
           this.controlName = '';
           this.controlHD = false;
           this.controlRam = false;
+          this.dialog.nativeElement.close();
         },
         error: (err) => {
           this.popupMessageService.error('Errore durante l\'aggiornamento del tipo di asset');
           console.error('Errore aggiornamento asset type:', err);
-          this.dialog.nativeElement.close();
           this.alertTitle = '';
           this.controlName = '';
           this.controlHD = false;
           this.controlRam = false;
+          this.dialog.nativeElement.close();
         }
       });
     }
@@ -185,6 +186,7 @@ export class AssetTypeList {
   onCloseDialog(){
     this.touched = false;
     this.reloadDiv();
+    this.alertTitle = '';
     this.dialog.nativeElement.close();
   }
   onDialogBackdropClick(event: MouseEvent): void {
@@ -193,34 +195,38 @@ export class AssetTypeList {
 
   // funzione che filtra la lista di asset type
   onFilter() {
-  let filtered = this.assetTypes();
+    let filtered = this.assetTypes();
 
-  if (this.filterName !== '') {
-    const searchName = this.filterName.toLowerCase();
-    filtered = filtered.filter(asset =>
-      asset.name.toLowerCase().includes(searchName)
-    );
+    if (this.filterName !== '') {
+      const searchName = this.filterName.toLowerCase();
+      filtered = filtered.filter(asset =>
+        asset.name.toLowerCase().includes(searchName)
+      );
+    }
+
+    // filtra solo quelli con entrambi
+    // if (this.activateHDandRam) {
+    //   filtered = filtered.filter(a => a.hardDisk && a.ram);
+    // }
+
+    //filtra solo quando nè hard disk nè ram sono presenti
+    if (this.disactiveHDandRam) {
+      console.log(filtered);
+      filtered = filtered.filter(a => {
+        return !a.hardDisk && !a.ram;
+      });
+    }
+
+    //filtra le singole opzioni di hard disk e ram
+    else{
+      if (this.filterHD) filtered = filtered.filter(a => a.hardDisk);
+      if (this.filterRam) filtered = filtered.filter(a => a.ram);
+    }
+
+    console.log(filtered);
+    this.filteredAssetType.set(filtered);
+    this.currentPage.set(1);
   }
-
-  // filtra solo quelli con entrambi
-  // if (this.activateHDandRam) {
-  //   filtered = filtered.filter(a => a.hardDisk && a.ram);
-  // }
-
-  //filtra solo quando nè hard disk nè ram sono presenti
-  else if (this.disactiveHDandRam) {
-      filtered = filtered.filter(a => !a.hardDisk && !a.ram);
-  }
-
-  //filtra le singole opzioni di hard disk e ram
-  else{
-    if (this.filterHD) filtered = filtered.filter(a => a.hardDisk);
-    if (this.filterRam) filtered = filtered.filter(a => a.ram);
-  }
-
-  this.filteredAssetType.set(filtered);
-  this.currentPage.set(1);
-}
 
 // Deseleziona tutte le altre checkbox
 onDisactiveChange() {
@@ -308,28 +314,35 @@ onHDorRamChange() {
         const updatedList = [...this.assetTypes(), createdAssetType];
         this.assetTypes.set(updatedList);
 
+        this.filteredAssetType.set([...this.filteredAssetType(), createdAssetType]);
+        // this.onFilter();
+
+        this.initialName = '';
+        this.HDCheck = false;
+        this.RamCheck = false;
+        this.alertTitle = '';
+
         this.popupMessageService.success('Asset type creato con successo');
         this.newDialog.nativeElement.close();
-        this.cdr.detectChanges();
         this.reloadDiv();
-
-        this.alertTitle = '';
       },
       error: (err) => {
         this.popupMessageService.error('Errore durante la creazione del tipo di asset');
         console.error('Errore creazione asset type:', err);
 
-        this.newDialog.nativeElement.close();
         this.alertTitle = '';
+        this.newDialog.nativeElement.close();
       }
     });
   }
   onCloseNewDialog(){
     this.touched = false;
-    this.newDialog.nativeElement.close();
     this.initialName = '';
     this.HDCheck = false;
     this.RamCheck = false;
+    this.alertTitle = '';
+    
+    this.newDialog.nativeElement.close();
   }
   onNewDialogBackdropClick(event: MouseEvent): void {
     this.onCloseNewDialog();
@@ -337,7 +350,7 @@ onHDorRamChange() {
 
   // controllo che vengano messe le giuste credenziali
   isInvalid(): boolean {
-    return !(this.initialName.length > 1 && (
+    return !(this.initialName.length >= 2 && (
       this.controlRepeatedName(this.initialName.trim()) ||
       this.HDCheck !== this.controlHD ||
       this.RamCheck !== this.controlRam
@@ -352,11 +365,12 @@ onHDorRamChange() {
   scheduleErrorCheck(): void {
     clearTimeout(this.errorTimeout);
     this.errorTimeout = setTimeout(() => {
-      this.specifiedError = this.initialName.length > 0 && this.isInvalid();
-    }, 200)
+      this.specifiedError.set(this.initialName.length > 0 && this.isInvalid());
+    }, 50)
   }
   controlRepeatedName(assetTypeName: string){
     if(this.assetTypes().find(asset => (
+      asset.name !== null &&
       asset.name.toLowerCase() === assetTypeName.toLowerCase() &&
       asset.name.toLowerCase() !== this.controlName.toLowerCase()
     ))){
@@ -370,10 +384,9 @@ onHDorRamChange() {
     this.alertDialog.nativeElement.showModal();
   }
   onAlertDialogClose(){
+    // this.selectedAssetType = null;
     this.alertDialog.nativeElement.close();
     // this.alertStatusDialog.nativeElement.close();
-    this.alertTitle = '';
-    // this.selectedAssetType = null;
   }
   // onAlertChangeStatus(assetType: AssetType){
   //   this.selectedAssetType = assetType;

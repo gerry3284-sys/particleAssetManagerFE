@@ -1,6 +1,5 @@
 import { Component, computed, DestroyRef, EventEmitter, inject, Output, signal } from '@angular/core';
 import { User } from '../../../../models/user.model';
-import { RouterLink, RouterLinkActive } from "@angular/router";
 import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
 import { ApiService } from '../../../../services/api';
 import { FormControl, FormGroup, FormsModule } from "@angular/forms";
@@ -15,7 +14,7 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
   standalone: true,
   templateUrl: './user-list.html',
   styleUrl: './user-list.css',
-  imports: [RouterLink, PaginationComponent, RouterLinkActive, FormsModule]
+  imports: [PaginationComponent, FormsModule]
 })
 export class UserList{
   currentFilters = signal<FilterValues>({});
@@ -37,7 +36,7 @@ export class UserList{
   loading = signal(true);
   destroyRef = inject(DestroyRef);
   initialName = '';
-  filter = '';
+  filterBU = '';
 
   // costruttore con tutti i get
   constructor(private apiService: ApiService, private readonly popupMessageService: PopupMessageService) {
@@ -51,7 +50,6 @@ export class UserList{
 
         this.usersFiltered.set(this.users());
         this.loading.set(false);
-        console.log(this.users());
       },
       error: err => {
         this.popupMessageService.error('Errore durante il caricamento degli utenti');
@@ -119,8 +117,13 @@ export class UserList{
       );
     }
 
-    if (this.filter !== '') {
-      filtered = filtered.filter(user => user.businessUnit.name === this.filter);
+    if (this.filterBU !== '') {
+      filtered = filtered.filter(user => {
+        if(user.businessUnit === null) {
+          return false;
+        }
+        return user.businessUnit.name === this.filterBU
+      });
     }
 
     this.usersFiltered.set(filtered);

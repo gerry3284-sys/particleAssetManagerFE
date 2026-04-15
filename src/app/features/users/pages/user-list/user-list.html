@@ -17,7 +17,7 @@
       </div>
       <div class="filter-item">
         <label class="filter-label">Business Unit</label>
-        <select class="filter-control" [(ngModel)]="filter">
+        <select class="filter-control" [(ngModel)]="filterBU">
           <option value="">Tutte le categorie</option>
           @for(businessUnit of businessUnits(); track businessUnit.id)
           {
@@ -52,18 +52,13 @@
       @else{
         @for(user of paginatedUser(); track user.id)
         {
-          <tr class="user-row" 
-          [routerLink]="['user-detail', user.id]" 
-          routerLinkActive="active">
-            <td>{{user.name}} {{user.surname}}</td>
-            <td>{{user.email}}</td>
-            @if(user.businessUnit !== null){
+          @if(user.userType !== 'ADMIN'){
+            <tr class="user-row">
+              <td>{{user.name}} {{user.surname}}</td>
+              <td>{{user.email}}</td>
               <td>{{user.businessUnit.name}}</td>
-            }
-            @else {
-              <td> - </td>
-            }
-          </tr>
+            </tr>
+          }
         }
       }
       <!-- footer di user -->

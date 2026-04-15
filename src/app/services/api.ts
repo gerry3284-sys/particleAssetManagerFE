@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../features/environment';
 import {MovementByuserID, User } from '../models/user.model';
 import { AssetType } from '../shared/services/asset-type.service';
@@ -36,6 +37,9 @@ export class ApiService {
   putAssetTypeById(code: string, assetType: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/assetType/${code}`, assetType, { responseType: 'text' });
   }
+  // putAssetTypeById(code: string, assetType: Object): Observable<AssetType> {
+  //   return this.http.put(`${this.baseUrl}/assetType/${code}`, assetType, { responseType: 'text' }).pipe(map(response => JSON.parse(response).putResponse));
+  // }
   putAssetActiveChangeById(code: string, assetType: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/assetType/activateDeactivate/${code}`, assetType, { responseType: 'text' })
   }
@@ -45,8 +49,8 @@ export class ApiService {
   putBusinessActiveChangeById(code: string, businessUnit: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/businessUnit/activateDeactivate/${code}`, businessUnit, { responseType: 'text' })
   }
-  postAssetType(assetType: Object): Observable<any>{
-    return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' });
+  postAssetType(assetType: Object): Observable<AssetType> {
+    return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' }).pipe(map(response => JSON.parse(response).putResponse));
   }
   postBusinessUnit(businessUnit: Object): Observable<any>{
     return this.http.post(`${this.baseUrl}/businessUnit`, businessUnit, { responseType: 'text' });

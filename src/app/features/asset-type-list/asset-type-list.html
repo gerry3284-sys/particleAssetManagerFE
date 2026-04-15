@@ -57,41 +57,50 @@
 
     <!-- Righe dinamiche -->
     @if(isVisible()){
-      @for(assetType of paginatedAssetType(); track assetType.code){
-        @if(assetType.active){
-          <div class="asset-row" style="color: #4B5563;">
-            <div>{{ assetType.name }}</div>
-            <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
-            <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-            <div class="btn-position" style="gap: 4rem">
-              <app-button variant="secondary"type="button" (click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
-                Modifica
-              </app-button>
-              <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
+      @if(paginatedAssetType().length === 0){
+        <div class="asset-row-empty">
+            <div style="color:#b4abb9">
+              E possibile che la combinazione di filtri inserita non abbia attuali tipologie di asset
             </div>
-          </div>
-        }
-        @else {
-          <div class="asset-row" style="color: #9CA3AF;">
-            <div>{{ assetType.name }}</div>
-            <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
-            <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
-            <div class="btn-position" style="gap: 5.065rem">
-              <app-button variant="secondary"type="button"(click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
-                Modifica
-              </app-button>
-              <button class="btn-asset-type"
-                style="
-                  background-color: #F3F4F6; 
-                  border-color: #F3F4F6; 
-                  box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
-                  color: #70757f;"
-                (click)="changeStatus(assetType)
-              ">
-                Attiva
-              </button>
+        </div>
+      }
+      @else {
+        @for(assetType of paginatedAssetType(); track assetType.code){
+          @if(assetType.active){
+            <div class="asset-row" style="color: #4B5563;">
+              <div>{{ assetType.name }}</div>
+              <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
+              <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
+              <div class="btn-position" style="gap: 4rem">
+                <app-button variant="secondary"type="button" (click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
+                  Modifica
+                </app-button>
+                <button class="btn-asset-type" (click)="changeStatus(assetType)">Disattiva</button>
+              </div>
             </div>
-          </div>
+          }
+          @else {
+            <div class="asset-row" style="color: #9CA3AF;">
+              <div>{{ assetType.name }}</div>
+              <div>{{ assetType.hardDisk ? 'Sì' : 'No' }}</div>
+              <div>{{ assetType.ram ? 'Sì' : 'No' }}</div>
+              <div class="btn-position" style="gap: 5.065rem">
+                <app-button variant="secondary"type="button"(click)="OnOpenDialog(assetType)" style="margin-right: 1.5rem;">
+                  Modifica
+                </app-button>
+                <button class="btn-asset-type"
+                  style="
+                    background-color: #F3F4F6; 
+                    border-color: #F3F4F6; 
+                    box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
+                    color: #70757f;"
+                  (click)="changeStatus(assetType)
+                ">
+                  Attiva
+                </button>
+              </div>
+            </div>
+          }
         }
       }
       <!-- footer di asset type -->
@@ -116,9 +125,9 @@
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
         <div>
-          <h3 class="asset-type-modal-title">Modifica Asset Type</h3>
+          <h3 class="asset-type-modal-title">Modifica Tipo di Asset</h3>
           <p class="asset-type-modal-subtitle">
-            Modifica le attuali caratteristiche di questo stato asset.
+            Modifica le attuali caratteristiche di questo tipo di asset.
           </p>
         </div>
       </div>
@@ -126,8 +135,8 @@
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true;scheduleErrorCheck()">
-          @if(specifiedError && touched){
+          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="scheduleErrorCheck()">
+          @if(specifiedError()){
             <div class="error-message">{{specifiedMessage}}</div>
           }
           @else {
@@ -156,9 +165,9 @@
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
         <div>
-          <h3 class="asset-type-modal-title">Creazione Asset Type</h3>
+          <h3 class="asset-type-modal-title">Creazione Tipo di Asset</h3>
           <p class="asset-type-modal-subtitle">
-            Inserisci le caratteristiche del nuovo stato asset da creare.
+            Inserisci le caratteristiche del nuovo tipo di asset da creare.
           </p>
         </div>
       </div>
@@ -166,8 +175,8 @@
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched=true; scheduleErrorCheck()">
-          @if(specifiedError && touched){
+          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched = true; scheduleErrorCheck()">
+          @if(specifiedError() && touched){
             <div class="error-message">{{specifiedMessage}}</div>
           }
           @else {

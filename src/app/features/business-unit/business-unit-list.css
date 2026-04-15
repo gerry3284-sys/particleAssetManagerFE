@@ -103,9 +103,9 @@
 	border-color: #D85E33;
 }
 
-.btn-new-appear {
+/* .btn-new-appear {
 	animation: new-button-appear 0.35s ease-out;
-}
+} */
 
 @keyframes new-button-appear {
 	from {

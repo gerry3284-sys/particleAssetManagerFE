@@ -16,7 +16,7 @@
                 <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
             </div>
             <div class="div-btn">
-                <app-button variant="primary"type="button" (click)="onLogout()" class="btn"> Logout </app-button>
+                <app-button variant="primary"type="button" (click)="onLogout()" style="margin-bottom: 0.5rem;"> Logout </app-button>
                 <app-button variant="primary"type="button" (click)="onOpenAskDialog()">Inoltra richiesta per Asset</app-button>
             </div>
         </div>
@@ -78,11 +78,11 @@
                                     <td>{{movement.asset.serialNumber}}</td>
                                     @if(movement.movementType === 'ASSIGNED'){
                                         <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
-                                        <td>ASSEGNAZIONE</td>
+                                        <td>Assegnazione</td>
                                     }
                                     @else {
                                         <td>{{movement.date| date: 'dd/MM/yyyy'}}</td>
-                                        <td>RICONSEGNA</td>
+                                        <td>Riconsegna</td>
                                     }
                                 </tr>
                             }

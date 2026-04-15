@@ -63,8 +63,8 @@ export class UserStandard{
     private readonly popupMessageService: PopupMessageService
   ) {
   const id = this.route.snapshot.paramMap.get('id');
-  const userType = this.route.snapshot.paramMap.get('userType');
-  if (!id || isNaN(+id) || userType !== 'USER') {
+
+  if (!id || isNaN(+id)) {
     this.router.navigate(['/404']);
     return;
   }
@@ -80,8 +80,12 @@ export class UserStandard{
       this.users.set(users ?? []);
       this.assetTypes.set(assetType ?? []);
       this.movements.set(movements ?? []);
-      
       this.unmergedMovement = movements;
+
+      if (this.user()?.userType !== 'USER') {
+        this.router.navigate(['/404']);
+        return;
+      }
       // const processed = this.mergeMovements(movements ?? []);
       // this.movements.set(processed);
     },
@@ -100,6 +104,7 @@ export class UserStandard{
       this.unmergedMovement = [];
     }
   });
+  
   this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 

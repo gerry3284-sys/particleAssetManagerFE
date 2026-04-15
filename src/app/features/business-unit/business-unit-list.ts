@@ -41,7 +41,7 @@ export class BusinessUnitList {
 
   // errorMessage = 'Nessun errore.';
   errorTimeout: any = null;
-  specifiedError = false;
+  specifiedError = signal(false);
   touched = false;
   alertTitle = '';
   // selectedBusinessUnit: BusinessUnit|null = {
@@ -105,9 +105,9 @@ export class BusinessUnitList {
   // Cambia lo status della business unit rendendola attiva o disattiva
   changeStatus(businessUnit: BusinessUnit){
     if(this.assets().find(asset => (asset.businessUnit === businessUnit.name)) ||
-       this.users().find(user => (user.businessUnit.code === businessUnit.code))
+       this.users().find(user =>(user.businessUnit !== null && user.businessUnit.code === businessUnit.code))
       ){
-        this.popupMessageService.error('Errore, impossibile disattivare una business unit associata ad uno user o asset');
+      this.popupMessageService.error('Errore, impossibile disattivare una business unit associata ad uno user o asset');
     }
     else{
       this.editableBusinessUnit = businessUnit;
@@ -158,6 +158,7 @@ export class BusinessUnitList {
   onCloseDialog(){
     this.touched = false;
     this.reloadDiv();
+    this.alertTitle = '';
     this.dialog.nativeElement.close();
   }
   onDialogBackdropClick(event: MouseEvent): void {
@@ -185,19 +186,20 @@ export class BusinessUnitList {
             )
           );
 
-          this.dialog.nativeElement.close();
           this.initialName = '';
           this.controlName = '';
           this.alertTitle = '';
+          this.dialog.nativeElement.close();
+          this.popupMessageService.success('Business unit modificata con successo');
           this.reloadDiv();
         },
         error: (err) => {
           this.popupMessageService.error('Errore durante l\'aggiornamento della business unit');
           console.error('errore aggiornamento business unit', err);
-          this.dialog.nativeElement.close();
           this.initialName = '';
           this.alertTitle = '';
           this.controlName = '';
+          this.dialog.nativeElement.close();
         }
       });
     }
@@ -214,8 +216,8 @@ export class BusinessUnitList {
   scheduleErrorCheck(): void {
     clearTimeout(this.errorTimeout);
     this.errorTimeout = setTimeout(() => {
-      this.specifiedError = this.initialName.length > 0 && this.isInvalid();
-    }, 200)
+      this.specifiedError.set(this.initialName.length > 0 && this.isInvalid());
+    }, 50)
   }
   OnOpenNewDialog(){
     this.newDialog.nativeElement.showModal();
@@ -232,6 +234,7 @@ export class BusinessUnitList {
     this.touched = false;
     this.initialName = '';
     this.reloadDiv();
+    this.alertTitle = '';
 
     this.newDialog.nativeElement.close();
   }
@@ -247,21 +250,40 @@ export class BusinessUnitList {
     };
     this.apiService.postBusinessUnit(postableBusinessUnit)
     .subscribe({
-      next: (createdBusinessUnit) => {
-        const updatedList = [...this.businessUnits(), createdBusinessUnit];
-        this.businessUnits.set(updatedList);
-        this.newDialog.nativeElement.close();
+      // next: (createdBusinessUnit) => {
+      //   console.log(createdBusinessUnit);
+      //   const updatedList = [...this.businessUnits(), createdBusinessUnit];
+      //   this.businessUnits.set(updatedList);
+
+      //   this.filteredBusinessUnits.set([...this.filteredBusinessUnits(), createdBusinessUnit]);
+      //   // this.onFilter();
+
+      //   this.popupMessageService.success('Business unit creata con successo');
+      //   this.initialName = '';
+      //   this.alertTitle = '';
+      //   this.reloadDiv();
+      //   this.newDialog.nativeElement.close();
+      // },
+      next: () => {
+        this.apiService.getBusinessUnits().subscribe({
+          next: (freshList) => {
+            this.businessUnits.set(freshList);
+            this.filteredBusinessUnits.set(freshList);
+            this.popupMessageService.success('Business unit creata con successo');
+          }
+        });
+
         this.initialName = '';
         this.alertTitle = '';
-        this.cdr.detectChanges();
         this.reloadDiv();
+        this.newDialog.nativeElement.close();
       },
       error: (err) => {
         this.popupMessageService.error('Errore durante la creazione della business unit');
         console.error('errore creazione business unit', err);
-        this.newDialog.nativeElement.close();
         this.initialName = '';
         this.alertTitle = '';
+        this.newDialog.nativeElement.close();
       }
     })
   }
@@ -274,6 +296,7 @@ export class BusinessUnitList {
   }
   controlRepeatedName(BusinessUnitName: string){
     if(this.businessUnits().find(unit => (
+      unit.name !== null &&
       unit.name.toLowerCase() === BusinessUnitName.toLowerCase() &&
       unit.name.toLowerCase() !== this.controlName.toLowerCase()
     ))){
@@ -285,10 +308,9 @@ export class BusinessUnitList {
     this.alertDialog.nativeElement.showModal();
   }
  onAlertDialogClose(){
+    // this.selectedBusinessUnit = null;
     this.alertDialog.nativeElement.close();
     // this.alertStatusDialog.nativeElement.close();
-    this.alertTitle = '';
-    // this.selectedBusinessUnit = null;
   }
   // onAlertChangeStatus(businessUnit: BusinessUnit){
   //   this.selectedBusinessUnit = businessUnit;
