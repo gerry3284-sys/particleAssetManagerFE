@@ -21,7 +21,8 @@ export interface DismissAssetCommand {
   reason: string;
   reasonLabel: string;
   notes: string;
-  userId: number;
+  userId: number | null;
+  receiptBase64?: string;
 }
 
 @Injectable({
@@ -33,7 +34,7 @@ export class AssetWorkflowService {
   assignAsset(asset: AssetDetail, payload: AssignAssetCommand): Observable<void> {
     // Il backend aggiorna automaticamente lo status_code in base al movementType.
     return this.assetService.createAssetMovement(asset.assetCode, {
-      note: payload.notes || ' ',
+      note: payload.notes?.trim() || 'Assegnazione asset',
       movementType: 'Assigned',
       user: payload.userId,
       receiptBase64: payload.receiptBase64
@@ -56,7 +57,8 @@ export class AssetWorkflowService {
     return this.assetService.createAssetMovement(asset.assetCode, {
       note: `${payload.reasonLabel}: ${payload.notes}`,
       movementType: 'Dismissed',
-      user: payload.userId
+      user: null,
+      receiptBase64: payload.receiptBase64
     });
   }
 }

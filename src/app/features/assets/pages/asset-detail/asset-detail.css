@@ -97,6 +97,18 @@
   margin: 0 0 20px 0;
 }
 
+.info-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.info-card-header .card-title {
+  margin: 0;
+}
+
 /* ===================================
    INFO GRID
    =================================== */
@@ -153,8 +165,9 @@
 }
 
 .status-dismissed {
-  background-color: #F3F4F6;
-  color: #6B7280;
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FCA5A5;
 }
 
 .status-unavailable {
@@ -232,10 +245,16 @@
   background-color: #F9FAFB;
 }
 
-.movement-note {
+.movement-detail {
   grid-column: 1 / -1;
   margin-top: 4px;
   padding: 0 0 6px 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.movement-note {
   font-size: 12px;
   color: #6B7280;
   display: flex;
@@ -245,6 +264,29 @@
 .movement-note-label {
   font-weight: 600;
   color: #9CA3AF;
+}
+
+.movement-receipt-btn {
+  width: fit-content;
+  border: 1px solid #D1D5DB;
+  background: #FFFFFF;
+  color: #1F2937;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.movement-receipt-btn:hover:not(:disabled) {
+  border-color: #9CA3AF;
+  background: #F3F4F6;
+}
+
+.movement-receipt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .arrow-icon {
@@ -296,6 +338,146 @@
   color: #6B7280;
 }
 
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1150;
+}
+
+.edit-modal-card {
+  width: 100%;
+  max-width: 760px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.2);
+  padding: 22px;
+}
+
+.edit-modal-header {
+  margin-bottom: 16px;
+}
+
+.edit-modal-title {
+  margin: 0;
+  color: #1F2937;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.edit-modal-subtitle {
+  margin: 6px 0 0;
+  color: #6B7280;
+  font-size: 13px;
+}
+
+.edit-modal-loading {
+  margin: 0;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.edit-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.edit-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.edit-field input,
+.edit-field select,
+.edit-field textarea {
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1F2937;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #FFFFFF;
+}
+
+.edit-field textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.edit-field input:focus,
+.edit-field select:focus,
+.edit-field textarea:focus {
+  border-color: #E56A3D;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.12);
+}
+
+.edit-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.receipt-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1100;
+}
+
+.receipt-modal-card {
+  width: 100%;
+  max-width: 460px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.2);
+  padding: 22px;
+}
+
+.receipt-modal-title {
+  margin: 0 0 8px 0;
+  color: #1F2937;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.receipt-modal-text {
+  margin: 0;
+  color: #6B7280;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.receipt-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 /* ===================================
    RESPONSIVE
    =================================== */
@@ -328,5 +510,25 @@
   .col-movement {
     justify-content: flex-start;
     gap: 8px;
+  }
+
+  .edit-modal-card {
+    padding: 18px;
+  }
+
+  .edit-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-modal-actions {
+    flex-direction: column;
+  }
+
+  .movement-detail {
+    padding-left: 0;
+  }
+
+  .receipt-modal-actions {
+    flex-direction: column;
   }
 }

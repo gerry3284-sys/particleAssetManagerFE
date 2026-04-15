@@ -50,10 +50,14 @@ export interface AssetDetailApi {
 }
 
 export interface AssetMovementApi {
-  id: number;
+  id?: number;
+  code?: string;
   date: string;
-  movementType: 'Assigned' | 'Returned' | 'Dismissed';
+  movementType: string;
   note: string | null;
+  receipt?: string | null;
+  receiptBase64?: string | null;
+  receiptAvailable?: boolean | null;
   user: {
     id: number;
     name: string;
@@ -99,6 +103,15 @@ export class AssetService {
     );
   }
 
+  // RICEVUTA MOVIMENTO
+  getMovementReceipt(assetCode: string, movementId: string): Observable<Blob> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    const safeMovementId = encodeURIComponent((movementId ?? '').trim());
+    return this.http.get(`${this.apiUrl}/${safeCode}/movement/${safeMovementId}/receipt`, {
+      responseType: 'blob'
+    });
+  }
+
   private toMovementTimestamp(movement: AssetMovementApi): number {
     const parsed = Date.parse(movement.date);
     if (Number.isFinite(parsed)) {
@@ -113,15 +126,17 @@ export class AssetService {
   createAssetMovement(assetCode: string, payload: {
     note: string;
     movementType: string;
-    user: number;
+    user: number | null;
     receiptBase64?: string;
     recipientEmail?: string;
   }): Observable<void> {
     const safeCode = this.toSafeAssetCode(assetCode);
+    const rawMovementType = (payload.movementType ?? '').trim();
+    const normalizedMovementType = rawMovementType.toUpperCase();
     // Costruisce body senza receiptBase64 se non fornito
     const body: Record<string, unknown> = {
       note: payload.note,
-      movementType: payload.movementType,
+      movementType: normalizedMovementType || rawMovementType,
       user: payload.user
     };
     const normalizedReceiptBase64 = this.normalizeReceiptBase64(payload.receiptBase64);
@@ -241,16 +256,65 @@ export class AssetService {
 
   private mapAssetMovement(item: AssetMovementApi): AssetMovement {
     const sanitizedNote = item.note?.trim();
+    const movementType = this.normalizeMovementType(item.movementType);
+    const receiptAvailable = this.parseReceiptAvailability(item);
+    const movementCode = this.resolveMovementCode(item);
 
     return {
-      id: String(item.id),
+      id: movementCode,
       date: new Date(item.date).toLocaleDateString(),
       user: `${item.user.name} ${item.user.surname}`,
       userId: String(item.user.id),
-      movementType: item.movementType,
-      movementLabel: this.getMovementLabel(item.movementType),
-      note: sanitizedNote ? sanitizedNote : undefined
+      movementType,
+      movementLabel: this.getMovementLabel(movementType),
+      note: sanitizedNote ? sanitizedNote : undefined,
+      receiptAvailable
     };
+  }
+
+  private resolveMovementCode(item: AssetMovementApi): string {
+    const code = (item.code ?? '').trim();
+    if (code) {
+      return code;
+    }
+
+    const numericId = Number(item.id);
+    if (Number.isFinite(numericId)) {
+      return String(numericId);
+    }
+
+    return '';
+  }
+
+  private parseReceiptAvailability(item: AssetMovementApi): boolean | undefined {
+    if (typeof item.receiptAvailable === 'boolean') {
+      return item.receiptAvailable;
+    }
+
+    if (typeof item.receiptBase64 === 'string') {
+      return item.receiptBase64.trim().length > 0;
+    }
+
+    if (typeof item.receipt === 'string') {
+      return item.receipt.trim().length > 0;
+    }
+
+    return undefined;
+  }
+
+  private normalizeMovementType(type: string | null | undefined): AssetMovement['movementType'] {
+    const normalized = (type ?? '').trim().toUpperCase();
+
+    switch (normalized) {
+      case 'ASSIGNED':
+        return 'Assigned';
+      case 'RETURNED':
+        return 'Returned';
+      case 'DISMISSED':
+        return 'Dismissed';
+      default:
+        return 'Assigned';
+    }
   }
 
   private getMovementLabel(type: AssetMovement['movementType']): string {

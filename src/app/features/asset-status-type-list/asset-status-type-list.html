@@ -26,7 +26,7 @@
 
   <app-filters
     [mode]="'name-only'"
-    [searchLabel]="'Nome AssetStatusType'"
+    [searchLabel]="'Nome '"
     [searchPlaceholder]="'Cerca per nome...'"
     (filtersChange)="onFiltersChange($event)">
   </app-filters>
@@ -38,7 +38,7 @@
       <div class="header-actions">Azioni</div>
     </div>
 
-    @for (statusType of filteredStatusTypes(); track statusType.id) {
+    @for (statusType of filteredStatusTypes(); track statusType.code || statusType.name || $index) {
       <div class="asset-row">
         
         <div>{{ statusType.name }}</div>
@@ -46,7 +46,7 @@
           <app-button
             variant="secondary"
             type="button"
-            [disabled]="isSaving() || !statusType.code"
+            [disabled]="isSaving() || !statusType.code || isNonEditableStatusType(statusType)"
             (pressed)="openEditModal(statusType)">
             Modifica
           </app-button>
@@ -72,7 +72,7 @@
         <div class="status-type-modal-header">
           <div class="status-type-modal-icon" aria-hidden="true">i</div>
           <div>
-            <h3 class="status-type-modal-title">Creazione AssetStatusType</h3>
+            <h3 class="status-type-modal-title">Creazione Stato Asset</h3>
             <p class="status-type-modal-subtitle">
               Inserisci il nome del nuovo stato asset da creare.
             </p>

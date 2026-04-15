@@ -34,7 +34,12 @@
           
           <!-- Card: Informazioni Asset -->
           <div class="info-card">
-            <h2 class="card-title">Informazioni Asset</h2>
+            <div class="info-card-header">
+              <h2 class="card-title">Informazioni Asset</h2>
+              <app-button variant="ghost-orange" type="button" (pressed)="openEditAssetModal()">
+                Modifica
+              </app-button>
+            </div>
             
             <div class="info-grid">
               
@@ -60,17 +65,17 @@
 
               <div class="info-item">
                 <span class="info-label">Utente Assegnato</span>
-                <span class="info-value">{{ asset()!.assignedUser || '-' }}</span>
+                <span class="info-value">{{ getDisplayedAssignedUser() }}</span>
               </div>
 
               <div class="info-item">
                 <span class="info-label">Data di Assegnazione</span>
-                <span class="info-value">{{ asset()!.assignmentDate || '-' }}</span>
+                <span class="info-value">{{ getDisplayedAssignmentDate() }}</span>
               </div>
 
               <div class="info-item">
                 <span class="info-label">Data di Riconsegna</span>
-                <span class="info-value">{{ asset()!.returnDate || '-' }}</span>
+                <span class="info-value">{{ getDisplayedReturnDate() }}</span>
               </div>
 
               <div class="info-item full-width">
@@ -102,30 +107,43 @@
               </div>
 
               <!-- Rows -->
-              @for (movement of movementState().data; track movement.id) {
+              @for (movement of movementState().data; track (movement.id + '-' + $index)) {
                 <div 
                   class="movements-row movements-data"
-                  (click)="movement.note && goToMovementDetail(movement.id)"
-                  [class.expandable]="!!movement.note"
-                  [class.expanded]="movement.note && isMovementExpanded(movement.id)">
+                  (click)="goToMovementDetail(movement, $index)"
+                  [class.expandable]="true"
+                  [class.expanded]="isMovementExpanded(movement, $index)">
                   <div class="col-date">{{ movement.date }}</div>
                   <div class="col-user">{{ movement.user }}</div>
                   <div class="col-movement">
                     <span class="movement-label">{{ movement.movementLabel }}</span>
-                    @if (movement.note) {
-                      <span class="movement-toggle">
-                        @if (isMovementExpanded(movement.id)) {
-                          ▼
-                        } @else {
-                          ▶
-                        }
-                      </span>
-                    }
+                    <span class="movement-toggle">
+                      @if (isMovementExpanded(movement, $index)) {
+                        ▼
+                      } @else {
+                        ▶
+                      }
+                    </span>
                   </div>
-                  @if (movement.note && isMovementExpanded(movement.id)) {
-                    <div class="movement-note">
-                      <span class="movement-note-label">Note:</span>
-                      <span class="movement-note-text">{{ movement.note }}</span>
+                  @if (isMovementExpanded(movement, $index)) {
+                    <div class="movement-detail">
+                      <div class="movement-note">
+                        <span class="movement-note-label">Note:</span>
+                        <span class="movement-note-text">{{ movement.note || 'Nessuna nota' }}</span>
+                      </div>
+                      <button
+                        type="button"
+                        class="movement-receipt-btn"
+                        [disabled]="downloadingMovementReceiptId() === movementUiKey(movement, $index) || movement.receiptAvailable === false"
+                        (click)="downloadMovementReceipt(movement, $index, $event)">
+                        @if (downloadingMovementReceiptId() === movementUiKey(movement, $index)) {
+                          Download in corso...
+                        } @else if (movement.receiptAvailable === false) {
+                          Ricevuta non disponibile
+                        } @else {
+                          Scarica ricevuta PDF
+                        }
+                      </button>
                     </div>
                   }
                 </div>
@@ -197,6 +215,8 @@
   <app-assign-asset-modal
     [isOpen]="showAssignModal()"
     [assetId]="assetId()"
+    [assetBusinessUnitCode]="asset()?.businessUnitCode || ''"
+    [assetBusinessUnitName]="asset()?.businessUnit || ''"
     (close)="closeAssignModal()"
     (assign)="onAssetAssigned($event)">
   </app-assign-asset-modal>
@@ -216,5 +236,138 @@
     (close)="closeDismissModal()"
     (confirm)="onDismissConfirmed($event)">
   </app-dismiss-asset-modal>
+
+  @if (showEditAssetModal()) {
+    <div class="edit-modal-overlay" (click)="closeEditAssetModal()">
+      <div class="edit-modal-card" (click)="$event.stopPropagation()">
+        <div class="edit-modal-header">
+          <h3 class="edit-modal-title">Modifica Asset</h3>
+          <p class="edit-modal-subtitle">Aggiorna i dati principali dell'asset selezionato.</p>
+        </div>
+
+        @if (loadingEditOptions()) {
+          <p class="edit-modal-loading">Caricamento opzioni...</p>
+        } @else {
+          <div class="edit-modal-grid">
+            <div class="edit-field">
+              <label for="edit-brand">Marca *</label>
+              <input id="edit-brand" type="text" [ngModel]="editForm().brand" (ngModelChange)="updateEditField('brand', $event)" />
+            </div>
+
+            <div class="edit-field">
+              <label for="edit-model">Modello *</label>
+              <input id="edit-model" type="text" [ngModel]="editForm().model" (ngModelChange)="updateEditField('model', $event)" />
+            </div>
+
+            <div class="edit-field">
+              <label for="edit-serial">Numero seriale *</label>
+              <input id="edit-serial" type="text" [ngModel]="editForm().serialNumber" (ngModelChange)="updateEditField('serialNumber', $event)" />
+            </div>
+
+            <div class="edit-field">
+              <label for="edit-ram">RAM (GB)</label>
+              <input id="edit-ram" type="number" min="0" [ngModel]="editForm().ram" (ngModelChange)="updateEditField('ram', $event)" />
+            </div>
+
+            <div class="edit-field">
+              <label for="edit-hard-disk">Hard Disk</label>
+              <input id="edit-hard-disk" type="text" [ngModel]="editForm().hardDisk" (ngModelChange)="updateEditField('hardDisk', $event)" />
+            </div>
+
+            <div class="edit-field">
+              <label for="edit-bu">Business Unit *</label>
+              <select id="edit-bu" [ngModel]="editForm().businessUnitCode" (ngModelChange)="updateEditField('businessUnitCode', $event)">
+                <option value="">Seleziona Business Unit</option>
+                @for (unit of businessUnitOptions(); track unit.code || unit.name || $index) {
+                  <option [value]="unit.code">{{ unit.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="edit-field">
+              <label for="edit-type">Tipologia Asset *</label>
+              <select id="edit-type" [ngModel]="editForm().assetTypeCode" (ngModelChange)="updateEditField('assetTypeCode', $event)">
+                <option value="">Seleziona Tipologia</option>
+                @for (type of assetTypeOptions(); track type.code || type.name || $index) {
+                  <option [value]="type.code">{{ type.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="edit-field full-width">
+              <label for="edit-note">Note</label>
+              <textarea id="edit-note" rows="4" [ngModel]="editForm().note" (ngModelChange)="updateEditField('note', $event)"></textarea>
+            </div>
+          </div>
+
+          <div class="edit-modal-actions">
+            <app-button variant="secondary" type="button" [disabled]="savingEditAsset()" (pressed)="closeEditAssetModal()">
+              Annulla
+            </app-button>
+            <app-button variant="primary" type="button" [loading]="savingEditAsset()" loadingLabel="Salvataggio..." (pressed)="saveAssetChanges()">
+              Salva Modifiche
+            </app-button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (showAssignmentReceiptPrompt()) {
+    <div class="receipt-modal-overlay" (click)="closeAssignmentReceiptPrompt()">
+      <div class="receipt-modal-card" (click)="$event.stopPropagation()">
+        <h3 class="receipt-modal-title">Scaricare la ricevuta?</h3>
+        <p class="receipt-modal-text">
+          L'assegnazione e stata registrata correttamente. Vuoi scaricare ora il PDF della ricevuta?
+        </p>
+        <div class="receipt-modal-actions">
+          <app-button variant="secondary" type="button" (pressed)="closeAssignmentReceiptPrompt()">
+            Non ora
+          </app-button>
+          <app-button variant="primary" type="button" (pressed)="downloadAssignmentReceipt()">
+            Scarica PDF
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showReturnReceiptPrompt()) {
+    <div class="receipt-modal-overlay" (click)="closeReturnReceiptPrompt()">
+      <div class="receipt-modal-card" (click)="$event.stopPropagation()">
+        <h3 class="receipt-modal-title">Scaricare la ricevuta di riconsegna?</h3>
+        <p class="receipt-modal-text">
+          La riconsegna e stata registrata correttamente. Vuoi scaricare ora il PDF della ricevuta?
+        </p>
+        <div class="receipt-modal-actions">
+          <app-button variant="secondary" type="button" (pressed)="closeReturnReceiptPrompt()">
+            Non ora
+          </app-button>
+          <app-button variant="primary" type="button" (pressed)="downloadReturnReceipt()">
+            Scarica PDF
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showDismissReceiptPrompt()) {
+    <div class="receipt-modal-overlay" (click)="closeDismissReceiptPrompt()">
+      <div class="receipt-modal-card" (click)="$event.stopPropagation()">
+        <h3 class="receipt-modal-title">Scaricare il verbale di dismissione?</h3>
+        <p class="receipt-modal-text">
+          La dismissione e stata registrata correttamente. Vuoi scaricare ora il PDF del verbale?
+        </p>
+        <div class="receipt-modal-actions">
+          <app-button variant="secondary" type="button" (pressed)="closeDismissReceiptPrompt()">
+            Non ora
+          </app-button>
+          <app-button variant="primary" type="button" (pressed)="downloadDismissReceipt()">
+            Scarica PDF
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
 
 </div>
