@@ -7,6 +7,7 @@ export interface AssignmentReceiptPdfData {
   serialNumber: string;
   userName: string;
   assignmentDate: Date;
+  assignmentNotes?: string;
 }
 
 @Injectable({
@@ -82,7 +83,8 @@ export class AssignmentReceiptPdfService {
       pageWidth,
       rows: [
         { label: 'Utente', value: data.userName || '-' },
-        { label: 'Data di Assegnazione', value: prettyDate }
+        { label: 'Data di Assegnazione', value: prettyDate },
+        { label: 'Note di Assegnazione', value: data.assignmentNotes?.trim() || 'Nessuna nota' }
       ]
     });
 

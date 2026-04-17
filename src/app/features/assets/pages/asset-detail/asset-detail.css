@@ -9,10 +9,7 @@
   margin: 0 auto;
 }
 
-/* ===================================
-   HEADER
-   =================================== */
-
+/* Header */
 .page-header {
   margin-bottom: 2rem;
 }
@@ -55,10 +52,7 @@
   margin: 0;
 }
 
-/* ===================================
-   GRID LAYOUT
-   =================================== */
-
+/* Layout */
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 320px;
@@ -76,10 +70,7 @@
   flex-direction: column;
 }
 
-/* ===================================
-   CARDS
-   =================================== */
-
+/* Cards */
 .info-card,
 .movements-card,
 .actions-card {
@@ -108,10 +99,6 @@
 .info-card-header .card-title {
   margin: 0;
 }
-
-/* ===================================
-   INFO GRID
-   =================================== */
 
 .info-grid {
   display: grid;
@@ -143,7 +130,6 @@
   font-weight: 500;
 }
 
-/* Status Badge */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -175,10 +161,7 @@
   color: #92400E;
 }
 
-/* ===================================
-   MOVEMENTS TABLE
-   =================================== */
-
+/* Movements */
 .movements-table {
   display: flex;
   flex-direction: column;
@@ -289,20 +272,12 @@
   cursor: not-allowed;
 }
 
-.arrow-icon {
-  color: #9CA3AF;
-}
-
 .empty-state {
   padding: 40px 20px;
   text-align: center;
   color: #9CA3AF;
   font-size: 14px;
 }
-
-/* ===================================
-   ACTIONS CARD
-   =================================== */
 
 .actions-title {
   font-size: 16px;
@@ -323,10 +298,7 @@
   gap: 12px;
 }
 
-/* ===================================
-   STATES
-   =================================== */
-
+/* Modals */
 .loading-state,
 .error-state {
   display: flex;
@@ -447,6 +419,93 @@
   z-index: 1100;
 }
 
+.edit-confirm-overlay {
+  z-index: 1200;
+}
+
+.edit-confirm-card {
+  width: min(520px, 100%);
+  border-radius: 16px;
+  border: 1px solid #E8EDF3;
+  padding: 24px;
+}
+
+.edit-confirm-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.edit-confirm-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #EAF2FF;
+  color: #2F6AE5;
+  display: grid;
+  place-items: center;
+}
+
+.edit-confirm-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.edit-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.edit-confirm-subtitle {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.edit-confirm-warning {
+  margin: 6px 0 0;
+  color: #1E3A8A;
+  font-size: 12px;
+}
+
+.edit-confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edit-confirm-row {
+  min-height: 48px;
+  border-bottom: 1px solid #ECEFF3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.edit-confirm-row .label {
+  color: #64748B;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-confirm-row .value {
+  color: #1F2937;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.edit-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
 .receipt-modal-card {
   width: 100%;
   max-width: 460px;
@@ -457,31 +516,125 @@
   padding: 22px;
 }
 
-.receipt-modal-title {
-  margin: 0 0 8px 0;
+.assignment-receipt-modal {
+  max-width: 760px;
+  padding: 28px 36px 20px;
+}
+
+.assignment-receipt-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #B7E2BF;
+  background: #EAF7ED;
+  color: #1F8B4C;
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.assignment-receipt-success-banner.error {
+  border-color: #F2B8B5;
+  background: #FEEDEC;
+  color: #B42318;
+}
+
+.assignment-receipt-success-banner svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+.assignment-receipt-section {
+  margin-bottom: 24px;
+}
+
+.assignment-receipt-section h3 {
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E5E7EB;
   color: #1F2937;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.receipt-modal-text {
-  margin: 0;
+.assignment-receipt-row {
+  min-height: 52px;
+  border-bottom: 1px solid #ECEFF3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.assignment-receipt-row .label {
   color: #6B7280;
   font-size: 14px;
-  line-height: 1.45;
+  font-weight: 500;
 }
 
-.receipt-modal-actions {
-  margin-top: 18px;
+.assignment-receipt-row .value {
+  color: #1F2937;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.assignment-receipt-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.receipt-modal-footer {
+  margin: 18px -36px -20px;
+  padding: 14px 30px 10px;
+  border-top: 1px solid #E5E7EB;
+  background: #FFFFFF;
+}
+
+.assignment-close-btn,
+.assignment-print-btn {
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.assignment-close-btn {
+  background: #FFFFFF;
+  color: #1F2937;
+  border-color: #D1D5DB;
+}
+
+.assignment-close-btn:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.assignment-print-btn {
+  background: #EA6A2A;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
   gap: 10px;
 }
 
-/* ===================================
-   RESPONSIVE
-   =================================== */
+.assignment-print-btn svg {
+  width: 22px;
+  height: 22px;
+}
 
+.assignment-print-btn:hover {
+  background: #D85B1E;
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -528,7 +681,57 @@
     padding-left: 0;
   }
 
-  .receipt-modal-actions {
+  .assignment-receipt-modal {
+    padding: 18px;
+  }
+
+  .edit-confirm-card {
+    padding: 18px;
+  }
+
+  .edit-confirm-row {
     flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 0;
+    padding: 10px 0;
+  }
+
+  .edit-confirm-row .value {
+    text-align: left;
+  }
+
+  .edit-confirm-actions {
+    flex-direction: column;
+  }
+
+  .assignment-receipt-success-banner {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .assignment-receipt-section {
+    margin-bottom: 18px;
+  }
+
+  .assignment-receipt-row {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 10px 0;
+    min-height: 0;
+  }
+
+  .assignment-receipt-row .value {
+    text-align: left;
+  }
+
+  .assignment-receipt-actions {
+    flex-direction: column;
+  }
+
+  .receipt-modal-footer {
+    margin: 16px -18px -18px;
+    padding: 12px 18px 6px;
   }
 }

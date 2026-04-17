@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, DestroyRef, computed } from '@angula
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AssignAssetModalComponent } from '../../../../shared/components/assign-asset-modal/assign-asset-modal';
 import { DismissAssetModalComponent, DismissAssetForm } from '../../../../shared/components/dismiss-asset-modal/dismiss-asset-modal';
 import { ReturnCertifyModalComponent, ReturnCertifyForm } from '../../components/return-certify-modal/return-certify-modal';
@@ -18,10 +18,26 @@ import { ButtonComponent } from '../../../../shared/components/button/button';
 import { FilterService } from '../../../../shared/services/filter.service';
 import { AssetType as FilterAssetType, BusinessUnit as FilterBusinessUnit } from '../../../../shared/models/filter-config.interface';
 
+type ReceiptBannerState = {
+  type: 'success' | 'error';
+  message: string;
+};
+
+type PendingAssetEditPayload = {
+  brand: string;
+  model: string;
+  serialNumber: string;
+  note: string;
+  hardDisk: string;
+  businessUnitCode: string;
+  assetTypeCode: string;
+  ram: number;
+};
+
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, AssignAssetModalComponent, ReturnCertifyModalComponent, DismissAssetModalComponent, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, AssignAssetModalComponent, ReturnCertifyModalComponent, DismissAssetModalComponent, ButtonComponent],
   templateUrl: './asset-detail.html',
   styleUrl: './asset-detail.css' // correzione: styleUrls (plurale)
 })
@@ -39,23 +55,38 @@ export class AssetDetailComponent implements OnInit {
   showDismissModal = signal<boolean>(false);
   showDismissReceiptPrompt = signal<boolean>(false);
   showEditAssetModal = signal<boolean>(false);
+  showEditConfirmModal = signal<boolean>(false);
   savingEditAsset = signal<boolean>(false);
   loadingEditOptions = signal<boolean>(false);
+  pendingAssetEditPayload = signal<PendingAssetEditPayload | null>(null);
   pendingAssignmentReceipt = signal<AssignmentReceiptPdfData | null>(null);
   pendingReturnReceipt = signal<ReturnReceiptPdfData | null>(null);
   pendingDismissReceipt = signal<DismissReceiptPdfData | null>(null);
+  assignmentReceiptBanner = signal<ReceiptBannerState>({
+    type: 'success',
+    message: 'Assegnazione registrata correttamente.'
+  });
+  returnReceiptBanner = signal<ReceiptBannerState>({
+    type: 'success',
+    message: 'Riconsegna registrata correttamente.'
+  });
+  dismissReceiptBanner = signal<ReceiptBannerState>({
+    type: 'success',
+    message: 'Dismissione registrata correttamente.'
+  });
   downloadingMovementReceiptId = signal<string | null>(null);
   businessUnitOptions = signal<FilterBusinessUnit[]>([]);
   assetTypeOptions = signal<FilterAssetType[]>([]);
-  editForm = signal({
-    brand: '',
-    model: '',
-    serialNumber: '',
-    note: '',
-    hardDisk: '',
-    businessUnitCode: '',
-    assetTypeCode: '',
-    ram: ''
+  editAssetTypeCode = signal<string>('');
+  editAssetForm = new FormGroup({
+    brand: new FormControl('', { nonNullable: true }),
+    model: new FormControl('', { nonNullable: true }),
+    serialNumber: new FormControl('', { nonNullable: true }),
+    note: new FormControl('', { nonNullable: true }),
+    hardDisk: new FormControl('', { nonNullable: true }),
+    businessUnitCode: new FormControl('', { nonNullable: true }),
+    assetTypeCode: new FormControl('', { nonNullable: true }),
+    ram: new FormControl('', { nonNullable: true })
   });
   movementState = signal({
     data: [] as AssetMovement[],
@@ -67,6 +98,18 @@ export class AssetDetailComponent implements OnInit {
   canAssign = computed(() => this.asset()?.status === 'Available');
   canCertifyReturn = computed(() => this.asset()?.status === 'Assigned');
   canDismiss = computed(() => this.asset()?.status === 'Available');
+  canEditAsset = computed(() => {
+    const status = this.asset()?.status;
+    return status !== 'Assigned' && status !== 'Dismissed';
+  });
+  editSelectedAssetType = computed(() => {
+    const selectedCode = this.editAssetTypeCode();
+    if (!selectedCode) {
+      return null;
+    }
+
+    return this.assetTypeOptions().find(type => (type.code ?? type.name) === selectedCode) ?? null;
+  });
   assetSummary = computed(() => {
     const current = this.asset();
     if (!current) {
@@ -83,6 +126,7 @@ export class AssetDetailComponent implements OnInit {
     || this.showReturnModal()
     || this.showDismissModal()
     || this.showEditAssetModal()
+    || this.showEditConfirmModal()
     || this.showAssignmentReceiptPrompt()
     || this.showReturnReceiptPrompt()
     || this.showDismissReceiptPrompt()
@@ -104,6 +148,13 @@ export class AssetDetailComponent implements OnInit {
     private returnReceiptPdfService: ReturnReceiptPdfService,
     private dismissReceiptPdfService: DismissReceiptPdfService
   ) {
+    this.editAssetForm.controls.assetTypeCode.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => {
+        this.editAssetTypeCode.set((value ?? '').trim());
+        this.syncEditTechnicalFieldsByType();
+      });
+
     effect((onCleanup) => {
       if (!isPlatformBrowser(this.platformId)) {
         return;
@@ -187,12 +238,16 @@ export class AssetDetailComponent implements OnInit {
   }
 
   openEditAssetModal(): void {
+    if (!this.canEditAsset()) {
+      return;
+    }
+
     const current = this.asset();
     if (!current) {
       return;
     }
 
-    this.editForm.set({
+    this.editAssetForm.setValue({
       brand: current.brand || '',
       model: current.model || '',
       serialNumber: current.serialNumber || '',
@@ -202,10 +257,12 @@ export class AssetDetailComponent implements OnInit {
       assetTypeCode: current.assetTypeCode || '',
       ram: current.ram != null ? String(current.ram) : ''
     });
+    this.editAssetTypeCode.set(current.assetTypeCode || '');
 
     this.showEditAssetModal.set(true);
 
     if (this.businessUnitOptions().length && this.assetTypeOptions().length) {
+      this.syncEditTechnicalFieldsByType();
       return;
     }
 
@@ -243,14 +300,9 @@ export class AssetDetailComponent implements OnInit {
     if (this.savingEditAsset()) {
       return;
     }
+    this.showEditConfirmModal.set(false);
+    this.pendingAssetEditPayload.set(null);
     this.showEditAssetModal.set(false);
-  }
-
-  updateEditField(field: keyof ReturnType<AssetDetailComponent['editForm']>, value: string): void {
-    this.editForm.update(current => ({
-      ...current,
-      [field]: value
-    }));
   }
 
   saveAssetChanges(): void {
@@ -259,7 +311,7 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
-    const form = this.editForm();
+    const form = this.editAssetForm.getRawValue();
     const brand = form.brand.trim();
     const model = form.model.trim();
     const serialNumber = form.serialNumber.trim();
@@ -272,23 +324,48 @@ export class AssetDetailComponent implements OnInit {
     }
 
     const parsedRam = Number(form.ram);
-    const ram = Number.isFinite(parsedRam) ? parsedRam : 0;
+    const requiresRam = !!this.editSelectedAssetType()?.ram;
+    const requiresHardDisk = !!this.editSelectedAssetType()?.hardDisk;
+    const ram = requiresRam && Number.isFinite(parsedRam) ? parsedRam : 0;
+    const hardDisk = requiresHardDisk ? form.hardDisk.trim() : '';
 
-    this.savingEditAsset.set(true);
-    this.assetService.updateAsset(current.assetCode, {
+    this.pendingAssetEditPayload.set({
       brand,
       model,
       serialNumber,
       note: form.note.trim(),
-      hardDisk: form.hardDisk.trim(),
+      hardDisk,
       businessUnitCode,
       assetTypeCode,
       ram
-    })
+    });
+    this.showEditConfirmModal.set(true);
+  }
+
+  closeEditConfirmModal(): void {
+    if (this.savingEditAsset()) {
+      return;
+    }
+
+    this.showEditConfirmModal.set(false);
+  }
+
+  confirmSaveAssetChanges(): void {
+    const current = this.asset();
+    const payload = this.pendingAssetEditPayload();
+    if (!current || !payload) {
+      this.showEditConfirmModal.set(false);
+      return;
+    }
+
+    this.savingEditAsset.set(true);
+    this.showEditConfirmModal.set(false);
+    this.assetService.updateAsset(current.assetCode, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.popupMessageService.success('Asset aggiornato con successo');
+          this.pendingAssetEditPayload.set(null);
           this.showEditAssetModal.set(false);
           this.loadAssetDetail(this.assetId());
           this.savingEditAsset.set(false);
@@ -296,6 +373,7 @@ export class AssetDetailComponent implements OnInit {
         error: err => {
           console.error('Errore aggiornamento asset:', err);
           this.popupMessageService.error('Errore durante il salvataggio delle modifiche');
+          this.pendingAssetEditPayload.set(null);
           this.savingEditAsset.set(false);
         }
       });
@@ -307,20 +385,38 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
-    this.editForm.update(form => {
-      const businessUnitCode = form.businessUnitCode ||
+    const form = this.editAssetForm.getRawValue();
+    const businessUnitCode = form.businessUnitCode ||
         this.businessUnitOptions().find(unit => unit.name === current.businessUnit)?.code ||
         '';
-      const assetTypeCode = form.assetTypeCode ||
+    const assetTypeCode = form.assetTypeCode ||
         this.assetTypeOptions().find(type => type.name === current.assetType)?.code ||
         '';
 
-      return {
-        ...form,
-        businessUnitCode,
-        assetTypeCode
-      };
-    });
+    this.editAssetForm.patchValue({
+      businessUnitCode,
+      assetTypeCode
+    }, { emitEvent: false });
+    this.editAssetTypeCode.set(assetTypeCode);
+
+    this.syncEditTechnicalFieldsByType();
+  }
+
+  private syncEditTechnicalFieldsByType(): void {
+    const selectedType = this.editSelectedAssetType();
+    if (!selectedType) {
+      return;
+    }
+
+    const requiresRam = !!selectedType.ram;
+    const requiresHardDisk = !!selectedType.hardDisk;
+    const currentRam = this.editAssetForm.controls.ram.value;
+    const currentHardDisk = this.editAssetForm.controls.hardDisk.value;
+
+    this.editAssetForm.patchValue({
+      ram: requiresRam ? currentRam : '',
+      hardDisk: requiresHardDisk ? currentHardDisk : ''
+    }, { emitEvent: false });
   }
 
   // --- Modale assegnazione
@@ -353,7 +449,8 @@ export class AssetDetailComponent implements OnInit {
       model: current.model,
       serialNumber: current.serialNumber,
       userName: formData.userName,
-      assignmentDate: new Date()
+      assignmentDate: new Date(),
+      assignmentNotes: formData.notes?.trim() || ''
     };
 
     void this.assignmentReceiptPdfService.generateBase64(assignmentReceiptData)
@@ -372,9 +469,12 @@ export class AssetDetailComponent implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
-              this.popupMessageService.success(`Asset assegnato a ${formData.userName}`);
               this.closeAssignModal();
               this.pendingAssignmentReceipt.set(assignmentReceiptData);
+              this.assignmentReceiptBanner.set({
+                type: 'success',
+                message: `L'asset e stato assegnato correttamente a ${formData.userName}.`
+              });
               this.showAssignmentReceiptPrompt.set(true);
               this.loadAssetDetail(this.assetId());
               this.loadAssetMovements(this.assetId());
@@ -394,6 +494,10 @@ export class AssetDetailComponent implements OnInit {
   closeAssignmentReceiptPrompt(): void {
     this.showAssignmentReceiptPrompt.set(false);
     this.pendingAssignmentReceipt.set(null);
+    this.assignmentReceiptBanner.set({
+      type: 'success',
+      message: 'Assegnazione registrata correttamente.'
+    });
   }
 
   downloadAssignmentReceipt(): void {
@@ -405,14 +509,17 @@ export class AssetDetailComponent implements OnInit {
 
     void this.assignmentReceiptPdfService.generate(data)
       .then(() => {
-        this.popupMessageService.success('Ricevuta scaricata con successo');
+        this.assignmentReceiptBanner.set({
+          type: 'success',
+          message: 'Ricevuta scaricata con successo.'
+        });
       })
       .catch(err => {
         console.error('Errore download ricevuta assegnazione:', err);
-        this.popupMessageService.error('Errore durante il download della ricevuta');
-      })
-      .finally(() => {
-        this.closeAssignmentReceiptPrompt();
+        this.assignmentReceiptBanner.set({
+          type: 'error',
+          message: 'Errore durante il download della ricevuta.'
+        });
       });
   }
 
@@ -493,9 +600,12 @@ export class AssetDetailComponent implements OnInit {
             ? 'Riconsegna certificata e ricevuta inviata via email'
             : 'Riconsegna certificata con successo';
 
-          this.popupMessageService.success(successMessage);
           this.closeReturnModal();
           this.pendingReturnReceipt.set(receiptData);
+          this.returnReceiptBanner.set({
+            type: 'success',
+            message: `${successMessage}.`
+          });
           this.showReturnReceiptPrompt.set(true);
           this.loadAssetDetail(this.assetId());
           this.loadAssetMovements(this.assetId());
@@ -590,6 +700,22 @@ export class AssetDetailComponent implements OnInit {
     return new Date();
   }
 
+  formatReceiptPromptDate(value: Date): string {
+    return new Intl.DateTimeFormat('it-IT', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(value);
+  }
+
+  formatReceiptPromptDateShort(value: Date): string {
+    return new Intl.DateTimeFormat('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(value);
+  }
+
   private normalizeReceiptBase64(value?: string): string {
     const raw = (value ?? '').trim();
     if (!raw) {
@@ -616,6 +742,10 @@ export class AssetDetailComponent implements OnInit {
   closeReturnReceiptPrompt(): void {
     this.showReturnReceiptPrompt.set(false);
     this.pendingReturnReceipt.set(null);
+    this.returnReceiptBanner.set({
+      type: 'success',
+      message: 'Riconsegna registrata correttamente.'
+    });
   }
 
   downloadReturnReceipt(): void {
@@ -627,20 +757,27 @@ export class AssetDetailComponent implements OnInit {
 
     void this.returnReceiptPdfService.generate(data)
       .then(() => {
-        this.popupMessageService.success('Ricevuta di riconsegna scaricata con successo');
+        this.returnReceiptBanner.set({
+          type: 'success',
+          message: 'Ricevuta di riconsegna scaricata con successo.'
+        });
       })
       .catch(err => {
         console.error('Errore download ricevuta riconsegna:', err);
-        this.popupMessageService.error('Errore durante il download della ricevuta');
-      })
-      .finally(() => {
-        this.closeReturnReceiptPrompt();
+        this.returnReceiptBanner.set({
+          type: 'error',
+          message: 'Errore durante il download della ricevuta.'
+        });
       });
   }
 
   closeDismissReceiptPrompt(): void {
     this.showDismissReceiptPrompt.set(false);
     this.pendingDismissReceipt.set(null);
+    this.dismissReceiptBanner.set({
+      type: 'success',
+      message: 'Dismissione registrata correttamente.'
+    });
   }
 
   downloadDismissReceipt(): void {
@@ -652,14 +789,17 @@ export class AssetDetailComponent implements OnInit {
 
     void this.dismissReceiptPdfService.generate(data)
       .then(() => {
-        this.popupMessageService.success('Verbale di dismissione scaricato con successo');
+        this.dismissReceiptBanner.set({
+          type: 'success',
+          message: 'Verbale di dismissione scaricato con successo.'
+        });
       })
       .catch(err => {
         console.error('Errore download verbale dismissione:', err);
-        this.popupMessageService.error('Errore durante il download della ricevuta');
-      })
-      .finally(() => {
-        this.closeDismissReceiptPrompt();
+        this.dismissReceiptBanner.set({
+          type: 'error',
+          message: 'Errore durante il download della ricevuta.'
+        });
       });
   }
 
@@ -702,8 +842,11 @@ export class AssetDetailComponent implements OnInit {
             next: () => {
               this.closeDismissModal();
               this.pendingDismissReceipt.set(dismissReceiptData);
+              this.dismissReceiptBanner.set({
+                type: 'success',
+                message: 'L\'asset e stato dismesso correttamente.'
+              });
               this.showDismissReceiptPrompt.set(true);
-              this.popupMessageService.success('Asset dismesso con successo');
               this.loadAssetDetail(this.assetId());
               this.loadAssetMovements(this.assetId());
             },
