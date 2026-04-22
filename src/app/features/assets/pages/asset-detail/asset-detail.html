@@ -36,7 +36,7 @@
           <div class="info-card">
             <div class="info-card-header">
               <h2 class="card-title">Informazioni Asset</h2>
-              <app-button variant="ghost-orange" type="button" (pressed)="openEditAssetModal()">
+              <app-button variant="ghost-orange" type="button" [disabled]="!canEditAsset()" (pressed)="openEditAssetModal()">
                 Modifica
               </app-button>
             </div>
@@ -248,35 +248,39 @@
         @if (loadingEditOptions()) {
           <p class="edit-modal-loading">Caricamento opzioni...</p>
         } @else {
-          <div class="edit-modal-grid">
+          <form class="edit-modal-grid" [formGroup]="editAssetForm">
             <div class="edit-field">
               <label for="edit-brand">Marca *</label>
-              <input id="edit-brand" type="text" [ngModel]="editForm().brand" (ngModelChange)="updateEditField('brand', $event)" />
+              <input id="edit-brand" type="text" formControlName="brand" />
             </div>
 
             <div class="edit-field">
               <label for="edit-model">Modello *</label>
-              <input id="edit-model" type="text" [ngModel]="editForm().model" (ngModelChange)="updateEditField('model', $event)" />
+              <input id="edit-model" type="text" formControlName="model" />
             </div>
 
             <div class="edit-field">
               <label for="edit-serial">Numero seriale *</label>
-              <input id="edit-serial" type="text" [ngModel]="editForm().serialNumber" (ngModelChange)="updateEditField('serialNumber', $event)" />
+              <input id="edit-serial" type="text" formControlName="serialNumber" />
             </div>
 
-            <div class="edit-field">
-              <label for="edit-ram">RAM (GB)</label>
-              <input id="edit-ram" type="number" min="0" [ngModel]="editForm().ram" (ngModelChange)="updateEditField('ram', $event)" />
-            </div>
+            @if (editSelectedAssetType()?.ram) {
+              <div class="edit-field">
+                <label for="edit-ram">RAM (GB)</label>
+                <input id="edit-ram" type="number" min="0" formControlName="ram" />
+              </div>
+            }
 
-            <div class="edit-field">
-              <label for="edit-hard-disk">Hard Disk</label>
-              <input id="edit-hard-disk" type="text" [ngModel]="editForm().hardDisk" (ngModelChange)="updateEditField('hardDisk', $event)" />
-            </div>
+            @if (editSelectedAssetType()?.hardDisk) {
+              <div class="edit-field">
+                <label for="edit-hard-disk">Hard Disk</label>
+                <input id="edit-hard-disk" type="text" formControlName="hardDisk" />
+              </div>
+            }
 
             <div class="edit-field">
               <label for="edit-bu">Business Unit *</label>
-              <select id="edit-bu" [ngModel]="editForm().businessUnitCode" (ngModelChange)="updateEditField('businessUnitCode', $event)">
+              <select id="edit-bu" formControlName="businessUnitCode">
                 <option value="">Seleziona Business Unit</option>
                 @for (unit of businessUnitOptions(); track unit.code || unit.name || $index) {
                   <option [value]="unit.code">{{ unit.name }}</option>
@@ -286,7 +290,7 @@
 
             <div class="edit-field">
               <label for="edit-type">Tipologia Asset *</label>
-              <select id="edit-type" [ngModel]="editForm().assetTypeCode" (ngModelChange)="updateEditField('assetTypeCode', $event)">
+              <select id="edit-type" formControlName="assetTypeCode">
                 <option value="">Seleziona Tipologia</option>
                 @for (type of assetTypeOptions(); track type.code || type.name || $index) {
                   <option [value]="type.code">{{ type.name }}</option>
@@ -296,9 +300,9 @@
 
             <div class="edit-field full-width">
               <label for="edit-note">Note</label>
-              <textarea id="edit-note" rows="4" [ngModel]="editForm().note" (ngModelChange)="updateEditField('note', $event)"></textarea>
+              <textarea id="edit-note" rows="4" formControlName="note"></textarea>
             </div>
-          </div>
+          </form>
 
           <div class="edit-modal-actions">
             <app-button variant="secondary" type="button" [disabled]="savingEditAsset()" (pressed)="closeEditAssetModal()">
@@ -313,59 +317,240 @@
     </div>
   }
 
-  @if (showAssignmentReceiptPrompt()) {
-    <div class="receipt-modal-overlay" (click)="closeAssignmentReceiptPrompt()">
-      <div class="receipt-modal-card" (click)="$event.stopPropagation()">
-        <h3 class="receipt-modal-title">Scaricare la ricevuta?</h3>
-        <p class="receipt-modal-text">
-          L'assegnazione e stata registrata correttamente. Vuoi scaricare ora il PDF della ricevuta?
-        </p>
-        <div class="receipt-modal-actions">
-          <app-button variant="secondary" type="button" (pressed)="closeAssignmentReceiptPrompt()">
-            Non ora
+  @if (showEditConfirmModal()) {
+    <div class="receipt-modal-overlay edit-confirm-overlay" (click)="closeEditConfirmModal()">
+      <div class="receipt-modal-card edit-confirm-card" (click)="$event.stopPropagation()">
+        <div class="edit-confirm-header">
+          <div class="edit-confirm-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+              <path d="M12 8V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <circle cx="12" cy="16" r="1" fill="currentColor" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="edit-confirm-title">Conferma Modifica Asset</h3>
+            <p class="edit-confirm-subtitle">Stai per salvare le modifiche all'asset selezionato.</p>
+            <p class="edit-confirm-warning">Verifica i dati prima di continuare.</p>
+          </div>
+        </div>
+
+        <div class="edit-confirm-body">
+          <div class="edit-confirm-row">
+            <span class="label">Asset</span>
+            <span class="value">{{ assetSummary() || '-' }}</span>
+          </div>
+          <div class="edit-confirm-row">
+            <span class="label">Azione</span>
+            <span class="value">Salvataggio modifiche dettagli asset</span>
+          </div>
+        </div>
+
+        <div class="edit-confirm-actions">
+          <app-button variant="secondary" type="button" [disabled]="savingEditAsset()" (pressed)="closeEditConfirmModal()">
+            Annulla
           </app-button>
-          <app-button variant="primary" type="button" (pressed)="downloadAssignmentReceipt()">
-            Scarica PDF
+          <app-button variant="primary" type="button" [loading]="savingEditAsset()" loadingLabel="Salvataggio..." (pressed)="confirmSaveAssetChanges()">
+            Conferma salvataggio
           </app-button>
         </div>
+      </div>
+    </div>
+  }
+
+  @if (showAssignmentReceiptPrompt()) {
+    <div class="receipt-modal-overlay" (click)="closeAssignmentReceiptPrompt()">
+      <div class="receipt-modal-card assignment-receipt-modal" (click)="$event.stopPropagation()">
+        @if (pendingAssignmentReceipt(); as receipt) {
+          <div class="assignment-receipt-success-banner" [class.error]="assignmentReceiptBanner().type === 'error'">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2C6.477 2 2 6.477 2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2Z" stroke="currentColor" stroke-width="2" />
+              <path d="M8 12L10.5 14.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>{{ assignmentReceiptBanner().message }}</span>
+          </div>
+
+          <div class="assignment-receipt-section">
+            <h3>Dettagli Asset</h3>
+            <div class="assignment-receipt-row">
+              <span class="label">Marca</span>
+              <span class="value">{{ receipt.brand || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Modello</span>
+              <span class="value">{{ receipt.model || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Numero Seriale</span>
+              <span class="value">{{ receipt.serialNumber || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="assignment-receipt-section">
+            <h3>Dettagli Assegnazione</h3>
+            <div class="assignment-receipt-row">
+              <span class="label">Utente Assegnato</span>
+              <span class="value">{{ receipt.userName || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Data di Assegnazione</span>
+              <span class="value">{{ formatReceiptPromptDate(receipt.assignmentDate) }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Note di assegnazione</span>
+              <span class="value">{{ receipt.assignmentNotes || 'Nessuna nota' }}</span>
+            </div>
+          </div>
+
+          <div class="assignment-receipt-actions">
+            <button type="button" class="assignment-close-btn" (click)="closeAssignmentReceiptPrompt()">
+              Chiudi
+            </button>
+            <button type="button" class="assignment-print-btn" (click)="downloadAssignmentReceipt()">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 8V3H17V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <rect x="5" y="14" width="14" height="7" stroke="currentColor" stroke-width="2" rx="1" />
+                <path d="M5 10H19C20.105 10 21 10.895 21 12V14H3V12C3 10.895 3.895 10 5 10Z" stroke="currentColor" stroke-width="2" />
+                <circle cx="17" cy="12" r="1" fill="currentColor" />
+              </svg>
+              Stampa Ricevuta
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
 
   @if (showReturnReceiptPrompt()) {
     <div class="receipt-modal-overlay" (click)="closeReturnReceiptPrompt()">
-      <div class="receipt-modal-card" (click)="$event.stopPropagation()">
-        <h3 class="receipt-modal-title">Scaricare la ricevuta di riconsegna?</h3>
-        <p class="receipt-modal-text">
-          La riconsegna e stata registrata correttamente. Vuoi scaricare ora il PDF della ricevuta?
-        </p>
-        <div class="receipt-modal-actions">
-          <app-button variant="secondary" type="button" (pressed)="closeReturnReceiptPrompt()">
-            Non ora
-          </app-button>
-          <app-button variant="primary" type="button" (pressed)="downloadReturnReceipt()">
-            Scarica PDF
-          </app-button>
-        </div>
+      <div class="receipt-modal-card assignment-receipt-modal" (click)="$event.stopPropagation()">
+        @if (pendingReturnReceipt(); as receipt) {
+          <div class="assignment-receipt-success-banner" [class.error]="returnReceiptBanner().type === 'error'">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2C6.477 2 2 6.477 2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2Z" stroke="currentColor" stroke-width="2" />
+              <path d="M8 12L10.5 14.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>{{ returnReceiptBanner().message }}</span>
+          </div>
+
+          <div class="assignment-receipt-section">
+            <h3>Dettagli Asset</h3>
+            <div class="assignment-receipt-row">
+              <span class="label">Marca</span>
+              <span class="value">{{ receipt.brand || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Modello</span>
+              <span class="value">{{ receipt.model || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Numero Seriale</span>
+              <span class="value">{{ receipt.serialNumber || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="assignment-receipt-section">
+            <h3>Dettagli Assegnazione</h3>
+            <div class="assignment-receipt-row">
+              <span class="label">Utente</span>
+              <span class="value">{{ receipt.userName || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Data di Assegnazione</span>
+              <span class="value">{{ formatReceiptPromptDateShort(receipt.assignmentDate) }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Data di Riconsegna</span>
+              <span class="value">{{ formatReceiptPromptDateShort(receipt.returnDate) }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Note di Riconsegna</span>
+              <span class="value">{{ receipt.returnNotes || 'Nessuna nota' }}</span>
+            </div>
+          </div>
+
+          <div class="assignment-receipt-actions receipt-modal-footer">
+            <button type="button" class="assignment-close-btn" (click)="closeReturnReceiptPrompt()">
+              Chiudi
+            </button>
+            <button type="button" class="assignment-print-btn" (click)="downloadReturnReceipt()">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 8V3H17V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <rect x="5" y="14" width="14" height="7" stroke="currentColor" stroke-width="2" rx="1" />
+                <path d="M5 10H19C20.105 10 21 10.895 21 12V14H3V12C3 10.895 3.895 10 5 10Z" stroke="currentColor" stroke-width="2" />
+                <circle cx="17" cy="12" r="1" fill="currentColor" />
+              </svg>
+              Stampa Ricevuta
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
 
   @if (showDismissReceiptPrompt()) {
     <div class="receipt-modal-overlay" (click)="closeDismissReceiptPrompt()">
-      <div class="receipt-modal-card" (click)="$event.stopPropagation()">
-        <h3 class="receipt-modal-title">Scaricare il verbale di dismissione?</h3>
-        <p class="receipt-modal-text">
-          La dismissione e stata registrata correttamente. Vuoi scaricare ora il PDF del verbale?
-        </p>
-        <div class="receipt-modal-actions">
-          <app-button variant="secondary" type="button" (pressed)="closeDismissReceiptPrompt()">
-            Non ora
-          </app-button>
-          <app-button variant="primary" type="button" (pressed)="downloadDismissReceipt()">
-            Scarica PDF
-          </app-button>
-        </div>
+      <div class="receipt-modal-card assignment-receipt-modal" (click)="$event.stopPropagation()">
+        @if (pendingDismissReceipt(); as receipt) {
+          <div class="assignment-receipt-success-banner" [class.error]="dismissReceiptBanner().type === 'error'">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2C6.477 2 2 6.477 2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2Z" stroke="currentColor" stroke-width="2" />
+              <path d="M8 12L10.5 14.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>{{ dismissReceiptBanner().message }}</span>
+          </div>
+
+          <div class="assignment-receipt-section">
+            <h3>Dettagli Asset</h3>
+            <div class="assignment-receipt-row">
+              <span class="label">Marca</span>
+              <span class="value">{{ receipt.brand || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Modello</span>
+              <span class="value">{{ receipt.model || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Numero Seriale</span>
+              <span class="value">{{ receipt.serialNumber || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="assignment-receipt-section">
+            <h3>Dettagli Dismissione</h3>
+            <div class="assignment-receipt-row">
+              <span class="label">Data Dismissione</span>
+              <span class="value">{{ formatReceiptPromptDate(receipt.dismissedDate) }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Motivazione</span>
+              <span class="value">{{ receipt.dismissReason || '-' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Operatore</span>
+              <span class="value">{{ receipt.dismissedBy || 'Amministratore' }}</span>
+            </div>
+            <div class="assignment-receipt-row">
+              <span class="label">Note</span>
+              <span class="value">{{ receipt.dismissNotes || 'Nessuna nota' }}</span>
+            </div>
+          </div>
+
+          <div class="assignment-receipt-actions">
+            <button type="button" class="assignment-close-btn" (click)="closeDismissReceiptPrompt()">
+              Chiudi
+            </button>
+            <button type="button" class="assignment-print-btn" (click)="downloadDismissReceipt()">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 8V3H17V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <rect x="5" y="14" width="14" height="7" stroke="currentColor" stroke-width="2" rx="1" />
+                <path d="M5 10H19C20.105 10 21 10.895 21 12V14H3V12C3 10.895 3.895 10 5 10Z" stroke="currentColor" stroke-width="2" />
+                <circle cx="17" cy="12" r="1" fill="currentColor" />
+              </svg>
+              Stampa Ricevuta
+            </button>
+          </div>
+        }
       </div>
     </div>
   }

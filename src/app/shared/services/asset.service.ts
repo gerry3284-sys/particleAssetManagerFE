@@ -58,12 +58,12 @@ export interface AssetMovementApi {
   receipt?: string | null;
   receiptBase64?: string | null;
   receiptAvailable?: boolean | null;
-  user: {
+  user?: {
     id: number;
     name: string;
     surname: string;
     email: string;
-  };
+  } | null;
 }
 
 @Injectable({
@@ -259,12 +259,14 @@ export class AssetService {
     const movementType = this.normalizeMovementType(item.movementType);
     const receiptAvailable = this.parseReceiptAvailability(item);
     const movementCode = this.resolveMovementCode(item);
+    const userName = `${item.user?.name ?? ''} ${item.user?.surname ?? ''}`.trim();
+    const userId = item.user?.id;
 
     return {
       id: movementCode,
       date: new Date(item.date).toLocaleDateString(),
-      user: `${item.user.name} ${item.user.surname}`,
-      userId: String(item.user.id),
+      user: userName || 'Amministratore',
+      userId: Number.isFinite(userId) ? String(userId) : '',
       movementType,
       movementLabel: this.getMovementLabel(movementType),
       note: sanitizedNote ? sanitizedNote : undefined,
