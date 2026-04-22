@@ -51,6 +51,13 @@
     </div>
 
     <!-- Righe dinamiche -->
+     @if(paginatedBusinessUnit().length === 0){
+        <div class="business-row-empty">
+            <div style="color:#b4abb9">
+              E possibile che la combinazione di filtri inserita non abbia attuali business unit
+            </div>
+        </div>
+      }
     @if(isVisible()){
       @for(businessUnit of paginatedBusinessUnit(); track businessUnit.code){
         @if(businessUnit.active){
@@ -58,17 +65,18 @@
             <div>{{ businessUnit.name }}</div>
             <div class="btn-position" style="gap: 4rem">
               <app-button variant="secondary"type="button" (click)="OnOpenDialog(businessUnit)">Modifica</app-button>
-              <button class="btn-business" (click)="changeStatus(businessUnit)">Disattiva</button>
+              <button class="btn-business" (click)="changeStatus(businessUnit)" style="width: 80px;">Disattiva</button>
             </div>
           </div>
         }
         @else{
           <div class="business-row" style="color: #9CA3AF;">
             <div>{{ businessUnit.name }}</div>
-            <div class="btn-position" style="gap: 5.065rem">
+            <div class="btn-position" style="gap: 4rem">
               <app-button variant="secondary"type="button" (click)="OnOpenDialog(businessUnit)">Modifica</app-button>
               <button class="btn-business"
                 style="
+                  width: 80px;
                   background-color: #F3F4F6; 
                   border-color: #F3F4F6; 
                   box-shadow: 0 6px 14px rgba(113, 113, 113, 0.2);
@@ -99,7 +107,7 @@
   </div> 
 
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
-  <dialog #myDialog class="popup-window" (click)="onDialogBackdropClick($event)">
+  <dialog #myDialog class="popup-window" (click)="onDialogBackdropClick()">
     <div class="business-unit-modal" (click)="$event.stopPropagation()">
       <div class="business-unit-modal-header">
         <div class="business-unit-modal-icon" aria-hidden="true">i</div>
@@ -127,13 +135,13 @@
 
       <div class="business-unit-modal-actions">
         <app-button type="button" variant="secondary" (pressed)="onCloseDialog()">Annulla</app-button>
-        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onAlertDialogOpen()">Conferma</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onAlertDialogOpen()">Salva modifiche</app-button>
       </div>
     </div>
   </dialog>
 
   <!-- finestra di dialogo per aggiungere una nuova business unit -->
-  <dialog #newDialog class="popup-window" (click)="onNewDialogBackdropClick($event)">
+  <dialog #newDialog class="popup-window" (click)="onNewDialogBackdropClick()">
     <div class="business-unit-modal"(click)="$event.stopPropagation()">
       <div class="business-unit-modal-header">
         <div class="business-unit-modal-icon" aria-hidden="true">i</div>

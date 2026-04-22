@@ -18,22 +18,23 @@ export class AssetTypeList {
   editableAssetType: AssetType | null = null;
   filteredAssetType = signal<AssetType[]>([]);
   reload$ = new Subject<boolean>();
+  filterTimeout: ReturnType<typeof setTimeout> | null = null;
   // selectedAssetType: AssetType|null = null;
 
   initialName = '';
   filterName= '';
   controlName = '';
 
-  HDCheck = false;
-  filterHD = false;
-  controlHD = false;
+  storageCheck = false;
+  filterStorage = false;
+  controlStorage = false;
 
   RamCheck = false;
   filterRam = false;
   controlRam = false;
 
-  disactiveHDandRam = false;
-  // activateHDandRam = false;
+  disactiveStorageandRam = false;
+  // activateStorageandRam = false;
 
   errorTimeout: any = null;
   specifiedError = signal(false);
@@ -124,11 +125,11 @@ export class AssetTypeList {
   OnOpenDialog(assetType: AssetType){
     this.editableAssetType = assetType;
     this.controlName = assetType.name;
-    this.controlHD = assetType.hardDisk;
+    this.controlStorage = assetType.storage;
     this.controlRam = assetType.ram;
 
     this.initialName = assetType.name;
-    this.HDCheck = assetType.hardDisk;
+    this.storageCheck = assetType.storage;
     this.RamCheck = assetType.ram;
 
     this.dialog.nativeElement.showModal();
@@ -141,12 +142,12 @@ export class AssetTypeList {
       modifiedName = modifiedName.charAt(0).toUpperCase() + modifiedName.slice(1);
 
       this.editableAssetType.name = modifiedName;
-      this.editableAssetType.hardDisk = this.HDCheck;
+      this.editableAssetType.storage = this.storageCheck;
       this.editableAssetType.ram = this.RamCheck;
 
       const puttableAssetType = { 
         name: modifiedName,
-        hardDisk: this.editableAssetType.hardDisk, 
+        storage: this.editableAssetType.storage, 
         ram: this.editableAssetType.ram 
       };
  
@@ -167,7 +168,7 @@ export class AssetTypeList {
 
           this.alertTitle = '';
           this.controlName = '';
-          this.controlHD = false;
+          this.controlStorage = false;
           this.controlRam = false;
           this.dialog.nativeElement.close();
         },
@@ -176,7 +177,7 @@ export class AssetTypeList {
           console.error('Errore aggiornamento asset type:', err);
           this.alertTitle = '';
           this.controlName = '';
-          this.controlHD = false;
+          this.controlStorage = false;
           this.controlRam = false;
           this.dialog.nativeElement.close();
         }
@@ -187,73 +188,74 @@ export class AssetTypeList {
     this.touched = false;
     this.reloadDiv();
     this.alertTitle = '';
+    this.specifiedError.set(false);
     this.dialog.nativeElement.close();
   }
-  onDialogBackdropClick(event: MouseEvent): void {
+  onDialogBackdropClick(): void {
     this.onCloseDialog();
   }
 
   // funzione che filtra la lista di asset type
   onFilter() {
-    let filtered = this.assetTypes();
-
-    if (this.filterName !== '') {
-      const searchName = this.filterName.toLowerCase();
-      filtered = filtered.filter(asset =>
-        asset.name.toLowerCase().includes(searchName)
-      );
+    if (this.filterTimeout) {
+      clearTimeout(this.filterTimeout);
     }
 
-    // filtra solo quelli con entrambi
-    // if (this.activateHDandRam) {
-    //   filtered = filtered.filter(a => a.hardDisk && a.ram);
-    // }
+    this.filterTimeout = setTimeout(() => {
+      let filtered = this.assetTypes();
 
-    //filtra solo quando nè hard disk nè ram sono presenti
-    if (this.disactiveHDandRam) {
-      console.log(filtered);
-      filtered = filtered.filter(a => {
-        return !a.hardDisk && !a.ram;
-      });
-    }
-
-    //filtra le singole opzioni di hard disk e ram
-    else{
-      if (this.filterHD) filtered = filtered.filter(a => a.hardDisk);
-      if (this.filterRam) filtered = filtered.filter(a => a.ram);
-    }
-
-    console.log(filtered);
-    this.filteredAssetType.set(filtered);
-    this.currentPage.set(1);
+      if (this.filterName !== '') {
+        const searchName = this.filterName.toLowerCase();
+        filtered = filtered.filter(asset =>
+          asset.name.toLowerCase().includes(searchName)
+        );
+      }
+      // filtra solo quelli con entrambi
+      // if (this.activateHDandRam) {
+      //   filtered = filtered.filter(a => a.hardDisk && a.ram);
+      // }
+      //filtra solo quando nè hard disk nè ram sono presenti
+      if (this.disactiveStorageandRam) {
+        filtered = filtered.filter(a => {
+          return !a.storage && !a.ram;
+        });
+      }
+      //filtra le singole opzioni di hard disk e ram
+      else{
+        if (this.filterStorage) filtered = filtered.filter(a => a.storage);
+        if (this.filterRam) filtered = filtered.filter(a => a.ram);
+      }
+      
+      this.filteredAssetType.set(filtered);
+      this.currentPage.set(1);
+    }, 500);
   }
 
 // Deseleziona tutte le altre checkbox
 onDisactiveChange() {
-  if (this.disactiveHDandRam) {
-    this.filterHD = false;
+  if (this.disactiveStorageandRam) {
+    this.filterStorage = false;
     this.filterRam = false;
-    // this.activateHDandRam = false;
+    // this.activateStorageandRam = false;
   }
   this.onFilter();
 }
 
-onHDorRamChange() {
-
-  // Se si attiva HD o Ram, disattiva "disattiva HD e Ram"
-  if (this.filterHD || this.filterRam) {
-    this.disactiveHDandRam = false;
-    // this.activateHDandRam = false;
+onStorageorRamChange() {
+  // Se si attiva Storage o Ram, disattiva "disattiva Storage e Ram"
+  if (this.filterStorage || this.filterRam) {
+    this.disactiveStorageandRam = false;
+    // this.activateStorageandRam = false;
   }
 
   // Se entrambi selezionati disattivali e attiva l'apposito
   // setTimeout(() => {
-  //   if (this.filterHD && this.filterRam) {
-  //     this.activateHDandRam = true;
-  //     this.filterHD = false;
+  //   if (this.filterStorage && this.filterRam) {
+  //     this.activateStorageandRam = true;
+  //     this.filterStorage = false;
   //     this.filterRam = false;
   //   } else {
-  //     this.activateHDandRam = false;
+  //     this.activateStorageandRam = false;
   //   }
   //   this.onFilter();
   // }, 0);
@@ -262,10 +264,10 @@ onHDorRamChange() {
 
 // disattiva tutte le altre checkbox quando attivo "attiva hard disk e ram"
 // onActivateBothChange() {
-//   if (this.activateHDandRam) {
-//     this.filterHD = false;
+//   if (this.activateStorageandRam) {
+//     this.filterStorage = false;
 //     this.filterRam = false;
-//     this.disactiveHDandRam = false;
+//     this.disactiveStorageandRam = false;
 //   }
 //   this.onFilter();
 // }
@@ -284,7 +286,7 @@ onHDorRamChange() {
     this.newDialog.nativeElement.showModal();
   
     this.initialName = '';
-    this.HDCheck = false;
+    this.storageCheck = false;
     this.RamCheck = false;
 
     this.alertTitle = 'Conferma la creazione di un nuovo asset Type?';
@@ -305,20 +307,22 @@ onHDorRamChange() {
 
     const postableAssetType = { 
       name: createdName,
-      hardDisk: this.HDCheck,
-      ram: this.RamCheck
+      storage: this.storageCheck,
+      ram: this.RamCheck,
     };
+    console.log(postableAssetType);
     this.apiService.postAssetType(postableAssetType)
     .subscribe({
       next: (createdAssetType) => {
-        const updatedList = [...this.assetTypes(), createdAssetType];
+        const newAssetType = { ...createdAssetType, active: true };
+        const updatedList = [...this.assetTypes(), newAssetType];
         this.assetTypes.set(updatedList);
 
-        this.filteredAssetType.set([...this.filteredAssetType(), createdAssetType]);
+        this.filteredAssetType.set([...this.filteredAssetType(), newAssetType]);
         // this.onFilter();
 
         this.initialName = '';
-        this.HDCheck = false;
+        this.storageCheck = false;
         this.RamCheck = false;
         this.alertTitle = '';
 
@@ -338,13 +342,14 @@ onHDorRamChange() {
   onCloseNewDialog(){
     this.touched = false;
     this.initialName = '';
-    this.HDCheck = false;
+    this.storageCheck = false;
     this.RamCheck = false;
     this.alertTitle = '';
+    this.specifiedError.set(false);
     
     this.newDialog.nativeElement.close();
   }
-  onNewDialogBackdropClick(event: MouseEvent): void {
+  onNewDialogBackdropClick(): void {
     this.onCloseNewDialog();
   }
 
@@ -352,7 +357,7 @@ onHDorRamChange() {
   isInvalid(): boolean {
     return !(this.initialName.length >= 2 && (
       this.controlRepeatedName(this.initialName.trim()) ||
-      this.HDCheck !== this.controlHD ||
+      this.storageCheck !== this.controlStorage ||
       this.RamCheck !== this.controlRam
     ));
   }

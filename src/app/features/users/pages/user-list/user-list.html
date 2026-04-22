@@ -12,12 +12,12 @@
       <div class="filter-item">
         <label class="filter-label">Nome</label>
         <input type="text" class="filter-control" name="nome" 
-        placeholder="Cerca per nome..." 
+        placeholder="Cerca per nome..." style="max-width: 302.4px; max-height: 31.2px;"
         [(ngModel)]="initialName" (ngModelChange)="onFilter()">
       </div>
       <div class="filter-item">
         <label class="filter-label">Business Unit</label>
-        <select class="filter-control" [(ngModel)]="filterBU">
+        <select class="filter-control" [(ngModel)]="filterBU" style="max-width: 302.4px; max-height: 39.2px;">
           <option value="">Tutte le categorie</option>
           @for(businessUnit of businessUnits(); track businessUnit.id)
           {
@@ -27,6 +27,7 @@
           }
         </select>
       </div>
+      <div></div>
     </div>
   </div>
   @if(loading()){
@@ -53,7 +54,7 @@
         @for(user of paginatedUser(); track user.id)
         {
           @if(user.userType !== 'ADMIN'){
-            <tr class="user-row">
+            <tr class="user-row" (click)="onNavigate(user.id)" style="cursor: pointer;">
               <td>{{user.name}} {{user.surname}}</td>
               <td>{{user.email}}</td>
               <td>{{user.businessUnit.name}}</td>

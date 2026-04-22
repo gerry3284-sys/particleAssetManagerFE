@@ -8,6 +8,7 @@ import { BusinessUnit } from '../../../../shared/services/business-unit.service'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FilterValues } from '../../../../shared/models/filter-config.interface';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-list',
@@ -39,7 +40,10 @@ export class UserList{
   filterBU = '';
 
   // costruttore con tutti i get
-  constructor(private apiService: ApiService, private readonly popupMessageService: PopupMessageService) {
+  constructor(private apiService: ApiService,
+    private readonly popupMessageService: PopupMessageService,
+    private router: Router
+  ){
     const subscription = forkJoin({
       users: this.apiService.getUsers(),
       businessUnits: this.apiService.getBusinessUnits()
@@ -111,12 +115,22 @@ export class UserList{
     let filtered = this.users();
 
     if (this.initialName !== '') {
-      const search = this.initialName.toLowerCase();
-      filtered = filtered.filter(user =>
-        user.name?.toLowerCase().includes(search) || user.surname.toLowerCase().includes(search)
-      );
+      const trimmedName = this.initialName.trim();
+      if(trimmedName.includes(' ')){
+        const [name1, name2] = this.initialName.split(' ').map(part => part.toLowerCase());
+        console.log("dddd" + name1 + "ddddd","dddd" + name2 + "ddddd");
+        filtered = filtered.filter(user =>
+          user.name?.toLowerCase().includes(name1) || user.surname.toLowerCase().includes(name1) &&
+          user.surname.toLowerCase().includes(name2)
+        );
+      }
+      else {
+        const search = trimmedName.toLowerCase();
+        filtered = filtered.filter(user =>
+          user.name?.toLowerCase().includes(search) || user.surname.toLowerCase().includes(search)
+        );
+      }
     }
-
     if (this.filterBU !== '') {
       filtered = filtered.filter(user => {
         if(user.businessUnit === null) {
@@ -127,5 +141,9 @@ export class UserList{
     }
 
     this.usersFiltered.set(filtered);
+    this.currentPage.set(1);
+  }
+  onNavigate(userId: number){
+    this.router.navigate(['/users/user-detail', userId]);
   }
 }

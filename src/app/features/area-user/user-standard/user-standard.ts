@@ -1,28 +1,42 @@
  import { Component, computed, DestroyRef, ElementRef, inject, signal, ViewChild } from '@angular/core';
+ import { FormsModule } from "@angular/forms";
  import { ActivatedRoute, Router } from "@angular/router";
 import { ApiService } from '../../../services/api';
 import { User, MovementByuserID } from '../../../models/user.model';
 import { DatePipe } from '@angular/common';
-import { forkJoin, Subject } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { ButtonComponent } from "../../../shared/components/button/button";
 import { PopupMessageService } from '../../../shared/services/popup-message.service';
 import { AssetType } from '../../../shared/services/asset-type.service';
+// import { AssetStatusType } from '../../../shared/models/filter-config.interface';
+import { FilterService } from '../../../shared/services/filter.service';
+import { Asset } from '../../../shared/models/asset.interface';
+import { AssetService } from '../../../shared/services/asset.service';
+import { request } from 'http';
 
 @Component({
   selector: 'app-user-standard',
-  imports: [DatePipe, PaginationComponent, ButtonComponent],
+  imports: [DatePipe, PaginationComponent, ButtonComponent, FormsModule],
   templateUrl: './user-standard.html',
   styleUrl: './user-standard.css',
 })
 export class UserStandard{
   private destroyRef = inject(DestroyRef);
   user = signal<User | null>(null);
-  users = signal<User[]>([]);
+  // users = signal<User[]>([]);
+  // assetStatusTypes = signal<AssetStatusType[]>([]);
   assetTypes = signal<AssetType[]>([]);
   movements = signal<MovementByuserID[]>([]);
+  assets = signal<Asset[]>([]);
   unmergedMovement: MovementByuserID[] = ([]);
   downloadableMovement: MovementByuserID|null = null;
+
+
+  controlRequest = signal<string>('');
+  requestNotes = signal<string>('');
+  requestType = signal<string>('');
+  requestAsset = signal<string>('');
 
   @ViewChild('myDialog') dialog!: ElementRef<HTMLDialogElement>;
   @ViewChild('askDialog') askDialog!: ElementRef<HTMLDialogElement>;
@@ -53,14 +67,19 @@ export class UserStandard{
     const user = this.user();
     if (!user) return '-';
     return `${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
-    
+  });
+  assigneedAssets = computed(() => {
+    const user = this.user();
+    if (!user) return [];
+    return this.assets().filter(asset => asset.assignedUser === user.name);
   });
 
   //request per prendere tutte le info
   constructor(private apiService: ApiService,
     private route: ActivatedRoute,
     private router: Router,
-    private readonly popupMessageService: PopupMessageService
+    private readonly popupMessageService: PopupMessageService,
+    private assetService: AssetService
   ) {
   const id = this.route.snapshot.paramMap.get('id');
 
@@ -71,13 +90,13 @@ export class UserStandard{
 
   const subscription = forkJoin({
     user: this.apiService.getUsersById(+id),
-    users: this.apiService.getUsers(),
+    // assetStatusType: this.filterService.getAssetStatusTypes(false),
     assetType: this.apiService.getAssetTypes(),
     movements: this.apiService.getMovementByUserId(+id),
   }).subscribe({
-    next: ({ user, users, assetType, movements }) => {
+    next: ({ user, assetType, movements }) => {
       this.user.set(user ?? {});
-      this.users.set(users ?? []);
+      // this.assetStatusTypes.set(assetStatusType ?? []);
       this.assetTypes.set(assetType ?? []);
       this.movements.set(movements ?? []);
       this.unmergedMovement = movements;
@@ -98,7 +117,7 @@ export class UserStandard{
         console.error('API error', err);
       }
       this.user.set(null);
-      this.users.set([]);
+      // this.assetStatusTypes.set([]);
       this.assetTypes.set([]);
       this.movements.set([]);
       this.unmergedMovement = [];
@@ -106,6 +125,22 @@ export class UserStandard{
   });
   
   this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
+
+  //request per ottenere asset
+  ngOnInit(): void {
+    const subscription = this.assetService.getAssets().subscribe({
+      next: (data) => {
+        this.assets.set(data ?? []);
+      },
+      error: (err) => {
+        this.popupMessageService.error('Errore nel caricamento degli asset');
+        console.error('Errore nel caricamento degli asset', err);
+        this.assets.set([]);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   //flippa i movement per avere il più recente prima e il più lontano dopo
@@ -195,10 +230,29 @@ export class UserStandard{
     this.askDialog.nativeElement.showModal();
   }
   onCloseAskDialog(){
+    this.controlRequest.set('');
+    this.requestNotes.set('');
+    this.requestType.set('');
+    this.requestAsset.set('');
+    
     this.askDialog.nativeElement.close();
   }
-  onAskDialogBackdropClick(event: MouseEvent): void {
+  onAskDialogBackdropClick(){
     this.onCloseAskDialog();
+  }
+  isInvalid(): boolean {
+    if(this.controlRequest() !==''){
+      if(this.controlRequest() === 'ASSEGNAZIONE'){
+        if(this.requestType() === '' || this.requestNotes() === '') return true;
+        return false;
+      }
+      else if(this.controlRequest() === 'DISMISSIONE' || this.controlRequest() === 'RIPARAZIONE'){
+        if(this.requestAsset() === '' || this.requestNotes() === '') return true;
+        return false;
+      }
+      else return true;
+    }
+    else {return true};
   }
   // controlReturnedId(){
   //   const returned = computed(() => this.sortedUnmergedMovements().find(movement =>
@@ -212,6 +266,10 @@ export class UserStandard{
   //   return !(this.downloadableMovement?.updateDate !== undefined);
   // }
   //Richiama il login e fa uscire da pagina di user
+  onsendRequest(){
+    console.log('Request type:', this.controlRequest(), 'Request notes:', this.requestNotes(), 'Request asset type:', this.requestType(), 'Request asset:', this.requestAsset());
+    this.askDialog.nativeElement.close();
+  }
   onLogout() {
     this.router.navigate(['/login']);
   }

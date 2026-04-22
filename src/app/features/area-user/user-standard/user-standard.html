@@ -149,39 +149,38 @@
                 }
                 @else {<li>Data di riconsegna: {{downloadableMovement?.updateDate | date: 'dd/MM/yyyy'}}</li>} -->
             </ul>
-            <div>
-                @if(downloadableMovement?.movementType === 'ASSIGNED'){
-                    <app-button type="button" variant="secondary" style="margin: 0.5rem;" 
-                    (pressed)="onDownloadPDF(downloadableMovement?.asset?.code, downloadableMovement?.code)
-                    ">
-                        Scarica ricevuta di assegnazione
-                    </app-button> 
-                }
-                @else {
-                    <app-button type="button" variant="secondary" style="margin: 0.5rem;" 
-                    (pressed)="onDownloadPDF(downloadableMovement?.asset?.code, downloadableMovement?.code)
-                    ">
-                        Scarica ricevuta di riconsegna
-                    </app-button>
-                }
+
                 <!-- <app-button type="button" variant="secondary" style="margin: 0.5rem;" 
                  [disabled]="controlReturnedDate()" 
                  (pressed)="controlReturnedId()
                 ">
                     Scarica ricevuta di riconsegna
                 </app-button> -->
-            </div>
         </div>
       </div>
 
       <div class="asset-type-modal-actions">
+        @if(downloadableMovement?.movementType === 'ASSIGNED'){
+            <app-button type="button" variant="secondary"
+            (pressed)="onDownloadPDF(downloadableMovement?.asset?.code, downloadableMovement?.code)
+            ">
+                Scarica ricevuta di assegnazione
+            </app-button> 
+        }
+        @else {
+            <app-button type="button" variant="secondary"
+            (pressed)="onDownloadPDF(downloadableMovement?.asset?.code, downloadableMovement?.code)
+            ">
+                Scarica ricevuta di riconsegna
+            </app-button>
+        }
         <app-button type="button" variant="primary" (pressed)="onClosePDFDialog()">Annulla</app-button>
       </div>
     </div>
   </dialog>
 
   <!-- finestra di dialogo per mandare una richiesta di asset ad un utente admin-->
-  <dialog #askDialog class="popup-window" (click)="onAskDialogBackdropClick($event)">
+  <dialog #askDialog class="popup-window" (click)="onAskDialogBackdropClick()">
     <div class="asset-type-modal" (click)="$event.stopPropagation()">
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
@@ -195,36 +194,50 @@
 
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
-            <label class="ask-control label">Inserire il nome dello user a qui è indirizzato: </label>
-            <select class="ask-control select" aria-placeholder="Seleziona un utente">
-          @for(user of users(); track user.id)
-          {
-            @if(user.userType === 'ADMIN'){
-              <option [value]="user.name"> {{user.name}} </option>
-            }
-          }
+            <label class="ask-control label">Selezionare lo stato richiesto per l'asset: </label>
+            <select class="ask-control select" [(ngModel)]="controlRequest">
+                <option>ASSEGNAZIONE</option>
+                <option>DISMISSIONE</option>
+                <option>RIPARAZIONE</option>
             </select>
             
-            <label class="ask-control label">Inserire la tipologia di asset: </label>
-            <select class="ask-control select" aria-placeholder="Seleziona una tipologia">
-            @for(assetType of assetTypes(); track assetType.code)
-            {
-                <option [value]="assetType.name"> {{assetType.name}} </option>
+            @if(controlRequest() === 'ASSEGNAZIONE'){
+                <label class="ask-control label">Inserire la tipologia di asset: </label>
+                    <select class="ask-control select" [(ngModel)]="requestType">
+                    @for(assetType of assetTypes(); track assetType.code)
+                    {
+                        <option [value]="assetType.name"> {{assetType.name}} </option>
+                    }
+                    </select>
             }
-            </select>
+            @else {
+                @if(controlRequest() === 'DISMISSIONE' || controlRequest() === 'RIPARAZIONE'){
+                    <label class="ask-control label">Selezionare l'asset: </label>
+                    <select class="ask-control select" [(ngModel)]="requestAsset">
+                        @if(assigneedAssets().length === 0){
+                            <option value="" disabled>Non hai asset assegnati</option>
+                        }
+                        @else{
+                            @for(asset of assets(); track asset.assetCode){
+                                <option [value]="asset.assetCode"> {{asset.brand}} {{asset.model}} ({{asset.serialNumber}}) </option>
+                            }
+                        }
+                    </select>
+                }
+            }
             <label class="ask-control label">Motivazione della richiesta: </label>
             <textarea
               id="notes"
               class="ask-control textarea"
               rows="4"
               placeholder="Inserisci qui la motivazione della tua richiesta..."
-              formControlName="notes"></textarea>
+              [(ngModel)]="requestNotes"></textarea>
         </div>
       </div>
 
       <div class="asset-type-modal-actions">
         <app-button type="button" variant="secondary" (pressed)="onCloseAskDialog()">Annulla</app-button>
-        <app-button type="button" variant="primary">Manda richiesta</app-button>
+        <app-button type="button" variant="primary" [disabled]="isInvalid()" (pressed)="onsendRequest()">Manda richiesta</app-button>
       </div>
     </div>
   </dialog>
