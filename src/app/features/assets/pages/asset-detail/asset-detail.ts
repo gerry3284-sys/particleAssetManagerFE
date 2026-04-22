@@ -16,7 +16,11 @@ import { DismissReceiptPdfData, DismissReceiptPdfService } from '../../../../sha
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonComponent } from '../../../../shared/components/button/button';
 import { FilterService } from '../../../../shared/services/filter.service';
-import { AssetType as FilterAssetType, BusinessUnit as FilterBusinessUnit } from '../../../../shared/models/filter-config.interface';
+import {
+  AssetType as FilterAssetType,
+  BusinessUnit as FilterBusinessUnit,
+  AssetStatusType
+} from '../../../../shared/models/filter-config.interface';
 
 type ReceiptBannerState = {
   type: 'success' | 'error';
@@ -57,6 +61,8 @@ export class AssetDetailComponent implements OnInit {
   showEditAssetModal = signal<boolean>(false);
   showEditConfirmModal = signal<boolean>(false);
   savingEditAsset = signal<boolean>(false);
+  settingMaintenanceStatus = signal<boolean>(false);
+  settingAvailableStatus = signal<boolean>(false);
   loadingEditOptions = signal<boolean>(false);
   pendingAssetEditPayload = signal<PendingAssetEditPayload | null>(null);
   pendingAssignmentReceipt = signal<AssignmentReceiptPdfData | null>(null);
@@ -98,6 +104,8 @@ export class AssetDetailComponent implements OnInit {
   canAssign = computed(() => this.asset()?.status === 'Available');
   canCertifyReturn = computed(() => this.asset()?.status === 'Assigned');
   canDismiss = computed(() => this.asset()?.status === 'Available');
+  canSetMaintenance = computed(() => this.asset()?.status === 'Available');
+  canSetAvailable = computed(() => this.asset()?.status === 'UnderMaintenance');
   canEditAsset = computed(() => {
     const status = this.asset()?.status;
     return status !== 'Assigned' && status !== 'Dismissed';
@@ -735,6 +743,118 @@ export class AssetDetailComponent implements OnInit {
     this.showDismissModal.set(true);
   }
 
+  markAsMaintenance(): void {
+    const current = this.asset();
+    if (!current || !this.canSetMaintenance()) {
+      return;
+    }
+
+    this.settingMaintenanceStatus.set(true);
+
+    this.filterService.getAssetStatusTypes(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: statusTypes => {
+          const maintenanceStatusCode = this.resolveMaintenanceStatusCode(statusTypes);
+          if (!maintenanceStatusCode) {
+            this.popupMessageService.error('Stato Manutenzione non configurato correttamente');
+            this.settingMaintenanceStatus.set(false);
+            return;
+          }
+
+          this.assetService.updateAssetStatus(current.assetCode, maintenanceStatusCode)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('Asset impostato in manutenzione');
+                this.loadAssetDetail(this.assetId());
+                this.settingMaintenanceStatus.set(false);
+              },
+              error: err => {
+                console.error('Errore aggiornamento stato a Manutenzione:', err);
+                this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
+                this.settingMaintenanceStatus.set(false);
+              }
+            });
+        },
+        error: err => {
+          console.error('Errore caricamento stati asset:', err);
+          this.popupMessageService.error('Impossibile verificare gli stati asset');
+          this.settingMaintenanceStatus.set(false);
+        }
+      });
+  }
+
+  markAsAvailable(): void {
+    const current = this.asset();
+    if (!current || !this.canSetAvailable()) {
+      return;
+    }
+
+    this.settingAvailableStatus.set(true);
+
+    this.filterService.getAssetStatusTypes(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: statusTypes => {
+          const availableStatusCode = this.resolveAvailableStatusCode(statusTypes);
+          if (!availableStatusCode) {
+            this.popupMessageService.error('Stato Disponibile non configurato correttamente');
+            this.settingAvailableStatus.set(false);
+            return;
+          }
+
+          this.assetService.updateAssetStatus(current.assetCode, availableStatusCode)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('Asset impostato come Disponibile');
+                this.loadAssetDetail(this.assetId());
+                this.settingAvailableStatus.set(false);
+              },
+              error: err => {
+                console.error('Errore aggiornamento stato a Disponibile:', err);
+                this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
+                this.settingAvailableStatus.set(false);
+              }
+            });
+        },
+        error: err => {
+          console.error('Errore caricamento stati asset:', err);
+          this.popupMessageService.error('Impossibile verificare gli stati asset');
+          this.settingAvailableStatus.set(false);
+        }
+      });
+  }
+
+  private resolveAvailableStatusCode(statusTypes: AssetStatusType[]): string {
+    const availableStatus = statusTypes.find(status => {
+      const normalizedCode = (status.code ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const normalizedName = (status.name ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      return normalizedCode.startsWith('AV')
+        || normalizedName.includes('AVAIL')
+        || normalizedName.includes('DISPONIBIL');
+    });
+
+    return (availableStatus?.code ?? '').trim();
+  }
+
+  private resolveMaintenanceStatusCode(statusTypes: AssetStatusType[]): string {
+    const maintenanceStatus = statusTypes.find(status => {
+      const normalizedCode = (status.code ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const normalizedName = (status.name ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      return normalizedCode.startsWith('UM')
+        || normalizedCode.startsWith('MA')
+        || normalizedName.includes('UNDERMAINT')
+        || normalizedName.includes('MAINTEN')
+        || normalizedName.includes('MANUTEN');
+    });
+
+    return (maintenanceStatus?.code ?? '').trim();
+  }
+
   closeDismissModal(): void {
     this.showDismissModal.set(false);
   }
@@ -963,6 +1083,7 @@ export class AssetDetailComponent implements OnInit {
     switch (status) {
       case 'Assigned': return 'status-assigned';
       case 'Available': return 'status-available';
+      case 'UnderMaintenance': return 'status-under-maintenance';
       case 'Dismissed': return 'status-dismissed';
       case 'Unavailable': return 'status-unavailable';
       default: return '';

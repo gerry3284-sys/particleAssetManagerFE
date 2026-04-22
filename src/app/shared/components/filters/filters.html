@@ -22,15 +22,17 @@
       ></app-dropdown>
     </div>
 
-    <!-- Stato Asset -->
-    <div class="filter-item">
-      <label class="filter-label" for="status">Stato Asset</label>
-      <app-dropdown
-        formControlName="status"
-        [options]="statusOptions()"
-        placeholder="Tutti gli stati"
-      ></app-dropdown>
-    </div>
+    @if (showStatus()) {
+      <!-- Stato Asset -->
+      <div class="filter-item">
+        <label class="filter-label" for="status">Stato Asset</label>
+        <app-dropdown
+          formControlName="status"
+          [options]="statusOptions()"
+          placeholder="Tutti gli stati"
+        ></app-dropdown>
+      </div>
+    }
     }
 
     <!-- Nome Assegnatario (input con debounce) -->

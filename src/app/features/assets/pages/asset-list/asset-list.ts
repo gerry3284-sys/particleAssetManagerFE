@@ -1,13 +1,13 @@
 // asset-list.component.ts
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
 import { FiltersComponent } from '../../../../shared/components/filters/filters'; // ← AGGIUNGI
 import { FilterValues } from '../../../../shared/models/filter-config.interface'; // ← AGGIUNGI
 import { AssetService } from '../../../../shared/services/asset.service'; // ← AGGIUNGI
-import { Asset } from '../../../../shared/models/asset.interface';
+import { Asset, UnderMaintenanceAsset } from '../../../../shared/models/asset.interface';
 import { ButtonComponent } from '../../../../shared/components/button/button';
 
 
@@ -25,6 +25,15 @@ import { ButtonComponent } from '../../../../shared/components/button/button';
   styleUrl: './asset-list.css'
 })
 export class AssetListComponent implements OnInit {
+    maintenanceOnly = signal(false);
+
+    pageTitle = computed(() => this.maintenanceOnly() ? 'Asset in manutenzione' : 'Gestione asset');
+    pageSubtitle = computed(() =>
+      this.maintenanceOnly()
+        ? 'Visualizza tutti gli asset attualmente in manutenzione.'
+        : 'Visualizza e gestisci tutti gli asset aziendali.'
+    );
+    showCreateButton = computed(() => !this.maintenanceOnly());
   
   
   
@@ -34,11 +43,16 @@ export class AssetListComponent implements OnInit {
 
   // Assets (signal)
  allAssets = signal<Asset[]>([]);
+ maintenanceAssets = signal<UnderMaintenanceAsset[]>([]);
  loading = signal(true);
  error = signal<string | null>(null); // segnala eventuali errori
 
   // Assets filtrati in base ai filtri correnti
   filteredAssets = computed(() => {
+  if (this.maintenanceOnly()) {
+    return [] as Asset[];
+  }
+
   const filters = this.currentFilters();
   let assets = this.allAssets();
 
@@ -55,7 +69,10 @@ export class AssetListComponent implements OnInit {
 
   // Filtra per Status
   if (filters.status) {
-    assets = assets.filter(a => a.status === filters.status);
+    const normalizedFilterStatus = this.normalizeStatus(filters.status);
+    if (normalizedFilterStatus) {
+      assets = assets.filter(a => a.status === normalizedFilterStatus);
+    }
   }
 
   // Filtra per Nome assegnatario (ricerca parziale)
@@ -69,6 +86,14 @@ export class AssetListComponent implements OnInit {
   return assets;
 });
 
+  filteredMaintenanceAssets = computed(() => {
+    if (!this.maintenanceOnly()) {
+      return [] as UnderMaintenanceAsset[];
+    }
+
+    return this.maintenanceAssets();
+  });
+
 
   // Paginazione
   currentPage = signal(1);
@@ -76,39 +101,90 @@ export class AssetListComponent implements OnInit {
 
   //calcolo pagine da mostrare in base a assets totali 
   totalPages = computed(() => {
-    return Math.ceil(this.filteredAssets().length / this.itemsPerPage());
+    const totalItems = this.maintenanceOnly()
+      ? this.filteredMaintenanceAssets().length
+      : this.filteredAssets().length;
+    return Math.ceil(totalItems / this.itemsPerPage());
   });
 
   //restituisce solo  assets da di quella pagina  corrente
   paginatedAssets = computed(() => {
+    if (this.maintenanceOnly()) {
+      return [] as Asset[];
+    }
+
     const start = (this.currentPage() - 1) * this.itemsPerPage(); // indice iniziale della pagina
     const end = start + this.itemsPerPage(); // indice finale (escluso)
     return this.filteredAssets().slice(start, end);
   });
 
+  paginatedMaintenanceAssets = computed(() => {
+    if (!this.maintenanceOnly()) {
+      return [] as UnderMaintenanceAsset[];
+    }
+
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return this.filteredMaintenanceAssets().slice(start, end);
+  });
+
   //scritta che mosta range di assets mostrati e totale asset 
   displayRange = computed(() => {
+    const totalItems = this.maintenanceOnly()
+      ? this.filteredMaintenanceAssets().length
+      : this.filteredAssets().length;
+
+    if (!totalItems) {
+      return 'Mostrando 0-0 di 0';
+    }
+
     const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
-    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.filteredAssets().length);
-    return `Mostrando ${start}-${end} di ${this.filteredAssets().length}`;
+    const end = Math.min(this.currentPage() * this.itemsPerPage(), totalItems);
+    return `Mostrando ${start}-${end} di ${totalItems}`;
   });
 
   constructor(
     private router: Router,
+    private readonly route: ActivatedRoute,
     private readonly assetService: AssetService
   ) {}
 
   ngOnInit(): void {
-  this.loadAssets();
-}
+    this.route.data.subscribe(data => {
+      this.maintenanceOnly.set(data['maintenanceOnly'] === true);
+      this.currentPage.set(1);
+      this.loadAssets();
+    });
+  }
+
   private loadAssets(): void {
     this.loading.set(true);
+    this.error.set(null);
+    this.currentPage.set(1);
+
+    if (this.maintenanceOnly()) {
+      this.allAssets.set([]);
+      this.assetService.getUnderMaintenanceAssets().subscribe({
+        next: assets => {
+          this.maintenanceAssets.set(assets);
+          this.loading.set(false);
+        },
+        error: err => {
+          console.error(err);
+          this.error.set('Errore nel caricamento degli asset in manutenzione');
+          this.loading.set(false);
+        }
+      });
+      return;
+    }
+
+    this.maintenanceAssets.set([]);
     this.assetService.getAssets().subscribe({
-      next: (assets) => {
+      next: assets => {
         this.allAssets.set(assets);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: err => {
         console.error(err);
         this.error.set('Errore nel caricamento degli asset');
         this.loading.set(false);
@@ -141,6 +217,42 @@ export class AssetListComponent implements OnInit {
     if (tableCard) {
       tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  }
+
+  private normalizeStatus(value: string): Asset['status'] | null {
+    const normalized = (value ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+    if (!normalized) {
+      return null;
+    }
+
+    if (normalized.startsWith('AS') || normalized.includes('ASSIGN') || normalized.includes('ASSEGN')) {
+      return 'Assigned';
+    }
+
+    if (normalized.startsWith('AV') || normalized.includes('AVAIL') || normalized.includes('DISPONIBIL')) {
+      return 'Available';
+    }
+
+    if (normalized.startsWith('DI') || normalized.includes('DISMISS') || normalized.includes('DISMESS')) {
+      return 'Dismissed';
+    }
+
+    if (
+      normalized.startsWith('UM')
+      || normalized.startsWith('MA')
+      || normalized.includes('UNDERMAINT')
+      || normalized.includes('MAINTEN')
+      || normalized.includes('MANUTEN')
+    ) {
+      return 'UnderMaintenance';
+    }
+
+    if (normalized.includes('UNAVAIL') || normalized.includes('NONDISPONIB')) {
+      return 'Unavailable';
+    }
+
+    return null;
   }
   
 }

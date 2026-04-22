@@ -116,6 +116,28 @@
   color: #B91C1C;
 }
 
+.storage-options {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  min-height: 42px;
+}
+
+.storage-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.storage-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #E56A3D;
+}
+
 /* ===================================
    FORM CONTROLS
    =================================== */

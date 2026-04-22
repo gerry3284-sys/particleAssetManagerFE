@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Asset, AssetDetail, AssetMovement } from '../models/asset.interface';
+import { Asset, AssetDetail, AssetMovement, UnderMaintenanceAsset } from '../models/asset.interface';
 
 // MODELLO BACKEND LISTA
 export interface AssetApi {
@@ -15,6 +15,17 @@ export interface AssetApi {
   businessUnit: string;
   assignmentDate: string;
   assetType?: string;
+}
+
+export interface UnderMaintenanceAssetApi {
+  brand: string;
+  model: string;
+  serialNumber: string;
+  assetCode: string;
+  assetType: string;
+  businessUnit: string;
+  returnedDate: string | null;
+  endMaintenanceDate: string | null;
 }
 
 // MODELLO BACKEND DETTAGLIO
@@ -80,6 +91,21 @@ export class AssetService {
   getAssets(): Observable<Asset[]> {
     return this.http.get<AssetApi[]>(`${this.apiUrl}/list`).pipe(
       map(data => data.map(item => this.mapAsset(item)))
+    );
+  }
+
+  getUnderMaintenanceAssets(): Observable<UnderMaintenanceAsset[]> {
+    return this.http.get<UnderMaintenanceAssetApi[]>(`${this.apiUrl}/underMaintenanceAssets`).pipe(
+      map(items => items.map(item => ({
+        brand: item.brand,
+        model: item.model,
+        serialNumber: item.serialNumber,
+        assetCode: item.assetCode,
+        assetType: item.assetType,
+        businessUnit: item.businessUnit,
+        returnedDate: this.toDisplayDate(item.returnedDate),
+        endMaintenanceDate: this.toDisplayDate(item.endMaintenanceDate)
+      })))
     );
   }
 
@@ -304,6 +330,19 @@ export class AssetService {
     return undefined;
   }
 
+  private toDisplayDate(value: string | null | undefined): string {
+    if (!value) {
+      return '-';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return '-';
+    }
+
+    return parsed.toLocaleDateString();
+  }
+
   private normalizeMovementType(type: string | null | undefined): AssetMovement['movementType'] {
     const normalized = (type ?? '').trim().toUpperCase();
 
@@ -361,6 +400,10 @@ export class AssetService {
         return 'Dismissed';
       }
 
+      if (normalized.startsWith('UM') || normalized.startsWith('MA')) {
+        return 'UnderMaintenance';
+      }
+
       // Label complete EN/IT
       if (normalized.includes('ASSIGN') || normalized.includes('ASSEGN')) {
         return 'Assigned';
@@ -373,9 +416,13 @@ export class AssetService {
       if (normalized.includes('AVAIL') || normalized.includes('DISPONIBIL')) {
         return 'Available';
       }
+
+      if (normalized.includes('UNDERMAINT') || normalized.includes('MANUTEN')) {
+        return 'UnderMaintenance';
+      }
     }
 
-    // Stati speciali (es. Under Maintenance) non consentono movimenti.
+    // Stati speciali non riconosciuti non consentono movimenti.
     return 'Unavailable';
   }
 
@@ -387,6 +434,8 @@ export class AssetService {
         return 'Disponibile';
       case 'Dismissed':
         return 'Dismesso';
+      case 'UnderMaintenance':
+        return 'In manutenzione';
       case 'Unavailable':
       default:
         return 'Non disponibile';

@@ -12,7 +12,7 @@ export interface AssetCreateForm {
 export interface Asset {
   id: string;
   assetCode: string;
-  status: 'Assigned' | 'Available' | 'Dismissed' | 'Unavailable';
+  status: 'Assigned' | 'Available' | 'Dismissed' | 'UnderMaintenance' | 'Unavailable';
   statusLabel: string;
   brand: string;
   model: string;
@@ -50,7 +50,7 @@ export interface AssetDetail {
   assignmentDate: string | null;
   returnDate: string | null;
   notes: string;
-  status: 'Assigned' | 'Available' | 'Dismissed' | 'Unavailable';
+  status: 'Assigned' | 'Available' | 'Dismissed' | 'UnderMaintenance' | 'Unavailable';
   statusLabel: string;
   assetType: string;
   assetTypeCode?: string;
@@ -63,4 +63,15 @@ export interface AssignAssetForm {
   userId: string;
   userName: string;
   notes?: string;
+}
+
+export interface UnderMaintenanceAsset {
+  brand: string;
+  model: string;
+  serialNumber: string;
+  assetCode: string;
+  assetType: string;
+  businessUnit: string;
+  returnedDate: string;
+  endMaintenanceDate: string;
 }

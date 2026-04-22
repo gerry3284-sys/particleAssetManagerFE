@@ -19,6 +19,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class FiltersComponent implements OnInit {
     mode = input<'full' | 'name-only'>('full');
+  showStatus = input(true);
     searchLabel = input('Nome Assegnatario');
     searchPlaceholder = input('Cerca per nome...');
 
@@ -94,9 +95,11 @@ export class FiltersComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(bu => this.businessUnits.set(bu));
 
-    this.filterService.getAssetStatusTypes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(status => this.assetStatusTypes.set(status));
+    if (this.showStatus()) {
+      this.filterService.getAssetStatusTypes()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(status => this.assetStatusTypes.set(status));
+    }
     }
 
     // valueChanges è un flusso lungo: NON si completa da solo.
@@ -113,7 +116,7 @@ export class FiltersComponent implements OnInit {
       : [
           this.filtersForm.controls.assetType.valueChanges,
           this.filtersForm.controls.businessUnit.valueChanges,
-          this.filtersForm.controls.status.valueChanges
+          ...(this.showStatus() ? [this.filtersForm.controls.status.valueChanges] : [])
         ];
 
     merge(debounced$, ...immediateStreams)

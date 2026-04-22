@@ -194,6 +194,30 @@
                 (pressed)="dismissAsset()">
                 Dismetti Asset
               </app-button>
+
+              @if (canSetMaintenance()) {
+                <app-button
+                  variant="secondary"
+                  type="button"
+                  [fullWidth]="true"
+                  [loading]="settingMaintenanceStatus()"
+                  loadingLabel="Aggiornamento..."
+                  (pressed)="markAsMaintenance()">
+                  Metti in manutenzione
+                </app-button>
+              }
+
+              @if (canSetAvailable()) {
+                <app-button
+                  variant="primary"
+                  type="button"
+                  [fullWidth]="true"
+                  [loading]="settingAvailableStatus()"
+                  loadingLabel="Aggiornamento..."
+                  (pressed)="markAsAvailable()">
+                  Rendi Disponibile
+                </app-button>
+              }
             </div>
           </div>
         </div>

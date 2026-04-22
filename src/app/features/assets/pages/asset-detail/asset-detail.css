@@ -156,6 +156,11 @@
   border: 1px solid #FCA5A5;
 }
 
+.status-under-maintenance {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
 .status-unavailable {
   background-color: #FEF3C7;
   color: #92400E;

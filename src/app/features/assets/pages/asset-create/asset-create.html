@@ -126,24 +126,29 @@
 
             @if (selectedAssetType()?.hardDisk) {
               <div class="form-group">
-                <label class="form-label" for="hardDiskGb">
-                  Hard Disk (GB)
+                <label class="form-label">
+                  Storage
                 </label>
-                <input
-                  type="text"
-                  id="hardDiskGb"
-                  class="form-control"
-                  placeholder="Es. 512"
-                  inputmode="numeric"
-                  pattern="[0-9]*"
-                  formControlName="hardDiskGb"
-                  required />
-                @if (assetForm.controls.hardDiskGb.touched && assetForm.controls.hardDiskGb.invalid) {
+                <div class="storage-options">
+                  <label class="storage-option">
+                    <input
+                      type="checkbox"
+                      [checked]="assetForm.controls.storageType.value === 'SSD'"
+                      (change)="toggleStorageType('SSD', $any($event.target).checked)" />
+                    <span>SSD</span>
+                  </label>
+                  <label class="storage-option">
+                    <input
+                      type="checkbox"
+                      [checked]="assetForm.controls.storageType.value === 'HDD'"
+                      (change)="toggleStorageType('HDD', $any($event.target).checked)" />
+                    <span>HDD</span>
+                  </label>
+                </div>
+                @if (assetForm.controls.storageType.touched && assetForm.controls.storageType.invalid) {
                   <div class="field-error">
-                    @if (assetForm.controls.hardDiskGb.errors?.['required']) {
-                      <span>Inserisci l'hard disk.</span>
-                    } @else if (assetForm.controls.hardDiskGb.errors?.['pattern']) {
-                      <span>Solo numeri interi.</span>
+                    @if (assetForm.controls.storageType.errors?.['required']) {
+                      <span>Seleziona il tipo di storage (SSD o HDD).</span>
                     }
                   </div>
                 }
@@ -243,8 +248,8 @@
             }
             @if (selectedAssetType()?.hardDisk) {
               <div class="summary-row">
-                <span class="summary-label">Hard Disk</span>
-                <span class="summary-value">{{ formValue().hardDiskGb }} GB</span>
+                <span class="summary-label">Storage</span>
+                <span class="summary-value">{{ formValue().storageType }}</span>
               </div>
             }
           </div>

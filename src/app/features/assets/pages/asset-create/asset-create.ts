@@ -32,7 +32,7 @@ export class AssetCreateComponent {
     businessUnit: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     notes: new FormControl('', { nonNullable: true }),
     ramGb: new FormControl('', { nonNullable: true }),
-    hardDiskGb: new FormControl('', { nonNullable: true })
+    storageType: new FormControl('', { nonNullable: true })
   });
 
   formValue = toSignal(this.assetForm.valueChanges, {
@@ -122,7 +122,7 @@ export class AssetCreateComponent {
   constructor() {
     this.assetForm.controls.assetType.valueChanges.subscribe(() => {
       this.assetForm.controls.ramGb.setValue('');
-      this.assetForm.controls.hardDiskGb.setValue('');
+      this.assetForm.controls.storageType.setValue('');
       this.updateConditionalValidators();
     });
     this.updateConditionalValidators();
@@ -155,16 +155,18 @@ export class AssetCreateComponent {
     }
 
     if (requiresHardDisk) {
-      this.assetForm.controls.hardDiskGb.setValidators([
-        Validators.required,
-        Validators.pattern('^[0-9]+$')
-      ]);
+      this.assetForm.controls.storageType.setValidators([Validators.required]);
     } else {
-      this.assetForm.controls.hardDiskGb.clearValidators();
+      this.assetForm.controls.storageType.clearValidators();
     }
 
     this.assetForm.controls.ramGb.updateValueAndValidity({ emitEvent: false });
-    this.assetForm.controls.hardDiskGb.updateValueAndValidity({ emitEvent: false });
+    this.assetForm.controls.storageType.updateValueAndValidity({ emitEvent: false });
+  }
+
+  toggleStorageType(type: 'SSD' | 'HDD', checked: boolean): void {
+    this.assetForm.controls.storageType.setValue(checked ? type : '');
+    this.assetForm.controls.storageType.markAsTouched();
   }
 
   openConfirm(): void {
@@ -208,7 +210,7 @@ export class AssetCreateComponent {
     const requiresRam = !!this.selectedAssetType()?.ram;
     const requiresHardDisk = !!this.selectedAssetType()?.hardDisk;
     const ramValue = (form.ramGb ?? '').toString().trim();
-    const hardDiskValue = (form.hardDiskGb ?? '').toString().trim();
+    const storageType = (form.storageType ?? '').toString().trim();
     const parsedRam = ramValue === '' ? 0 : Number(ramValue);
     const safeRam = Number.isFinite(parsedRam) ? parsedRam : 0;
 
@@ -217,7 +219,7 @@ export class AssetCreateComponent {
       model: form.model,
       serialNumber: form.serialNumber,
       note: form.notes ?? '',
-      hardDisk: requiresHardDisk ? hardDiskValue : '',
+      hardDisk: requiresHardDisk ? storageType : '',
       businessUnitCode: form.businessUnit,
       assetTypeCode: form.assetType,
       ram: requiresRam ? safeRam : 0
