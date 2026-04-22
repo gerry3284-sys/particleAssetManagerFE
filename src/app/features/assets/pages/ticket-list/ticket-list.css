@@ -1,0 +1,24 @@
+.ticket-page {
+	display: flex;
+	flex-direction: column;
+	padding: 1rem;
+	gap: 1.3rem;
+}
+.page-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+	font-size: 1.3rem;
+	font-weight: 600;
+	color: #1F2937;
+}
+
+.page-subtitle {
+	margin-top: 0.25rem;
+	font-size: 0.8rem;
+	color: #9CA3AF;
+}

@@ -329,6 +329,7 @@ dialog::backdrop {
 .asset-type-modal-actions {
   display: flex;
   justify-content: flex-end;
+  flex-direction: row;
   gap: 12px;
   margin-top: 20px;
 }

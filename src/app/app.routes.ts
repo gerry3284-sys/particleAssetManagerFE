@@ -12,7 +12,8 @@ import { AssetDetailComponent } from './features/assets/pages/asset-detail/asset
 import { NotFoundComponent } from './features/errors/pages/not-found/not-found';
 import { AssetTypeList } from './features/asset-type-list/asset-type-list';
 import { BusinessUnitList } from './features/business-unit/business-unit-list';
-import { AssetStatusTypeListComponent } from './features/asset-status-type-list/asset-status-type-list';
+// import { AssetStatusTypeListComponent } from './features/asset-status-type-list/asset-status-type-list';
+import { TicketList } from './features/assets/pages/ticket-list/ticket-list';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -42,9 +43,11 @@ export const routes: Routes = [
       { path: 'assets/new', component: AssetCreateComponent },
       { path: 'assets/:assetCode', component: AssetDetailComponent },
       { path: 'asset-types', component: AssetTypeList},
-      { path: 'asset-status-types', component: AssetStatusTypeListComponent },
+      // { path: 'asset-status-types', component: AssetStatusTypeListComponent },
       // BusinessUnit
       { path: 'businessUnits', component: BusinessUnitList},
+      //tickets
+      { path: 'ticket-list', component: TicketList },
       // Users
       { path: 'users', component: UserList },
       { path: 'users/user-detail/:id', component: UserDetail },

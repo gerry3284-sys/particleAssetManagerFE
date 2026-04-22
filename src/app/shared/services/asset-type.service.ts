@@ -3,6 +3,6 @@ export interface AssetType {
     active: boolean;
     name: string;
     code: string;
-    hardDisk: boolean;
+    storage: boolean;
     ram: boolean;
 }

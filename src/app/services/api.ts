@@ -50,7 +50,9 @@ export class ApiService {
     return this.http.put(`${this.baseUrl}/businessUnit/activateDeactivate/${code}`, businessUnit, { responseType: 'text' })
   }
   postAssetType(assetType: Object): Observable<AssetType> {
-    return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' }).pipe(map(response => JSON.parse(response).putResponse));
+    return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' }).pipe(
+      map(response => JSON.parse(response))
+    );
   }
   postBusinessUnit(businessUnit: Object): Observable<any>{
     return this.http.post(`${this.baseUrl}/businessUnit`, businessUnit, { responseType: 'text' });

@@ -25,6 +25,7 @@ export class BusinessUnitList {
   filteredBusinessUnits = signal<BusinessUnit[]>([]);
   loading = signal(true);
   reload$ = new Subject<boolean>();
+  filterTimeout: ReturnType<typeof setTimeout> | null = null;
   private destroyRef = inject(DestroyRef);
 
   @ViewChild('myDialog') dialog!: ElementRef<HTMLDialogElement>;
@@ -107,7 +108,7 @@ export class BusinessUnitList {
     if(this.assets().find(asset => (asset.businessUnit === businessUnit.name)) ||
        this.users().find(user =>(user.businessUnit !== null && user.businessUnit.code === businessUnit.code))
       ){
-      this.popupMessageService.error('Errore, impossibile disattivare una business unit associata ad uno user o asset');
+      this.popupMessageService.error('Errore, impossibile disattivare una business unit associata ad un utente o asset');
     }
     else{
       this.editableBusinessUnit = businessUnit;
@@ -135,16 +136,23 @@ export class BusinessUnitList {
   }
   // funzione che filtra la lista delle business unit
   onFilter() {
-    let filtered = this.businessUnits();
-
-    if (this.filterName !== '') {
-      const searchName = this.filterName.toLowerCase();
-      filtered = filtered.filter(asset =>
-        asset.name.toLowerCase().includes(searchName)
-      );
+    if (this.filterTimeout) {
+      clearTimeout(this.filterTimeout);
     }
 
-    this.filteredBusinessUnits.set(filtered);
+    this.filterTimeout = setTimeout(() => {
+      let filtered = this.businessUnits();
+
+      if (this.filterName !== '') {
+        const searchName = this.filterName.toLowerCase();
+        filtered = filtered.filter(asset =>
+          asset.name.toLowerCase().includes(searchName)
+        );
+      }
+
+      this.filteredBusinessUnits.set(filtered);
+      this.currentPage.set(1);
+    }, 500);
   }
   // Diverse funzioni che si attivano prima durante o dopo la modifica di un tipo
   OnOpenDialog(businessUnit: BusinessUnit){
@@ -161,7 +169,7 @@ export class BusinessUnitList {
     this.alertTitle = '';
     this.dialog.nativeElement.close();
   }
-  onDialogBackdropClick(event: MouseEvent): void {
+  onDialogBackdropClick(): void {
     this.onCloseDialog();
   }
   onConfirmEdit(){
@@ -238,7 +246,7 @@ export class BusinessUnitList {
 
     this.newDialog.nativeElement.close();
   }
-  onNewDialogBackdropClick(event: MouseEvent): void {
+  onNewDialogBackdropClick(): void {
     this.onCloseNewDialog();
   }
   onConfirmCreate(){
@@ -257,13 +265,6 @@ export class BusinessUnitList {
 
       //   this.filteredBusinessUnits.set([...this.filteredBusinessUnits(), createdBusinessUnit]);
       //   // this.onFilter();
-
-      //   this.popupMessageService.success('Business unit creata con successo');
-      //   this.initialName = '';
-      //   this.alertTitle = '';
-      //   this.reloadDiv();
-      //   this.newDialog.nativeElement.close();
-      // },
       next: () => {
         this.apiService.getBusinessUnits().subscribe({
           next: (freshList) => {
