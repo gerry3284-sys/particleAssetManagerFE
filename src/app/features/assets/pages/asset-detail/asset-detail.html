@@ -288,20 +288,6 @@
               <input id="edit-serial" type="text" formControlName="serialNumber" />
             </div>
 
-            @if (editSelectedAssetType()?.ram) {
-              <div class="edit-field">
-                <label for="edit-ram">RAM (GB)</label>
-                <input id="edit-ram" type="number" min="0" formControlName="ram" />
-              </div>
-            }
-
-            @if (editSelectedAssetType()?.hardDisk) {
-              <div class="edit-field">
-                <label for="edit-hard-disk">Hard Disk</label>
-                <input id="edit-hard-disk" type="text" formControlName="hardDisk" />
-              </div>
-            }
-
             <div class="edit-field">
               <label for="edit-bu">Business Unit *</label>
               <select id="edit-bu" formControlName="businessUnitCode">
@@ -321,6 +307,72 @@
                 }
               </select>
             </div>
+
+            @if (editRequiresRam()) {
+              <div class="edit-field">
+                <label for="edit-ram">RAM (GB)</label>
+                <input id="edit-ram" type="number" min="0" formControlName="ram" />
+              </div>
+            }
+
+            @if (editRequiresStorage()) {
+              <div class="edit-field full-width" style="border: 1px solid #ddd; padding: 12px; border-radius: 4px;">
+                <div style="margin-bottom: 12px;">
+                  <label class="form-label" style="display: block; margin-bottom: 8px;">
+                    <strong>Storage</strong>
+                  </label>
+                  
+                  <!-- Tipo memoria: SSD/HDD -->
+                  <div style="display: flex; gap: 16px; margin-bottom: 12px;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input
+                        type="checkbox"
+                        [checked]="editAssetForm.controls.storageType.value === 'SSD'"
+                        (change)="toggleStorageType('SSD', $any($event.target).checked)" />
+                      <span>SSD</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input
+                        type="checkbox"
+                        [checked]="editAssetForm.controls.storageType.value === 'HDD'"
+                        (change)="toggleStorageType('HDD', $any($event.target).checked)" />
+                      <span>HDD</span>
+                    </label>
+                  </div>
+
+                  <!-- Dimensione memoria -->
+                  <div style="display: flex; gap: 12px; align-items: flex-end;">
+                    <div style="flex: 1;">
+                      <label for="edit-storage-size" style="display: block; font-size: 12px; margin-bottom: 4px;">
+                        Dimensione
+                      </label>
+                      <input
+                        id="edit-storage-size"
+                        type="text"
+                        placeholder="Es. 512"
+                        inputmode="decimal"
+                        formControlName="storageSize"
+                        style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 3px;" />
+                    </div>
+
+                    <!-- Unità di misura -->
+                    <div style="flex: 0.7;">
+                      <label for="edit-storage-unit" style="display: block; font-size: 12px; margin-bottom: 4px;">
+                        Unità
+                      </label>
+                      <select
+                        id="edit-storage-unit"
+                        formControlName="storageUnit"
+                        style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 3px;">
+                        <option value="">Seleziona</option>
+                        <option value="GB">GB</option>
+                        <option value="TB">TB</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
 
             <div class="edit-field full-width">
               <label for="edit-note">Note</label>

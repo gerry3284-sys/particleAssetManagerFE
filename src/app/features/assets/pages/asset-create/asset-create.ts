@@ -32,11 +32,17 @@ export class AssetCreateComponent {
     businessUnit: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     notes: new FormControl('', { nonNullable: true }),
     ramGb: new FormControl('', { nonNullable: true }),
-    storageType: new FormControl('', { nonNullable: true })
+    storageType: new FormControl('', { nonNullable: true }),
+    storageSize: new FormControl('', { nonNullable: true }),
+    storageUnit: new FormControl('', { nonNullable: true })
   });
 
   formValue = toSignal(this.assetForm.valueChanges, {
     initialValue: this.assetForm.getRawValue()
+  });
+
+  selectedAssetTypeCode = toSignal(this.assetForm.controls.assetType.valueChanges, {
+    initialValue: this.assetForm.controls.assetType.value
   });
 
   // Errori di caricamento opzioni
@@ -104,8 +110,18 @@ export class AssetCreateComponent {
   ]);
 
   selectedAssetType = computed(() =>
-    this.assetTypes().find(type => (type.code ?? type.name) === this.formValue().assetType) ?? null
+    this.assetTypes().find(type => (type.code ?? type.name) === this.selectedAssetTypeCode()) ?? null
   );
+
+  requiresRam = computed(() => !!this.selectedAssetType()?.ram);
+  requiresStorage = computed(() => {
+    const selectedType = this.selectedAssetType() as {
+      hardDisk?: boolean | string | number | null;
+      storage?: boolean | string | number | null;
+    } | null;
+
+    return this.isEnabledFlag(selectedType?.hardDisk) || this.isEnabledFlag(selectedType?.storage);
+  });
 
   selectedBusinessUnit = computed(() =>
     this.businessUnits().find(unit => (unit.code ?? unit.name) === this.formValue().businessUnit) ?? null
@@ -113,6 +129,14 @@ export class AssetCreateComponent {
 
   defaultStatusLabel = computed(() => {
     return this.assetStatusTypes().find(status => status.name === 'Available')?.name ?? 'Available';
+  });
+
+  storageSummary = computed(() => {
+    const storageSize = (this.formValue().storageSize ?? '').toString().trim();
+    const storageUnit = (this.formValue().storageUnit ?? '').toString().trim();
+    const storageType = (this.formValue().storageType ?? '').toString().trim();
+
+    return [storageSize, storageUnit, storageType].filter(Boolean).join(' ');
   });
 
   // Stato di submit
@@ -123,6 +147,8 @@ export class AssetCreateComponent {
     this.assetForm.controls.assetType.valueChanges.subscribe(() => {
       this.assetForm.controls.ramGb.setValue('');
       this.assetForm.controls.storageType.setValue('');
+      this.assetForm.controls.storageSize.setValue('');
+      this.assetForm.controls.storageUnit.setValue('');
       this.updateConditionalValidators();
     });
     this.updateConditionalValidators();
@@ -141,8 +167,8 @@ export class AssetCreateComponent {
   }
 
   private updateConditionalValidators(): void {
-    const requiresRam = !!this.selectedAssetType()?.ram;
-    const requiresHardDisk = !!this.selectedAssetType()?.hardDisk;
+    const requiresRam = this.requiresRam();
+    const requiresStorage = this.requiresStorage();
 
     if (requiresRam) {
       this.assetForm.controls.ramGb.setValidators([
@@ -154,14 +180,23 @@ export class AssetCreateComponent {
       this.assetForm.controls.ramGb.clearValidators();
     }
 
-    if (requiresHardDisk) {
+    if (requiresStorage) {
       this.assetForm.controls.storageType.setValidators([Validators.required]);
+      this.assetForm.controls.storageSize.setValidators([
+        Validators.required,
+        Validators.pattern('^[0-9]+([.][0-9]+)?$')
+      ]);
+      this.assetForm.controls.storageUnit.setValidators([Validators.required]);
     } else {
       this.assetForm.controls.storageType.clearValidators();
+      this.assetForm.controls.storageSize.clearValidators();
+      this.assetForm.controls.storageUnit.clearValidators();
     }
 
     this.assetForm.controls.ramGb.updateValueAndValidity({ emitEvent: false });
     this.assetForm.controls.storageType.updateValueAndValidity({ emitEvent: false });
+    this.assetForm.controls.storageSize.updateValueAndValidity({ emitEvent: false });
+    this.assetForm.controls.storageUnit.updateValueAndValidity({ emitEvent: false });
   }
 
   toggleStorageType(type: 'SSD' | 'HDD', checked: boolean): void {
@@ -207,19 +242,24 @@ export class AssetCreateComponent {
     this.isSubmitting.set(true);
 
     const form = this.assetForm.getRawValue();
-    const requiresRam = !!this.selectedAssetType()?.ram;
-    const requiresHardDisk = !!this.selectedAssetType()?.hardDisk;
+    const requiresRam = this.requiresRam();
+    const requiresStorage = this.requiresStorage();
     const ramValue = (form.ramGb ?? '').toString().trim();
     const storageType = (form.storageType ?? '').toString().trim();
+    const storageSize = (form.storageSize ?? '').toString().trim();
+    const storageUnit = (form.storageUnit ?? '').toString().trim().toUpperCase();
     const parsedRam = ramValue === '' ? 0 : Number(ramValue);
     const safeRam = Number.isFinite(parsedRam) ? parsedRam : 0;
+    const storageValue = requiresStorage
+      ? this.buildStorageValue(storageType, storageSize, storageUnit)
+      : '';
 
     const payload = {
       brand: form.brand,
       model: form.model,
       serialNumber: form.serialNumber,
       note: form.notes ?? '',
-      hardDisk: requiresHardDisk ? storageType : '',
+      storage: storageValue,
       businessUnitCode: form.businessUnit,
       assetTypeCode: form.assetType,
       ram: requiresRam ? safeRam : 0
@@ -251,6 +291,27 @@ export class AssetCreateComponent {
 
   private normalizeSerialNumber(value: string): string {
     return (value ?? '').trim().toLocaleLowerCase();
+  }
+
+  private buildStorageValue(storageType: string, storageSize: string, storageUnit: string): string {
+    return [storageType, storageSize, storageUnit].filter(Boolean).join(' ');
+  }
+
+  private isEnabledFlag(value: boolean | string | number | null | undefined): boolean {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      return value === 1;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLocaleLowerCase();
+      return ['true', '1', 'yes', 'y', 'si', 's'].includes(normalized);
+    }
+
+    return false;
   }
 
 }
