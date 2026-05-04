@@ -94,9 +94,9 @@
         </div>
 
         <!-- Terza riga: Note (full width) -->
-        @if (selectedAssetType()?.ram || selectedAssetType()?.hardDisk) {
-          <div class="form-row">
-            @if (selectedAssetType()?.ram) {
+        @if (requiresRam() || requiresStorage()) {
+          <div class="form-row technical-row">
+            @if (requiresRam()) {
               <div class="form-group">
                 <label class="form-label" for="ramGb">
                   RAM (GB)
@@ -124,10 +124,10 @@
               </div>
             }
 
-            @if (selectedAssetType()?.hardDisk) {
+            @if (requiresStorage()) {
               <div class="form-group">
                 <label class="form-label">
-                  Storage
+                  Tipo memoria
                 </label>
                 <div class="storage-options">
                   <label class="storage-option">
@@ -149,6 +149,42 @@
                   <div class="field-error">
                     @if (assetForm.controls.storageType.errors?.['required']) {
                       <span>Seleziona il tipo di storage (SSD o HDD).</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="storageSize">Dimensione memoria</label>
+                <input
+                  type="text"
+                  id="storageSize"
+                  class="form-control"
+                  placeholder="Es. 512"
+                  inputmode="decimal"
+                  formControlName="storageSize" />
+                @if (assetForm.controls.storageSize.touched && assetForm.controls.storageSize.invalid) {
+                  <div class="field-error">
+                    @if (assetForm.controls.storageSize.errors?.['required']) {
+                      <span>Inserisci la dimensione della memoria.</span>
+                    } @else if (assetForm.controls.storageSize.errors?.['pattern']) {
+                      <span>Inserisci un valore numerico valido.</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="storageUnit">Unita di misura</label>
+                <select id="storageUnit" class="form-select" formControlName="storageUnit">
+                  <option value="">Seleziona unita</option>
+                  <option value="GB">GB</option>
+                  <option value="TB">TB</option>
+                </select>
+                @if (assetForm.controls.storageUnit.touched && assetForm.controls.storageUnit.invalid) {
+                  <div class="field-error">
+                    @if (assetForm.controls.storageUnit.errors?.['required']) {
+                      <span>Seleziona l'unita di misura (GB o TB).</span>
                     }
                   </div>
                 }
@@ -236,20 +272,20 @@
         </div>
       </div>
 
-      @if (selectedAssetType()?.ram || selectedAssetType()?.hardDisk) {
+      @if (requiresRam() || requiresStorage()) {
         <div class="confirm-section">
           <h4>Specifiche tecniche</h4>
           <div class="summary-grid">
-            @if (selectedAssetType()?.ram) {
+            @if (requiresRam()) {
               <div class="summary-row">
                 <span class="summary-label">RAM</span>
                 <span class="summary-value">{{ formValue().ramGb }} GB</span>
               </div>
             }
-            @if (selectedAssetType()?.hardDisk) {
+            @if (requiresStorage()) {
               <div class="summary-row">
                 <span class="summary-label">Storage</span>
-                <span class="summary-value">{{ formValue().storageType }}</span>
+                <span class="summary-value">{{ storageSummary() }}</span>
               </div>
             }
           </div>

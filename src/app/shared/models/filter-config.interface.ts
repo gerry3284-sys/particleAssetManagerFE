@@ -11,8 +11,9 @@ export interface AssetType {
   id: number;
   name: string;
   code?: string;
-  ram?: boolean;
-  hardDisk?: boolean;
+  ram?: boolean | string | number | null;
+  hardDisk?: boolean | string | number | null;
+  storage?: boolean | string | number | null;
 }
 
 export interface BusinessUnit {

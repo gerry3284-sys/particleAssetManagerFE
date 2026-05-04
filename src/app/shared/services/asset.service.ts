@@ -193,7 +193,7 @@ export class AssetService {
     model: string;
     serialNumber: string;
     note: string;
-    hardDisk: string;
+    storage: string;
     businessUnitCode: string;
     assetTypeCode: string;
     ram: number;
@@ -222,7 +222,7 @@ export class AssetService {
     model: string;
     serialNumber: string;
     note: string;
-    hardDisk: string;
+    storage: string;
     businessUnitCode: string;
     assetTypeCode: string;
     ram: number;
