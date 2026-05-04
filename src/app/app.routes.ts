@@ -16,6 +16,9 @@ import { BusinessUnitList } from './features/business-unit/business-unit-list';
 // import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';
 import { TicketList } from './features/assets/pages/ticket-list/ticket-list';
 import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';
+import { TicketDetail } from './features/assets/pages/ticket-detail/ticket-detail';
+import { UserStandardTickets } from './features/area-user/user-standard-tickets/user-standard-tickets';
+import { UserStandardTicketsDetail } from './features/area-user/user-standard-tickets-detail/user-standard-tickets-detail'
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
