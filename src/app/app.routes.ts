@@ -45,7 +45,7 @@ export const routes: Routes = [
       { path: 'assets/new', component: AssetCreateComponent },
       { path: 'assets/:assetCode', component: AssetDetailComponent },
       { path: 'asset-types', component: AssetTypeList},
-      { path: 'asset-status-types', component: AssetStatusTypeListComponent },
+      //{ path: 'asset-status-types', component: AssetStatusTypeListComponent },
       // BusinessUnit
       { path: 'businessUnits', component: BusinessUnitList},
       //tickets
