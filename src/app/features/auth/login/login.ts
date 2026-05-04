@@ -21,11 +21,11 @@ export class LoginComponent {
     email: FormControl<string>;
     password: FormControl<string>;
   }>({
-    email: new FormControl<string>('', {
+    email: new FormControl<string>('ciao-gerry@entrapure.com', {
       nonNullable: true,
       validators: [Validators.required, Validators.email],
     }),
-    password: new FormControl<string>('', {
+    password: new FormControl<string>('saluti', {
       nonNullable: true,
       validators: [Validators.required],
     }),

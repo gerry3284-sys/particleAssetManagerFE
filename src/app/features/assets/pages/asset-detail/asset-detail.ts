@@ -16,7 +16,11 @@ import { DismissReceiptPdfData, DismissReceiptPdfService } from '../../../../sha
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonComponent } from '../../../../shared/components/button/button';
 import { FilterService } from '../../../../shared/services/filter.service';
-import { AssetType as FilterAssetType, BusinessUnit as FilterBusinessUnit } from '../../../../shared/models/filter-config.interface';
+import {
+  AssetType as FilterAssetType,
+  BusinessUnit as FilterBusinessUnit,
+  AssetStatusType
+} from '../../../../shared/models/filter-config.interface';
 
 type ReceiptBannerState = {
   type: 'success' | 'error';
@@ -28,7 +32,7 @@ type PendingAssetEditPayload = {
   model: string;
   serialNumber: string;
   note: string;
-  hardDisk: string;
+  storage: string;
   businessUnitCode: string;
   assetTypeCode: string;
   ram: number;
@@ -57,6 +61,8 @@ export class AssetDetailComponent implements OnInit {
   showEditAssetModal = signal<boolean>(false);
   showEditConfirmModal = signal<boolean>(false);
   savingEditAsset = signal<boolean>(false);
+  settingMaintenanceStatus = signal<boolean>(false);
+  settingAvailableStatus = signal<boolean>(false);
   loadingEditOptions = signal<boolean>(false);
   pendingAssetEditPayload = signal<PendingAssetEditPayload | null>(null);
   pendingAssignmentReceipt = signal<AssignmentReceiptPdfData | null>(null);
@@ -83,10 +89,12 @@ export class AssetDetailComponent implements OnInit {
     model: new FormControl('', { nonNullable: true }),
     serialNumber: new FormControl('', { nonNullable: true }),
     note: new FormControl('', { nonNullable: true }),
-    hardDisk: new FormControl('', { nonNullable: true }),
+    ram: new FormControl('', { nonNullable: true }),
+    storageType: new FormControl('', { nonNullable: true }),
+    storageSize: new FormControl('', { nonNullable: true }),
+    storageUnit: new FormControl('', { nonNullable: true }),
     businessUnitCode: new FormControl('', { nonNullable: true }),
-    assetTypeCode: new FormControl('', { nonNullable: true }),
-    ram: new FormControl('', { nonNullable: true })
+    assetTypeCode: new FormControl('', { nonNullable: true })
   });
   movementState = signal({
     data: [] as AssetMovement[],
@@ -98,6 +106,8 @@ export class AssetDetailComponent implements OnInit {
   canAssign = computed(() => this.asset()?.status === 'Available');
   canCertifyReturn = computed(() => this.asset()?.status === 'Assigned');
   canDismiss = computed(() => this.asset()?.status === 'Available');
+  canSetMaintenance = computed(() => this.asset()?.status === 'Available');
+  canSetAvailable = computed(() => this.asset()?.status === 'UnderMaintenance');
   canEditAsset = computed(() => {
     const status = this.asset()?.status;
     return status !== 'Assigned' && status !== 'Dismissed';
@@ -109,6 +119,11 @@ export class AssetDetailComponent implements OnInit {
     }
 
     return this.assetTypeOptions().find(type => (type.code ?? type.name) === selectedCode) ?? null;
+  });
+  editRequiresRam = computed(() => this.isEnabledFlag(this.editSelectedAssetType()?.ram));
+  editRequiresStorage = computed(() => {
+    const selectedType = this.editSelectedAssetType();
+    return this.isEnabledFlag(selectedType?.hardDisk) || this.isEnabledFlag(selectedType?.storage);
   });
   assetSummary = computed(() => {
     const current = this.asset();
@@ -247,15 +262,20 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
+    // Parsa il valore storage dal backend (formato: "SSD 512 GB" o simile)
+    const { storageType, storageSize, storageUnit } = this.parseStorageValue(current.hardDisk || '');
+
     this.editAssetForm.setValue({
       brand: current.brand || '',
       model: current.model || '',
       serialNumber: current.serialNumber || '',
       note: current.notes === '-' ? '' : (current.notes || ''),
-      hardDisk: current.hardDisk || '',
+      ram: current.ram != null ? String(current.ram) : '',
+      storageType,
+      storageSize,
+      storageUnit,
       businessUnitCode: current.businessUnitCode || '',
-      assetTypeCode: current.assetTypeCode || '',
-      ram: current.ram != null ? String(current.ram) : ''
+      assetTypeCode: current.assetTypeCode || ''
     });
     this.editAssetTypeCode.set(current.assetTypeCode || '');
 
@@ -324,17 +344,30 @@ export class AssetDetailComponent implements OnInit {
     }
 
     const parsedRam = Number(form.ram);
-    const requiresRam = !!this.editSelectedAssetType()?.ram;
-    const requiresHardDisk = !!this.editSelectedAssetType()?.hardDisk;
+    const requiresRam = this.editRequiresRam();
+    const requiresStorage = this.editRequiresStorage();
     const ram = requiresRam && Number.isFinite(parsedRam) ? parsedRam : 0;
-    const hardDisk = requiresHardDisk ? form.hardDisk.trim() : '';
+    
+    // Ricostruisci il valore storage dai tre campi separati
+    const storageType = (form.storageType ?? '').toString().trim();
+    const storageSize = (form.storageSize ?? '').toString().trim();
+    const storageUnit = (form.storageUnit ?? '').toString().trim().toUpperCase();
+
+    if (requiresStorage && (!storageType || !storageSize || !storageUnit)) {
+      this.popupMessageService.error('Compila tutti i campi dello storage (tipo, dimensione e unita)');
+      return;
+    }
+
+    const storage = requiresStorage
+      ? this.buildStorageValue(storageType, storageSize, storageUnit)
+      : '';
 
     this.pendingAssetEditPayload.set({
       brand,
       model,
       serialNumber,
       note: form.note.trim(),
-      hardDisk,
+      storage,
       businessUnitCode,
       assetTypeCode,
       ram
@@ -408,15 +441,64 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
-    const requiresRam = !!selectedType.ram;
-    const requiresHardDisk = !!selectedType.hardDisk;
+    const requiresRam = this.editRequiresRam();
+    const requiresStorage = this.editRequiresStorage();
     const currentRam = this.editAssetForm.controls.ram.value;
-    const currentHardDisk = this.editAssetForm.controls.hardDisk.value;
+    const currentStorageType = this.editAssetForm.controls.storageType.value;
+    const currentStorageSize = this.editAssetForm.controls.storageSize.value;
+    const currentStorageUnit = this.editAssetForm.controls.storageUnit.value;
 
     this.editAssetForm.patchValue({
       ram: requiresRam ? currentRam : '',
-      hardDisk: requiresHardDisk ? currentHardDisk : ''
+      storageType: requiresStorage ? currentStorageType : '',
+      storageSize: requiresStorage ? currentStorageSize : '',
+      storageUnit: requiresStorage ? currentStorageUnit : ''
     }, { emitEvent: false });
+  }
+
+  private isEnabledFlag(value: boolean | string | number | null | undefined): boolean {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      return value === 1;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLocaleLowerCase();
+      return ['true', '1', 'yes', 'y', 'si', 's'].includes(normalized);
+    }
+
+    return false;
+  }
+
+  toggleStorageType(type: 'SSD' | 'HDD', checked: boolean): void {
+    this.editAssetForm.controls.storageType.setValue(checked ? type : '');
+    this.editAssetForm.controls.storageType.markAsTouched();
+  }
+
+  private buildStorageValue(storageType: string, storageSize: string, storageUnit: string): string {
+    return [storageType, storageSize, storageUnit].filter(Boolean).join(' ');
+  }
+
+  private parseStorageValue(storageString: string): { storageType: string; storageSize: string; storageUnit: string } {
+    const parts = (storageString || '').trim().split(/\s+/);
+    
+    let storageType = '';
+    let storageSize = '';
+    let storageUnit = '';
+
+    if (parts.length >= 1) {
+      const firstPart = parts[0].toUpperCase();
+      if (['SSD', 'HDD'].includes(firstPart)) {
+        storageType = firstPart;
+        storageSize = parts[1] || '';
+        storageUnit = parts[2] || '';
+      }
+    }
+
+    return { storageType, storageSize, storageUnit };
   }
 
   // --- Modale assegnazione
@@ -735,6 +817,118 @@ export class AssetDetailComponent implements OnInit {
     this.showDismissModal.set(true);
   }
 
+  markAsMaintenance(): void {
+    const current = this.asset();
+    if (!current || !this.canSetMaintenance()) {
+      return;
+    }
+
+    this.settingMaintenanceStatus.set(true);
+
+    this.filterService.getAssetStatusTypes(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: statusTypes => {
+          const maintenanceStatusCode = this.resolveMaintenanceStatusCode(statusTypes);
+          if (!maintenanceStatusCode) {
+            this.popupMessageService.error('Stato Manutenzione non configurato correttamente');
+            this.settingMaintenanceStatus.set(false);
+            return;
+          }
+
+          this.assetService.updateAssetStatus(current.assetCode, maintenanceStatusCode)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('Asset impostato in manutenzione');
+                this.loadAssetDetail(this.assetId());
+                this.settingMaintenanceStatus.set(false);
+              },
+              error: err => {
+                console.error('Errore aggiornamento stato a Manutenzione:', err);
+                this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
+                this.settingMaintenanceStatus.set(false);
+              }
+            });
+        },
+        error: err => {
+          console.error('Errore caricamento stati asset:', err);
+          this.popupMessageService.error('Impossibile verificare gli stati asset');
+          this.settingMaintenanceStatus.set(false);
+        }
+      });
+  }
+
+  markAsAvailable(): void {
+    const current = this.asset();
+    if (!current || !this.canSetAvailable()) {
+      return;
+    }
+
+    this.settingAvailableStatus.set(true);
+
+    this.filterService.getAssetStatusTypes(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: statusTypes => {
+          const availableStatusCode = this.resolveAvailableStatusCode(statusTypes);
+          if (!availableStatusCode) {
+            this.popupMessageService.error('Stato Disponibile non configurato correttamente');
+            this.settingAvailableStatus.set(false);
+            return;
+          }
+
+          this.assetService.updateAssetStatus(current.assetCode, availableStatusCode)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('Asset impostato come Disponibile');
+                this.loadAssetDetail(this.assetId());
+                this.settingAvailableStatus.set(false);
+              },
+              error: err => {
+                console.error('Errore aggiornamento stato a Disponibile:', err);
+                this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
+                this.settingAvailableStatus.set(false);
+              }
+            });
+        },
+        error: err => {
+          console.error('Errore caricamento stati asset:', err);
+          this.popupMessageService.error('Impossibile verificare gli stati asset');
+          this.settingAvailableStatus.set(false);
+        }
+      });
+  }
+
+  private resolveAvailableStatusCode(statusTypes: AssetStatusType[]): string {
+    const availableStatus = statusTypes.find(status => {
+      const normalizedCode = (status.code ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const normalizedName = (status.name ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      return normalizedCode.startsWith('AV')
+        || normalizedName.includes('AVAIL')
+        || normalizedName.includes('DISPONIBIL');
+    });
+
+    return (availableStatus?.code ?? '').trim();
+  }
+
+  private resolveMaintenanceStatusCode(statusTypes: AssetStatusType[]): string {
+    const maintenanceStatus = statusTypes.find(status => {
+      const normalizedCode = (status.code ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const normalizedName = (status.name ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      return normalizedCode.startsWith('UM')
+        || normalizedCode.startsWith('MA')
+        || normalizedName.includes('UNDERMAINT')
+        || normalizedName.includes('MAINTEN')
+        || normalizedName.includes('MANUTEN');
+    });
+
+    return (maintenanceStatus?.code ?? '').trim();
+  }
+
   closeDismissModal(): void {
     this.showDismissModal.set(false);
   }
@@ -963,6 +1157,7 @@ export class AssetDetailComponent implements OnInit {
     switch (status) {
       case 'Assigned': return 'status-assigned';
       case 'Available': return 'status-available';
+      case 'UnderMaintenance': return 'status-under-maintenance';
       case 'Dismissed': return 'status-dismissed';
       case 'Unavailable': return 'status-unavailable';
       default: return '';

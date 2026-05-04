@@ -74,6 +74,10 @@
 	border-bottom: 1px solid #F3F4F6;
 }
 
+.maintenance-row {
+	grid-template-columns: 0.8fr 0.9fr 1fr 1.2fr 1fr 1fr 1fr 1fr;
+}
+
 .asset-row:last-child {
 	border-bottom: none;
 }
@@ -107,6 +111,10 @@
 
 .status-available {
 	background-color: #22C55E;
+}
+
+.status-under-maintenance {
+	background-color: #F59E0B;
 }
 
 .status-box {

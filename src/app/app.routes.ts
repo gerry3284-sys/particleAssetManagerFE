@@ -11,12 +11,11 @@ import { LoginComponent } from './features/auth/login/login';
 import { AssetDetailComponent } from './features/assets/pages/asset-detail/asset-detail';
 import { NotFoundComponent } from './features/errors/pages/not-found/not-found';
 import { AssetTypeList } from './features/asset-type-list/asset-type-list';
+import { AssetStatusTypeListComponent } from './features/asset-status-type-list/asset-status-type-list';
 import { BusinessUnitList } from './features/business-unit/business-unit-list';
-// import { AssetStatusTypeListComponent } from './features/asset-status-type-list/asset-status-type-list';
+// import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';
 import { TicketList } from './features/assets/pages/ticket-list/ticket-list';
-import { TicketDetail } from './features/assets/pages/ticket-detail/ticket-detail';
-import { UserStandardTickets } from './features/area-user/user-standard-tickets/user-standard-tickets';
-import { UserStandardTicketsDetail } from './features/area-user/user-standard-tickets-detail/user-standard-tickets-detail';
+import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -45,10 +44,11 @@ export const routes: Routes = [
     children: [
       // Assets
       { path: 'assets', component: AssetListComponent },
+      { path: 'maintenance-assets', component: AssetMaintenanceListComponent },
       { path: 'assets/new', component: AssetCreateComponent },
       { path: 'assets/:assetCode', component: AssetDetailComponent },
       { path: 'asset-types', component: AssetTypeList},
-      // { path: 'asset-status-types', component: AssetStatusTypeListComponent },
+      { path: 'asset-status-types', component: AssetStatusTypeListComponent },
       // BusinessUnit
       { path: 'businessUnits', component: BusinessUnitList},
       //tickets

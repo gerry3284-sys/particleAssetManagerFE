@@ -3,15 +3,17 @@
   <!-- Header -->
   <div class="page-header">
     <div>
-      <h2 class="page-title">Gestione asset</h2>
-      <p class="page-subtitle">Visualizza e gestisci tutti gli asset aziendali.</p>
+      <h2 class="page-title">{{ pageTitle() }}</h2>
+      <p class="page-subtitle">{{ pageSubtitle() }}</p>
     </div>
-    <app-button variant="primary" type="button" (pressed)="createNewAsset()">
-      <span class="new-asset-btn-content">
-        <img src="/assets/line.png" alt="" aria-hidden="true" class="new-asset-icon" />
-        <span>Nuovo Asset</span>
-      </span>
-    </app-button>
+    @if (showCreateButton()) {
+      <app-button variant="primary" type="button" (pressed)="createNewAsset()">
+        <span class="new-asset-btn-content">
+          <img src="/assets/line.png" alt="" aria-hidden="true" class="new-asset-icon" />
+          <span>Nuovo Asset</span>
+        </span>
+      </app-button>
+    }
   </div>
 
   
@@ -22,9 +24,11 @@
 
 
   <!-- Filtri -->
-<app-filters
-  (filtersChange)="onFiltersChange($event)">
-</app-filters>
+  @if (!maintenanceOnly()) {
+    <app-filters
+      (filtersChange)="onFiltersChange($event)">
+    </app-filters>
+  }
 
 <!-- Loading / Error -->
   @if (loading()) {
@@ -32,48 +36,81 @@
   }
   <!-- Tabella -->
   <div class="table-card" #tableCard>
-    <div class="asset-table">
-      <!-- Header -->
-      <div class="asset-row asset-header">
-        <div>Stato</div>
-        <div>Marca</div>
-        <div>Modello</div>
-        <div>Numero seriale</div>
-        <div>Utente assegnato</div>
-        <div>Business Unit</div>
-        <div>Data assegnazione</div>
-      </div>
-
-      <!-- Righe dinamiche -->
-      @for (asset of paginatedAssets(); track asset.assetCode) {
-        <div 
-          class="asset-row" 
-          [class.muted]="asset.status === 'Dismissed'"
-          (click)="goToAssetDetail(asset.assetCode)"
-          style="cursor: pointer;">
-          
-          <!-- Colonna Stato -->
-          <div class="status">
-            @if (asset.status === 'Assigned') {
-              <span class="status-dot status-assigned"></span>
-            } @else if (asset.status === 'Available') {
-              <span class="status-dot status-available"></span>
-            } @else {
-              <span class="status-box"></span>
-            }
-            <span>{{ asset.statusLabel }}</span>
-          </div>
-          
-          <!-- Dati Asset -->
-          <div>{{ asset.brand }}</div>
-          <div>{{ asset.model }}</div>
-          <div>{{ asset.serialNumber }}</div>
-          <div>{{ asset.assignedUser || '-' }}</div>
-          <div>{{ asset.businessUnit || '-' }}</div>
-          <div>{{ asset.assignmentDate || '-' }}</div>
+    @if (maintenanceOnly()) {
+      <div class="asset-table maintenance-table">
+        <div class="asset-row asset-header maintenance-row">
+          <div>Asset Code</div>
+          <div>Marca</div>
+          <div>Modello</div>
+          <div>Numero seriale</div>
+          <div>Tipologia</div>
+          <div>Business Unit</div>
+          <div>Data riconsegna</div>
+          <div>Fine manutenzione</div>
         </div>
-      }
-    </div>
+
+        @for (asset of paginatedMaintenanceAssets(); track asset.assetCode) {
+          <div
+            class="asset-row maintenance-row"
+            (click)="goToAssetDetail(asset.assetCode)"
+            style="cursor: pointer;">
+            <div>{{ asset.assetCode }}</div>
+            <div>{{ asset.brand }}</div>
+            <div>{{ asset.model }}</div>
+            <div>{{ asset.serialNumber }}</div>
+            <div>{{ asset.assetType || '-' }}</div>
+            <div>{{ asset.businessUnit || '-' }}</div>
+            <div>{{ asset.returnedDate || '-' }}</div>
+            <div>{{ asset.endMaintenanceDate || '-' }}</div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="asset-table">
+        <!-- Header -->
+        <div class="asset-row asset-header">
+          <div>Stato</div>
+          <div>Marca</div>
+          <div>Modello</div>
+          <div>Numero seriale</div>
+          <div>Utente assegnato</div>
+          <div>Business Unit</div>
+          <div>Data assegnazione</div>
+        </div>
+
+        <!-- Righe dinamiche -->
+        @for (asset of paginatedAssets(); track asset.assetCode) {
+          <div
+            class="asset-row"
+            [class.muted]="asset.status === 'Dismissed'"
+            (click)="goToAssetDetail(asset.assetCode)"
+            style="cursor: pointer;">
+
+            <!-- Colonna Stato -->
+            <div class="status">
+              @if (asset.status === 'Assigned') {
+                <span class="status-dot status-assigned"></span>
+              } @else if (asset.status === 'Available') {
+                <span class="status-dot status-available"></span>
+              } @else if (asset.status === 'UnderMaintenance') {
+                <span class="status-dot status-under-maintenance"></span>
+              } @else {
+                <span class="status-box"></span>
+              }
+              <span>{{ asset.statusLabel }}</span>
+            </div>
+
+            <!-- Dati Asset -->
+            <div>{{ asset.brand }}</div>
+            <div>{{ asset.model }}</div>
+            <div>{{ asset.serialNumber }}</div>
+            <div>{{ asset.assignedUser || '-' }}</div>
+            <div>{{ asset.businessUnit || '-' }}</div>
+            <div>{{ asset.assignmentDate || '-' }}</div>
+          </div>
+        }
+      </div>
+    }
 
     <!-- Footer con paginazione -->
     <div class="table-footer">

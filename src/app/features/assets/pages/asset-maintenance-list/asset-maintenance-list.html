@@ -1,0 +1,74 @@
+<div class="asset-page">
+
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Asset in manutenzione</h2>
+      <p class="page-subtitle">Visualizza tutti gli asset attualmente in manutenzione.</p>
+    </div>
+    <app-button variant="secondary" type="button" (pressed)="goToAssetsList()">
+      Torna alla lista asset
+    </app-button>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  <app-filters
+    [showStatus]="false"
+    [searchLabel]="'Ricerca Asset'"
+    [searchPlaceholder]="'Cerca per codice, marca, modello o seriale'"
+    (filtersChange)="onFiltersChange($event)">
+  </app-filters>
+
+  @if (loading()) {
+    <div class="loading">Caricamento in corso...</div>
+  }
+
+  <div class="table-card" #tableCard>
+    <div class="asset-table maintenance-table">
+      <div class="asset-row asset-header maintenance-row">
+        <div>Stato</div>
+        <div>Asset Code</div>
+        <div>Marca</div>
+        <div>Modello</div>
+        <div>Numero seriale</div>
+        <div>Tipologia</div>
+        <div>Business Unit</div>
+        <div>Data riconsegna</div>
+        <div>Fine manutenzione</div>
+      </div>
+
+      @for (asset of paginatedMaintenanceAssets(); track asset.assetCode) {
+        <div
+          class="asset-row maintenance-row"
+          (click)="goToAssetDetail(asset.assetCode)"
+          style="cursor: pointer;">
+          <div class="status">
+            <span class="status-dot status-under-maintenance"></span>
+            <span>In manutenzione</span>
+          </div>
+          <div>{{ asset.assetCode }}</div>
+          <div>{{ asset.brand }}</div>
+          <div>{{ asset.model }}</div>
+          <div>{{ asset.serialNumber }}</div>
+          <div>{{ asset.assetType || '-' }}</div>
+          <div>{{ asset.businessUnit || '-' }}</div>
+          <div>{{ asset.returnedDate || '-' }}</div>
+          <div>{{ asset.endMaintenanceDate || '-' }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="table-footer">
+      <span class="table-info">{{ displayRange() }}</span>
+
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalPages]="totalPages()"
+        [maxVisible]="5"
+        (pageChange)="goToPage($event)">
+      </app-pagination>
+    </div>
+  </div>
+</div>
