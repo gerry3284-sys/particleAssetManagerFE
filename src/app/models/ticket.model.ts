@@ -1,0 +1,24 @@
+export interface Ticket {
+    ticketCode: string,
+    userCode: string,
+    operation: 'ASSIGNED' | 'DISMISSED' | 'RETURNED',
+    assetTypeCode: string,
+    assetCode: string,
+    status: 'OPEN' | 'WORKING' | 'CLOSED',
+    date: string
+}
+export interface Reply {
+    TicketCode: string,
+    user: string,
+    message: string,
+    status: 'OPEN' | 'WORKING' | 'CLOSED',
+    date: string
+}
+export interface TicketByUser {
+    ticketCode: string,
+    user: string,
+    operation: 'ASSIGNED' | 'DISMISSED' | 'RETURNED',
+    assetTypeCode: string,
+    assetCode: string,
+    date: string
+}

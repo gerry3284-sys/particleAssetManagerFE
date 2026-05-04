@@ -10,10 +10,8 @@ import { ButtonComponent } from "../../../shared/components/button/button";
 import { PopupMessageService } from '../../../shared/services/popup-message.service';
 import { AssetType } from '../../../shared/services/asset-type.service';
 // import { AssetStatusType } from '../../../shared/models/filter-config.interface';
-import { FilterService } from '../../../shared/services/filter.service';
 import { Asset } from '../../../shared/models/asset.interface';
 import { AssetService } from '../../../shared/services/asset.service';
-import { request } from 'http';
 
 @Component({
   selector: 'app-user-standard',
@@ -80,51 +78,50 @@ export class UserStandard{
     private router: Router,
     private readonly popupMessageService: PopupMessageService,
     private assetService: AssetService
-  ) {
-  const id = this.route.snapshot.paramMap.get('id');
+  ){
+    const id = this.route.snapshot.paramMap.get('oid');
+    /*if (!id || isNaN(+id)) {
+      this.router.navigate(['/404']);
+      return;
+    }*/
 
-  if (!id || isNaN(+id)) {
-    this.router.navigate(['/404']);
-    return;
-  }
+    const subscription = forkJoin({
+      user: this.apiService.getUsersById(id?id:''),
+      // assetStatusType: this.filterService.getAssetStatusTypes(false),
+      assetType: this.apiService.getAssetTypes(),
+      movements: this.apiService.getMovementByUserId(id?id:''),
+    }).subscribe({
+      next: ({ user, assetType, movements }) => {
+        this.user.set(user ?? {});
+        // this.assetStatusTypes.set(assetStatusType ?? []);
+        this.assetTypes.set(assetType ?? []);
+        this.movements.set(movements ?? []);
+        this.unmergedMovement = movements;
 
-  const subscription = forkJoin({
-    user: this.apiService.getUsersById(+id),
-    // assetStatusType: this.filterService.getAssetStatusTypes(false),
-    assetType: this.apiService.getAssetTypes(),
-    movements: this.apiService.getMovementByUserId(+id),
-  }).subscribe({
-    next: ({ user, assetType, movements }) => {
-      this.user.set(user ?? {});
-      // this.assetStatusTypes.set(assetStatusType ?? []);
-      this.assetTypes.set(assetType ?? []);
-      this.movements.set(movements ?? []);
-      this.unmergedMovement = movements;
-
-      if (this.user()?.userType !== 'USER') {
-        this.router.navigate(['/404']);
-        return;
+        if (this.user()?.userType !== 'USER') {
+          this.router.navigate(['/404']);
+          return;
+        }
+        // const processed = this.mergeMovements(movements ?? []);
+        // this.movements.set(processed);
+      },
+      error: err => {
+        if(err.status === 404){
+          this.router.navigate(['/404']);
+        }
+        else{
+          this.popupMessageService.error('Errore nel caricamento dei dati dell\'utente.');
+          console.error('API error', err);
+        }
+        this.user.set(null);
+        // this.assetStatusTypes.set([]);
+        this.assetTypes.set([]);
+        this.movements.set([]);
+        this.unmergedMovement = [];
       }
-      // const processed = this.mergeMovements(movements ?? []);
-      // this.movements.set(processed);
-    },
-    error: err => {
-      if(err.status === 404){
-        this.router.navigate(['/404']);
-      }
-      else{
-        this.popupMessageService.error('Errore nel caricamento dei dati dell\'utente.');
-        console.error('API error', err);
-      }
-      this.user.set(null);
-      // this.assetStatusTypes.set([]);
-      this.assetTypes.set([]);
-      this.movements.set([]);
-      this.unmergedMovement = [];
-    }
-  });
-  
-  this.destroyRef.onDestroy(() => subscription.unsubscribe());
+    });
+    
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   //request per ottenere asset
@@ -267,8 +264,78 @@ export class UserStandard{
   // }
   //Richiama il login e fa uscire da pagina di user
   onsendRequest(){
-    console.log('Request type:', this.controlRequest(), 'Request notes:', this.requestNotes(), 'Request asset type:', this.requestType(), 'Request asset:', this.requestAsset());
+    if(this.requestType() !== '' && this.requestAsset() === ''){
+      const requestTypeId = this.assetTypes().find(type => type.name === this.requestType())?.code;
+
+      const postableAssignedRequest = {
+        userCode: this.user()!.oid,
+        operation: 'ASSIGNED',
+        assetTypeCode: requestTypeId,
+        assetCode: null,
+        message: this.requestNotes(),
+        status: 'OPEN'
+      }
+      this.apiService.postTicket(postableAssignedRequest).subscribe({
+        next: () => {
+          this.popupMessageService.success('Richiesta di assegnazione inviata con successo.');
+        },
+        error: () => {
+          this.popupMessageService.error('Errore nell\'inzio della richiesta.');
+        }
+      });
+    }
+    else if(this.requestType() === '' && this.requestAsset() !== ''){
+      console.log(this.requestAsset());
+      if(this.controlRequest() === 'DISMISSIONE'){
+        const postableDismissedRequest = {
+          userCode: this.user()!.oid,
+          operation: 'DISMISSED',
+          assetTypeCode: null,
+          assetCode: this.requestAsset(),
+          message: this.requestNotes(),
+          status: 'OPEN'
+        }
+        this.apiService.postTicket(postableDismissedRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di dismissione inviata con successo.');
+          },
+          error: () => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta.');
+          }
+        });
+      }
+      else if(this.controlRequest() === 'RIPARAZIONE'){
+        console.log(this.requestAsset());
+        const postableReturnedRequest = {
+          userCode: this.user()!.oid,
+          operation: 'RETURNED',
+          assetTypeCode: null,
+          assetCode: this.requestAsset(),
+          message: this.requestNotes(),
+          status: 'OPEN'
+        }
+        this.apiService.postTicket(postableReturnedRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di riparazione inviata con successo.');
+          },
+          error: () => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta.');
+          }
+        });
+      }
+    }
+    else{
+      this.popupMessageService.error('Errore nell\'inserimento delle credenziali.');
+    }
+    this.controlRequest.set('');
+    this.requestNotes.set('');
+    this.requestType.set('');
+    this.requestAsset.set('');
+    
     this.askDialog.nativeElement.close();
+  }
+  onViewTickets(){
+    this.router.navigate([`/user-standard/${this.user()?.oid}/ticket`]);
   }
   onLogout() {
     this.router.navigate(['/login']);

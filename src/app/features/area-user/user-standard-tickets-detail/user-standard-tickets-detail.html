@@ -1,0 +1,115 @@
+<div class="ticket-page">
+    <!-- tasto per tornare indieto e titolo -->
+    <div class="page-header d-flex align-items-start justify-content-between gap-3">
+        <div>
+            <a (click)="goBack()" style="cursor: pointer;">&larr; Indietro</a>
+            <h2 class="page-title">Ticket</h2>
+            <p class="page-subtitle">Visualizza e gestisci tutti i dettagli del Ticket.</p>
+        </div>
+    </div>
+  @if(loading()){
+    <div class="loading">Caricamento in corso...</div>
+  }
+    <!-- informazioni del ticket -->
+    <div class="content">
+          
+        <!-- Card: Informazioni Asset -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <h2 class="card-title">Informazioni Ticket</h2>
+            </div>
+                
+            <div class="info-grid"> 
+                <div class="info-item full-width">
+                    <span class="info-label">User assegnato</span>
+                    <span class="info-value">{{ ticket()?.userCode }}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Operazione</span>
+                    <span class="info-value">{{ ticket()?.operation }}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Stato</span>
+                    <span class="info-value">{{ ticket()?.status }}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Numero Seriale</span>
+                    <span class="info-value">{{ ticket()?.date | date: 'dd/MM/yyyy'}}</span>
+                </div>
+                <div class="info-item full-width">
+                    <span class="info-label">Inserire la risposta al ticket</span>
+                    <textarea name="reply" rows="4" class="textarea" [(ngModel)]="message"></textarea>
+                </div>
+            </div>
+            <app-button variant="secondary" type="button" (click)="onAlertDialogOpen()" [disabled]="isInvalid(ticket()?.status)"> Invia </app-button>
+            <app-button 
+             variant="primary"
+             type="button"
+             style="margin-left: 0.5rem;"
+             (click)="onAlertClosingDialogOpen()"
+             [disabled]="isInvalid(ticket()?.status)"> 
+                Invia e Chiudi 
+            </app-button>
+        </div>
+    </div>
+
+    <!-- tabella storico dei ticket -->
+    <div class="table-card" #tableCard>
+
+      <!-- Header -->
+      <div class="ticket-row ticket-header">
+        <div>Stato</div>
+        <div>Messaggio</div>
+        <div>Data di invio richiesta</div>
+        <div>User Assegnato</div>
+      </div>
+
+      <!-- Righe dinamiche -->
+      <!-- @if(isVisible()){ -->
+        @if(paginatedReplies().length === 0){
+          <div class="ticket-row-empty">
+              <div style="color:#b4abb9">
+                E possibile che la combinazione di filtri inserita non abbia attuali tipologie di asset
+              </div>
+          </div>
+        }
+        @else {
+          @for(reply of paginatedReplies(); track $index;){
+            <div class="ticket-row" style="cursor: pointer;">
+              <div>{{ reply.status}}</div>
+              <div>{{ reply.message}}</div>
+              <div>{{ reply.date | date: 'dd/MM/yyyy'}}</div>
+              <div>{{ reply.user }}</div>
+            </div>
+           }
+          }
+        <!-- footer di asset type -->
+        @if(totalPages() > 1){
+          <div class="table-foot">
+            <div class="table-info">
+              {{displayRange()}}
+            </div>
+            <div></div>
+            <div style="display: flex; justify-content: flex-end;">
+              <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)">
+              </app-pagination>
+            </div>
+          </div>
+        }
+  </div>
+
+  <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
+  <dialog #alertDialog class="popup-window">
+    <div class="ticket-modal-header">
+      <div class="ticket-modal-icon" aria-hidden="true">i</div>
+      <div class="ticket-modal-title">{{alertTitle}}</div>
+    </div>
+    <div class="ticket-modal-actions">
+      <app-button type="button" variant="secondary" (click)="onAlertDialogClose()">Cancella</app-button>
+      <app-button type="button" variant="primary" (click)="onPostReply()">Conferma</app-button>
+    </div>
+  </dialog>
+</div>

@@ -1,43 +1,44 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { Ticket } from '../../../../models/ticket.model';
-import { DatePipe } from '@angular/common';
-import { ApiService } from '../../../../services/api';
-import { PopupMessageService } from '../../../../shared/services/popup-message.service';
-import { AssetService } from '../../../../shared/services/asset.service';
-import { User } from '../../../../models/user.model';
-import { Asset } from '../../../../shared/models/asset.interface';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { TicketByUser } from '../../../models/ticket.model';
+import { ApiService } from '../../../services/api';
+import { PopupMessageService } from '../../../shared/services/popup-message.service';
+import { AssetService } from '../../../shared/services/asset.service';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
-import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
+import { Asset } from '../../../shared/models/asset.interface';
+import { BusinessUnit } from '../../../shared/services/business-unit.service';
+import { User } from '../../../models/user.model';
 import { Subject } from 'rxjs/internal/Subject';
-import { BusinessUnit } from '../../../../shared/services/business-unit.service';
-import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 
 @Component({
-  selector: 'app-ticket-list',
-  imports: [PaginationComponent, DatePipe],
-  templateUrl: './ticket-list.html',
-  styleUrl: './ticket-list.css',
+  selector: 'app-user-standard-tickets',
+  imports: [DatePipe, PaginationComponent],
+  templateUrl: './user-standard-tickets.html',
+  styleUrl: './user-standard-tickets.css',
 })
-export class TicketList implements OnInit {
-  tickets = signal<Ticket[]>([]);
+export class UserStandardTickets {
   users = signal<User[]>([]);
   businessUnits = signal<BusinessUnit[]>([]);
   assets = signal<Asset[]>([]);
-
-  calledUsers = signal<string[]>([]);
+  tickets = signal<TicketByUser[]>([]);
 
   loading = signal(true);
+  private destroyRef = inject(DestroyRef);
   isVisible = signal(true);
   reload$ = new Subject<boolean>();
-  private destroyRef = inject(DestroyRef);
 
   constructor(private apiService: ApiService,
     private readonly popupMessageService: PopupMessageService,
     private assetService: AssetService,
-    private router: Router
+    private router: Router,
+    public route: ActivatedRoute,
   ){
+    const oid = this.route.snapshot.paramMap.get('oid');
+
     const subscription = forkJoin({
-      tickets: this.apiService.getTickets(),
+      tickets: this.apiService.getTicketsByUser(oid ?? ''),
       users: this.apiService.getUsers(),
       businessUnits: this.apiService.getBusinessUnits(),
       assets: this.assetService.getAssets()
@@ -61,25 +62,6 @@ export class TicketList implements OnInit {
       }
     });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
-  }
-
-  ngOnInit(): void {
-    for(let ticket in this.tickets()){
-      const ticketUser = this.tickets()[ticket];
-
-      const user = this.users().find(u => u.oid === ticketUser.userCode);
-      const businessUnit = this.businessUnits().find(b => {
-
-        if(user?.businessUnit === null){
-          return b.name = 'Admin';
-        }
-        else{
-          return b.name === user?.businessUnit.name;
-        }
-      });
-      this.calledUsers.set([...this.calledUsers(), user ? user.name + ' ' + user.surname + ' di ' + businessUnit?.name : '-']);
-    }
-    this.reloadDiv();
   }
 
   //flippa i ticket per avere il più recente prima e il più lontano dopo
@@ -114,15 +96,15 @@ export class TicketList implements OnInit {
     this.currentPage.set(page);
   }
 
-  control(){
-    console.log('calledUsers: ', this.calledUsers());
-    console.log(this.users());
-    console.log(this.tickets());
+  onNavigate(ticketCode: string) {
+    this.router.navigate(['user-standard/:oid/ticket/ticket-detail/:ticketCode']
+      .map(path => path.replace(':oid', this.route.snapshot.paramMap.get('oid') ?? '').replace(':ticketCode', ticketCode)));
   }
 
-  onNavigate(code: string){
-    this.router.navigate(['/tickets/ticket-detail', code]);
+  goBack(): void {
+    this.router.navigate(['/user-standard', this.route.snapshot.paramMap.get('oid')]);
   }
+
   reloadDiv() {
     this.isVisible.set(false);
     setTimeout(() => {

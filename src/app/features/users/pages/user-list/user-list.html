@@ -19,7 +19,7 @@
         <label class="filter-label">Business Unit</label>
         <select class="filter-control" [(ngModel)]="filterBU" style="max-width: 302.4px; max-height: 39.2px;">
           <option value="">Tutte le categorie</option>
-          @for(businessUnit of businessUnits(); track businessUnit.id)
+          @for(businessUnit of businessUnits(); track businessUnit.code)
           {
             @if(businessUnit.active){
               <option [value]="businessUnit.name"> {{businessUnit.name}} </option>
@@ -54,7 +54,7 @@
         @for(user of paginatedUser(); track user.id)
         {
           @if(user.userType !== 'ADMIN'){
-            <tr class="user-row" (click)="onNavigate(user.id)" style="cursor: pointer;">
+            <tr class="user-row" (click)="onNavigate(user.oid)" style="cursor: pointer;">
               <td>{{user.name}} {{user.surname}}</td>
               <td>{{user.email}}</td>
               <td>{{user.businessUnit.name}}</td>
