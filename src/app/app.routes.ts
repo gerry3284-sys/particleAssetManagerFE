@@ -16,6 +16,9 @@ import { BusinessUnitList } from './features/business-unit/business-unit-list';
 // import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';
 import { TicketList } from './features/assets/pages/ticket-list/ticket-list';
 import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';
+import { TicketDetail } from './features/assets/pages/ticket-detail/ticket-detail';
+import { UserStandardTickets } from './features/area-user/user-standard-tickets/user-standard-tickets';
+import { UserStandardTicketsDetail } from './features/area-user/user-standard-tickets-detail/user-standard-tickets-detail'
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -29,13 +32,15 @@ export const routes: Routes = [
     ]
   },
   
-  // Layout principale (con sidebar)
   {
     path: '', component: UserLayoutComponent,
     children: [
-      { path: 'user-standard/:id', component: UserStandard }
+      { path: 'user-standard/:oid', component: UserStandard },
+      { path: 'user-standard/:oid/ticket', component: UserStandardTickets },
+      { path: 'user-standard/:oid/ticket/ticket-detail/:ticketCode', component: UserStandardTicketsDetail }
     ]
   },
+  // Layout principale (con sidebar)
   {
     path: '',
     component: MainLayoutComponent,
@@ -50,10 +55,11 @@ export const routes: Routes = [
       // BusinessUnit
       { path: 'businessUnits', component: BusinessUnitList},
       //tickets
-      { path: 'ticket-list', component: TicketList },
+      { path: 'tickets', component: TicketList },
+      { path: 'tickets/ticket-detail/:ticketCode', component: TicketDetail },
       // Users
       { path: 'users', component: UserList },
-      { path: 'users/user-detail/:id', component: UserDetail },
+      { path: 'users/user-detail/:oid', component: UserDetail },
       { path: '', redirectTo: 'assets', pathMatch: 'full' }
     ]
   },

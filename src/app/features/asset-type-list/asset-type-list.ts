@@ -283,6 +283,7 @@ onStorageorRamChange() {
 
   // Diverse funzioni che si attivano prima durante o dopo la creazione di un tipo
   OnOpenNewDialog(){
+    console.log(this.assetTypes());
     this.newDialog.nativeElement.showModal();
   
     this.initialName = '';
@@ -310,7 +311,6 @@ onStorageorRamChange() {
       storage: this.storageCheck,
       ram: this.RamCheck,
     };
-    console.log(postableAssetType);
     this.apiService.postAssetType(postableAssetType)
     .subscribe({
       next: (createdAssetType) => {

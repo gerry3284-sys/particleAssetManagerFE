@@ -143,7 +143,7 @@ export class UserList{
     this.usersFiltered.set(filtered);
     this.currentPage.set(1);
   }
-  onNavigate(userId: number){
-    this.router.navigate(['/users/user-detail', userId]);
+  onNavigate(oid: string){
+    this.router.navigate(['/users/user-detail', oid]);
   }
 }

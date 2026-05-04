@@ -6,6 +6,7 @@ import { environment } from '../features/environment';
 import {MovementByuserID, User } from '../models/user.model';
 import { AssetType } from '../shared/services/asset-type.service';
 import { BusinessUnit } from '../shared/services/business-unit.service';
+import { Ticket, TicketByUser } from '../models/ticket.model';
 
 @Injectable({
   providedIn: 'root',
@@ -18,12 +19,11 @@ export class ApiService {
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}/user`);
   }
-  getUsersById(id: number): Observable<User> {
-    return this.http.get<User>(`${this.baseUrl}/user/${id}`);
+  getUsersById(oid: string): Observable<User> {
+    return this.http.get<User>(`${this.baseUrl}/user/${oid}`);
   }
-  getMovementByUserId(id: number): Observable<MovementByuserID[]>{
-    console.log(`${this.baseUrl}/user/${id}/movement`);
-    return this.http.get<MovementByuserID[]>(`${this.baseUrl}/user/${id}/movement`);
+  getMovementByUserId(oid: string): Observable<MovementByuserID[]>{
+    return this.http.get<MovementByuserID[]>(`${this.baseUrl}/user/${oid}/movement`);
   }
   getAssetTypes(): Observable<AssetType[]>{
     return this.http.get<AssetType[]>(`${this.baseUrl}/assetType`);
@@ -33,6 +33,18 @@ export class ApiService {
   }
   getReceiptByAssetAndMovement(assetCode: string, movemenetCode: string): Observable<any>{
     return this.http.get(`${this.baseUrl}/asset/${assetCode}/movement/${movemenetCode}/receipt`, { responseType: 'blob' });
+  }
+  getTickets(): Observable<Ticket[]>{
+    return this.http.get<Ticket[]>(`${this.baseUrl}/ticket`);
+  }
+  getTicketByCode(ticketCode: string): Observable<Ticket>{
+    return this.http.get<Ticket>(`${this.baseUrl}/ticket/${ticketCode}`);
+  }
+  getTicketChat(ticketCode: string): Observable<any>{
+    return this.http.get(`${this.baseUrl}/ticket/${ticketCode}/replies`);
+  }
+  getTicketsByUser(oid: string): Observable<TicketByUser[]>{
+    return this.http.get<TicketByUser[]>(`${this.baseUrl}/user/${oid}/ticket`);
   }
   putAssetTypeById(code: string, assetType: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/assetType/${code}`, assetType, { responseType: 'text' });
@@ -56,5 +68,13 @@ export class ApiService {
   }
   postBusinessUnit(businessUnit: Object): Observable<any>{
     return this.http.post(`${this.baseUrl}/businessUnit`, businessUnit, { responseType: 'text' });
+  }
+  postTicket(request: Object): Observable<Ticket> {
+    return this.http.post(`${this.baseUrl}/ticket`, request, { responseType: 'text' }).pipe(
+      map(response => JSON.parse(response))
+    );
+  }
+  postReply(reply: Object, ticketCode: string): Observable<any>{
+    return this.http.post(`${this.baseUrl}/ticket/${ticketCode}/reply`, reply, { responseType: 'text' });
   }
 }

@@ -1,4 +1,10 @@
 <div class="ticket-page">
+  <!-- tasto per tornare indieto e titolo -->
+    <div class="page-header d-flex align-items-start justify-content-between gap-3">
+        <div>
+            <a (click)="goBack()" style="cursor: pointer;">&larr; Indietro</a>
+        </div>
+    </div>
     <!-- titolo -->
   <div class="page-header d-flex align-items-start gap-3">
     <div>
@@ -14,7 +20,7 @@
 
       <!-- Header -->
       <div class="ticket-row ticket-header">
-        <div>Stato</div>
+        <div>Codice identificativo</div>
         <div>Tipo di operazione</div>
         <div>User chiamante</div>
         <div>Data di invio richiesta</div>
@@ -32,9 +38,9 @@
         @else {
           @for(ticket of paginatedTickets(); track ticket.ticketCode; let id = $index){
             <div class="ticket-row" (click)="onNavigate(ticket.ticketCode)" style="cursor: pointer;">
-              <div>{{ ticket.status}}</div>
+              <div>{{ ticket.assetCode}} {{ ticket.assetTypeCode}}</div>
               <div>{{ ticket.operation}}</div>
-              <div>{{calledUsers()[id]}}</div>
+              <div>{{ticket.user}}</div>
               <div>{{ ticket.date | date: 'dd/MM/yyyy'}}</div>
             </div>
             }
@@ -54,5 +60,4 @@
         }
       }
   </div>
-  <!-- <button (click)="control()">control</button> -->
 </div>

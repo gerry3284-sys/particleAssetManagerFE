@@ -55,11 +55,11 @@ export class UserDetail implements OnInit{
     private router: Router,
     private readonly popupMessageService: PopupMessageService
   ){
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.route.snapshot.paramMap.get('oid');
     if (!id) return;
     const subscription = forkJoin({
-      user: this.apiService.getUsersById(+id),
-      movements: this.apiService.getMovementByUserId(+id)
+      user: this.apiService.getUsersById(id),
+      movements: this.apiService.getMovementByUserId(id)
     }).subscribe({
       next: ({ user, movements }) => {
         this.user.set(user ?? {});
