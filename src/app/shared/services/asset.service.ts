@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -18,12 +19,14 @@ export interface AssetApi {
 }
 
 export interface UnderMaintenanceAssetApi {
+  code?: string;
   brand: string;
   model: string;
   serialNumber: string;
   assetCode: string;
   assetType: string;
   businessUnit: string;
+  inProgress: boolean;
   returnedDate: string | null;
   endMaintenanceDate: string | null;
 }
@@ -40,6 +43,9 @@ export interface AssetDetailApi {
   creationDate: string;
   updateDate: string | null;
   code: string;
+  endMaintenance?: string | null;
+  endMaintenanceDate?: string | null;
+  inProgress?: boolean;
 
   businessUnit: {
     id: number;
@@ -71,6 +77,7 @@ export interface AssetMovementApi {
   receiptAvailable?: boolean | null;
   user?: {
     id: number;
+    oid: string;
     name: string;
     surname: string;
     email: string;
@@ -83,6 +90,8 @@ export interface AssetMovementApi {
 export class AssetService {
 
   private readonly apiUrl = 'http://localhost:8080/asset';
+  private readonly platformId = inject(PLATFORM_ID);
+  readonly workingMaintenanceAssetCodes = signal<string[]>(this.readPersistedMaintenanceCodes());
 
 
   constructor(private readonly http: HttpClient) {}
@@ -103,6 +112,7 @@ export class AssetService {
         assetCode: item.assetCode,
         assetType: item.assetType,
         businessUnit: item.businessUnit,
+        inProgress: item.inProgress ?? false,
         returnedDate: this.toDisplayDate(item.returnedDate),
         endMaintenanceDate: this.toDisplayDate(item.endMaintenanceDate)
       })))
@@ -152,7 +162,8 @@ export class AssetService {
   createAssetMovement(assetCode: string, payload: {
     note: string;
     movementType: string;
-    user: number | null;
+    user?: number | null;
+    userCode?: string | null;
     receiptBase64?: string;
     recipientEmail?: string;
   }): Observable<void> {
@@ -162,9 +173,14 @@ export class AssetService {
     // Costruisce body senza receiptBase64 se non fornito
     const body: Record<string, unknown> = {
       note: payload.note,
-      movementType: normalizedMovementType || rawMovementType,
-      user: payload.user
+      movementType: normalizedMovementType || rawMovementType
     };
+    const normalizedUserCode = (payload.userCode ?? '').trim();
+    if (normalizedUserCode) {
+      body['userCode'] = normalizedUserCode;
+    } else if (payload.user !== undefined && payload.user !== null) {
+      body['user'] = payload.user;
+    }
     const normalizedReceiptBase64 = this.normalizeReceiptBase64(payload.receiptBase64);
     if (normalizedReceiptBase64 !== undefined) {
       body['receiptBase64'] = normalizedReceiptBase64;
@@ -187,6 +203,42 @@ export class AssetService {
     return normalized || undefined;
   }
 
+  private readPersistedMaintenanceCodes(): string[] {
+    if (!isPlatformBrowser(this.platformId)) {
+      return [];
+    }
+
+    try {
+      const raw = localStorage.getItem('particleAssetManagerFE.assetMaintenanceWorkingCodes');
+      if (!raw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .map(value => typeof value === 'string' ? value.trim() : '')
+        .filter((value): value is string => !!value);
+    } catch {
+      return [];
+    }
+  }
+
+  private persistMaintenanceCodes(codes: string[]): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    localStorage.setItem('particleAssetManagerFE.assetMaintenanceWorkingCodes', JSON.stringify(codes));
+  }
+
+  private normalizeAssetCode(assetCode: string): string {
+    return (assetCode ?? '').trim();
+  }
+
   // AGGIORNA ASSET
   updateAsset(assetCode: string, payload: {
     brand: string;
@@ -202,12 +254,78 @@ export class AssetService {
     return this.http.put<void>(`${this.apiUrl}/${safeCode}`, payload);
   }
 
-  // AGGIORNA SOLO LO STATUS ASSET (nuovo endpoint backend)
-  updateAssetStatus(assetCode: string, assetStatusTypeCode: string): Observable<void> {
+  // MARK ASSET IN WORKING (mette asset in lavorazione)
+  markAssetInWorking(assetCode: string, payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    storage: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    assetStatusTypeCode: string;
+    ram: number;
+    endMaintenance?: string | null;
+  }): Observable<void> {
+    return this.setAssetInProgress(assetCode, payload);
+  }
+
+  setAssetInProgress(assetCode: string, payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    storage: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    assetStatusTypeCode: string;
+    ram: number;
+    endMaintenance?: string | null;
+  }): Observable<void> {
     const safeCode = this.toSafeAssetCode(assetCode);
-    return this.http.put<void>(`${this.apiUrl}/updateAssetStatus/${safeCode}`, {
-      assetStatusTypeCode
-    });
+    return this.http.put<void>(`${this.apiUrl}/inProgress/${safeCode}`, payload);
+  }
+
+  // Deprecated: use UnderMaintenanceAsset.inProgress field instead
+  isAssetInWorking(assetCode: string): boolean {
+    const normalizedCode = this.normalizeAssetCode(assetCode);
+    if (!normalizedCode) {
+      return false;
+    }
+
+    return this.workingMaintenanceAssetCodes().includes(normalizedCode);
+  }
+
+  // Aggiunge un codice asset al localStorage dei codici in lavorazione
+  addAssetToWorking(assetCode: string): void {
+    const normalizedCode = this.normalizeAssetCode(assetCode);
+    if (!normalizedCode) {
+      return;
+    }
+
+    const currentCodes = this.workingMaintenanceAssetCodes();
+    if (!currentCodes.includes(normalizedCode)) {
+      const updatedCodes = [...currentCodes, normalizedCode];
+      this.workingMaintenanceAssetCodes.set(updatedCodes);
+      this.persistMaintenanceCodes(updatedCodes);
+    }
+  }
+
+  // AGGIORNA SOLO LO STATUS ASSET (nuovo endpoint backend)
+  updateAssetStatus(assetCode: string, payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    storage: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    assetStatusTypeCode: string;
+    ram: number;
+    endMaintenance?: string | null;
+  }): Observable<void> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    return this.http.put<void>(`${this.apiUrl}/updateAssetStatus/${safeCode}`, payload);
   }
 
   // Normalizza il codice prima di usarlo in URL.
@@ -270,6 +388,8 @@ export class AssetService {
       assignedUserId: null,
       assignmentDate: null,
       returnDate: null,
+      endMaintenanceDate: this.toDisplayDate(item.endMaintenance ?? item.endMaintenanceDate),
+      inProgress: item.inProgress ?? false,
       notes: item.note ?? '-',
       status,
       statusLabel: this.toItalianStatusLabel(status),
@@ -287,12 +407,14 @@ export class AssetService {
     const movementCode = this.resolveMovementCode(item);
     const userName = `${item.user?.name ?? ''} ${item.user?.surname ?? ''}`.trim();
     const userId = item.user?.id;
+    const userCode = (item.user?.oid ?? '').trim();
 
     return {
       id: movementCode,
       date: new Date(item.date).toLocaleDateString(),
       user: userName || 'Amministratore',
       userId: Number.isFinite(userId) ? String(userId) : '',
+      userCode,
       movementType,
       movementLabel: this.getMovementLabel(movementType),
       note: sanitizedNote ? sanitizedNote : undefined,

@@ -142,6 +142,7 @@ export class AssetCreateComponent {
   // Stato di submit
   isSubmitting = signal(false);
   showConfirm = signal(false);
+  showCancelConfirm = signal(false);
 
   constructor() {
     this.assetForm.controls.assetType.valueChanges.subscribe(() => {
@@ -161,9 +162,16 @@ export class AssetCreateComponent {
 
   // Annulla e torna indietro
   cancel(): void {
-    if (confirm('Sei sicuro di voler annullare? Le modifiche non salvate andranno perse.')) {
-      this.goBack();
-    }
+    this.showCancelConfirm.set(true);
+  }
+
+  closeCancelConfirm(): void {
+    this.showCancelConfirm.set(false);
+  }
+
+  confirmCancel(): void {
+    this.showCancelConfirm.set(false);
+    this.goBack();
   }
 
   private updateConditionalValidators(): void {

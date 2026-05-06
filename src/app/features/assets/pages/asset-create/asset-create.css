@@ -351,3 +351,50 @@
     width: 100%;
   }
 }
+
+/* Stili per modale di annullamento */
+.cancel-confirm-card {
+  padding: 28px;
+}
+
+.cancel-confirm-header {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cancel-confirm-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F97316;
+  opacity: 0.8;
+}
+
+.cancel-confirm-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cancel-confirm-title {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.cancel-confirm-subtitle {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.cancel-confirm-warning {
+  margin: 0;
+  font-size: 13px;
+  color: #9CA3AF;
+  font-style: italic;
+}

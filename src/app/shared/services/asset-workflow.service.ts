@@ -7,7 +7,7 @@ import { FilterService } from './filter.service';
 import { AssetStatusType } from '../models/filter-config.interface';
 
 export interface AssignAssetCommand {
-  userId: number;
+  userCode: string;
   notes?: string;
   receiptBase64?: string;
 }
@@ -17,7 +17,7 @@ export interface ReturnAssetCommand {
   privateEmail?: string;
   receiptBase64?: string;
   notes?: string;
-  userId: number;
+  userCode: string;
 }
 
 export interface DismissAssetCommand {
@@ -42,7 +42,7 @@ export class AssetWorkflowService {
     return this.assetService.createAssetMovement(asset.assetCode, {
       note: payload.notes?.trim() || 'Assegnazione asset',
       movementType: 'Assigned',
-      user: payload.userId,
+      userCode: payload.userCode,
       receiptBase64: payload.receiptBase64
     });
   }
@@ -53,13 +53,29 @@ export class AssetWorkflowService {
     return this.assetService.createAssetMovement(asset.assetCode, {
       note: safeNote,
       movementType: 'Returned',
-      user: payload.userId,
+      userCode: payload.userCode,
       receiptBase64: payload.receiptBase64,
       recipientEmail: payload.privateEmail
     }).pipe(
       switchMap(() =>
         this.resolveUnderMaintenanceStatusCode().pipe(
-          switchMap(statusCode => this.assetService.updateAssetStatus(asset.assetCode, statusCode))
+          switchMap(statusCode => {
+            const endMaintenance = new Date().toISOString().split('T')[0];
+            const payload = {
+              brand: asset.brand,
+              model: asset.model,
+              serialNumber: asset.serialNumber,
+              note: (asset.notes ?? '').trim(),
+              storage: '',
+              businessUnitCode: asset.businessUnitCode ?? '',
+              assetTypeCode: asset.assetTypeCode ?? '',
+              assetStatusTypeCode: statusCode,
+              ram: Number(asset.ram ?? 0),
+              endMaintenance
+            };
+
+            return this.assetService.updateAssetStatus(asset.assetCode, payload);
+          })
         )
       )
     );

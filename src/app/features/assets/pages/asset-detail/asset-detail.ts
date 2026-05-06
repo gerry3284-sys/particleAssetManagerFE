@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject, DestroyRef, computed } from '@angular/core';
-import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { CommonModule, DOCUMENT, isPlatformBrowser, Location } from '@angular/common';
 import { PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -8,12 +8,14 @@ import { DismissAssetModalComponent, DismissAssetForm } from '../../../../shared
 import { ReturnCertifyModalComponent, ReturnCertifyForm } from '../../components/return-certify-modal/return-certify-modal';
 import { AssetDetail, AssignAssetForm, AssetMovement } from '../../../../shared/models/asset.interface';
 import { AssetService } from '../../../../shared/services/asset.service';
+import { AssetStateService } from '../../../../shared/services/asset-state.service';
 import { AssetWorkflowService } from '../../../../shared/services/asset-workflow.service';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { AssignmentReceiptPdfData, AssignmentReceiptPdfService } from '../../../../shared/services/assignment-receipt-pdf.service';
 import { ReturnReceiptPdfData, ReturnReceiptPdfService } from '../../../../shared/services/return-receipt-pdf.service';
 import { DismissReceiptPdfData, DismissReceiptPdfService } from '../../../../shared/services/dismiss-receipt-pdf.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
 import { ButtonComponent } from '../../../../shared/components/button/button';
 import { FilterService } from '../../../../shared/services/filter.service';
 import {
@@ -151,11 +153,18 @@ export class AssetDetailComponent implements OnInit {
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly documentRef = inject(DOCUMENT);
+    private readonly location = inject(Location);
+
+  isAssetInWorking(): boolean {
+    const current = this.asset();
+    return !!current && this.assetService.isAssetInWorking(current.assetCode);
+  }
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private assetService: AssetService,
+    private assetStateService: AssetStateService,
     private assetWorkflowService: AssetWorkflowService,
     private popupMessageService: PopupMessageService,
     private filterService: FilterService,
@@ -249,7 +258,7 @@ export class AssetDetailComponent implements OnInit {
 
   // --- Navigazione
   goBack(): void {
-    this.router.navigate(['/assets']);
+     this.location.back();
   }
 
   openEditAssetModal(): void {
@@ -519,8 +528,8 @@ export class AssetDetailComponent implements OnInit {
       return;
     }
 
-    const userId = Number(formData.userId);
-    if (!Number.isFinite(userId)) {
+    const userCode = formData.userCode.trim();
+    if (!userCode) {
       this.popupMessageService.error('Utente non valido');
       return;
     }
@@ -544,7 +553,7 @@ export class AssetDetailComponent implements OnInit {
         }
 
         this.assetWorkflowService.assignAsset(current, {
-          userId,
+          userCode,
           notes: formData.notes,
           receiptBase64: normalizedReceiptBase64
         })
@@ -628,7 +637,11 @@ export class AssetDetailComponent implements OnInit {
     const assignmentDate = this.toDateOrNow(latestAssignedMovement?.date);
     const returnDate = new Date();
 
-    const returnUserId = this.getReturnMovementUserId();
+    const returnUserCode = this.getReturnMovementUserCode();
+    if (!returnUserCode) {
+      this.popupMessageService.error('Impossibile determinare il codice utente per la riconsegna');
+      return;
+    }
 
     const returnReceiptData: ReturnReceiptPdfData = {
       assetType: current.assetType,
@@ -653,7 +666,7 @@ export class AssetDetailComponent implements OnInit {
           reason: formData.reason,
           privateEmail: formData.privateEmail,
           notes: formData.notes,
-          userId: returnUserId,
+          userCode: returnUserCode,
           receiptBase64: normalizedReceiptBase64
         }, returnReceiptData);
       })
@@ -669,7 +682,7 @@ export class AssetDetailComponent implements OnInit {
       reason: 'resignation' | 'change';
       privateEmail?: string;
       notes?: string;
-      userId: number;
+      userCode: string;
       receiptBase64?: string;
     },
     receiptData: ReturnReceiptPdfData
@@ -699,14 +712,13 @@ export class AssetDetailComponent implements OnInit {
       });
   }
 
-  private getReturnMovementUserId(): number {
+  private getReturnMovementUserCode(): string {
     const latestAssigned = this.getLatestMovementByType('Assigned');
     if (!latestAssigned) {
-      return AssetDetailComponent.ADMIN_USER_ID;
+      return '';
     }
 
-    const candidateId = Number(latestAssigned.userId);
-    return Number.isFinite(candidateId) ? candidateId : AssetDetailComponent.ADMIN_USER_ID;
+    return latestAssigned.userCode?.trim() || '';
   }
 
   private getLatestAssignedMovement(): AssetMovement | null {
@@ -760,6 +772,15 @@ export class AssetDetailComponent implements OnInit {
     }
 
     return this.asset()?.returnDate || '-';
+  }
+
+  getDisplayedEndMaintenanceDate(): string {
+    const current = this.asset();
+    if (!current || current.status !== 'UnderMaintenance') {
+      return '-';
+    }
+
+    return current.endMaintenanceDate || '-';
   }
 
   private toDateOrNow(value?: string | null): Date {
@@ -825,35 +846,71 @@ export class AssetDetailComponent implements OnInit {
 
     this.settingMaintenanceStatus.set(true);
 
-    this.filterService.getAssetStatusTypes(true)
+    const endMaintenance = new Date().toISOString().split('T')[0];
+
+    const payload = {
+      brand: current.brand,
+      model: current.model,
+      serialNumber: current.serialNumber,
+      note: (current.notes ?? '').trim(),
+      storage: '',
+      businessUnitCode: current.businessUnitCode ?? '',
+      assetTypeCode: current.assetTypeCode ?? '',
+      assetStatusTypeCode: 'UnderMaintenance',
+      ram: Number(current.ram ?? 0),
+      endMaintenance
+    };
+
+    this.assetService.updateAssetStatus(current.assetCode, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: statusTypes => {
-          const maintenanceStatusCode = this.resolveMaintenanceStatusCode(statusTypes);
-          if (!maintenanceStatusCode) {
-            this.popupMessageService.error('Stato Manutenzione non configurato correttamente');
-            this.settingMaintenanceStatus.set(false);
-            return;
-          }
-
-          this.assetService.updateAssetStatus(current.assetCode, maintenanceStatusCode)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: () => {
-                this.popupMessageService.success('Asset impostato in manutenzione');
-                this.loadAssetDetail(this.assetId());
-                this.settingMaintenanceStatus.set(false);
-              },
-              error: err => {
-                console.error('Errore aggiornamento stato a Manutenzione:', err);
-                this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
-                this.settingMaintenanceStatus.set(false);
-              }
-            });
+        next: () => {
+          this.popupMessageService.success('Asset impostato in manutenzione');
+          this.assetStateService.notifyAssetStateChanged({ type: 'maintenance', assetCode: current.assetCode });
+          this.loadAssetDetail(this.assetId());
+          this.settingMaintenanceStatus.set(false);
         },
         error: err => {
-          console.error('Errore caricamento stati asset:', err);
-          this.popupMessageService.error('Impossibile verificare gli stati asset');
+          console.error('Errore aggiornamento stato a Manutenzione:', err);
+          this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
+          this.settingMaintenanceStatus.set(false);
+        }
+      });
+  }
+
+  markAsWorking(): void {
+    const current = this.asset();
+    if (!current || current.status !== 'UnderMaintenance' || current.inProgress) {
+      return;
+    }
+
+    this.settingMaintenanceStatus.set(true);
+
+    const payload = {
+      brand: current.brand,
+      model: current.model,
+      serialNumber: current.serialNumber,
+      note: (current.notes ?? '').trim(),
+      storage: '',
+      businessUnitCode: current.businessUnitCode ?? '',
+      assetTypeCode: current.assetTypeCode ?? '',
+      assetStatusTypeCode: current.assetStatusTypeCode ?? 'UnderMaintenance',
+      ram: Number(current.ram ?? 0),
+      endMaintenance: current.endMaintenanceDate || null
+    };
+
+    this.assetService.markAssetInWorking(current.assetCode, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.assetService.addAssetToWorking(current.assetCode);
+          this.popupMessageService.success('Asset messo in lavorazione');
+          this.loadAssetDetail(this.assetId());
+          this.settingMaintenanceStatus.set(false);
+        },
+        error: err => {
+          console.error('Errore aggiornamento asset in lavorazione:', err);
+          this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
           this.settingMaintenanceStatus.set(false);
         }
       });
@@ -878,7 +935,20 @@ export class AssetDetailComponent implements OnInit {
             return;
           }
 
-          this.assetService.updateAssetStatus(current.assetCode, availableStatusCode)
+          const payload = {
+            brand: current.brand,
+            model: current.model,
+            serialNumber: current.serialNumber,
+            note: (current.notes ?? '').trim(),
+            storage: '',
+            businessUnitCode: current.businessUnitCode ?? '',
+            assetTypeCode: current.assetTypeCode ?? '',
+            assetStatusTypeCode: availableStatusCode,
+            ram: Number(current.ram ?? 0),
+            endMaintenance: null
+          };
+
+          this.assetService.updateAssetStatus(current.assetCode, payload)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: () => {
@@ -886,6 +956,7 @@ export class AssetDetailComponent implements OnInit {
                 this.loadAssetDetail(this.assetId());
                 this.settingAvailableStatus.set(false);
               },
+
               error: err => {
                 console.error('Errore aggiornamento stato a Disponibile:', err);
                 this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
