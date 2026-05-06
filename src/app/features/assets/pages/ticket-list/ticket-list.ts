@@ -14,6 +14,7 @@ import { BusinessUnit } from '../../../../shared/services/business-unit.service'
 import { Router } from '@angular/router';
 import { AssetType } from '../../../../shared/services/asset-type.service';
 
+type EnrichedTicket = Ticket & { displayTitle: string; displayUser: string };
 
 @Component({
   selector: 'app-ticket-list',
@@ -27,6 +28,9 @@ export class TicketList implements OnInit {
   businessUnits = signal<BusinessUnit[]>([]);
   assets = signal<Asset[]>([]);
   assetTypes = signal<AssetType[]>([]);
+
+  filterTimeout: any;
+  filteredTickets = signal<Ticket[]>([]);
 
   // calledUsers = signal<string[]>([]);
 
@@ -53,10 +57,12 @@ export class TicketList implements OnInit {
     }).subscribe({
       next: ({ tickets, users, assets, businessUnits, assetTypes }) => {
         this.tickets.set(tickets ?? []);
+        this.filteredTickets.set(tickets ?? []);
         this.users.set(users ?? []);
         this.assets.set(assets ?? []);
         this.businessUnits.set(businessUnits ?? []);
         this.assetTypes.set(assetTypes ?? []);
+        this.onFilter();
 
         this.loading.set(false);
       },
@@ -75,36 +81,28 @@ export class TicketList implements OnInit {
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  calledUsers = computed(() => {
-    return this.tickets().map(ticket => {
-      const user = this.users().find(u => u.oid === ticket.userCode);
-      const businessUnit = this.businessUnits().find(b => {
-        if (user?.businessUnit === null) {
-          return b.name === 'Admin';
-        } else {
-          return b.name === user?.businessUnit?.name;
-        }
-      });
-      return user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}`: '-';
-    });
-  });
+  enrichedTickets = computed(() =>
+  this.tickets().map(ticket => {
+    const user = this.users().find(u => u.oid === ticket.userCode);
+    const businessUnit = this.businessUnits().find(b =>
+      user?.businessUnit === null ? b.name === 'Admin' : b.name === user?.businessUnit?.name
+    );
+    const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
 
-  titleTicket = computed(() =>{
-    return this.tickets().map(ticket =>{
-      let title = 'Richiesta ';
-      let asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+    let displayTitle = 'Richiesta ';
+    const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+    if (ticket.operation === 'ASSIGNED') {
+      const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
+      displayTitle += `Assegnazione: ${assetType?.name}`;
+    } else if (ticket.operation === 'DISMISSED') {
+      displayTitle += `Dismissione: ${asset?.serialNumber}`;
+    } else {
+      displayTitle += `Riparazione: ${asset?.serialNumber}`;
+    }
 
-      const operation = ticket.operation;
-      if(operation === 'ASSIGNED'){
-        const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
-        return title = title + `Assegnazione: ${assetType?.name}`;
-      } else if(operation === 'DISMISSED'){
-        return title = title + `Dismissione: ${asset?.serialNumber}`;
-      } else{
-        return title = title + `Riparazione: ${asset?.serialNumber}`;
-      }
-    })
-  });
+    return { ...ticket, displayTitle, displayUser };
+  })
+);
 
   ngOnInit(): void {
     this.reloadDiv();
@@ -128,15 +126,62 @@ export class TicketList implements OnInit {
   //   this.reloadDiv();
   // }
 
-  onFilter(){
+  onFilter() {
+    if (this.filterTimeout) {
+      clearTimeout(this.filterTimeout);
+    }
 
+    this.filterTimeout = setTimeout(() => {
+      let filtered = this.enrichedTickets();
+
+      if (this.statusFilter !== '') {
+        filtered = filtered.filter(e => e.status === this.statusFilter);
+      }
+
+      if (this.titleFilter !== '') {
+        const searchTitle = this.titleFilter.toLowerCase();
+        filtered = filtered.filter(e => e.displayTitle.toLowerCase().includes(searchTitle));
+      }
+
+      if (this.userFilter !== '') {
+        const searchUser = this.userFilter.toLowerCase();
+        filtered = filtered.filter(e => e.displayUser.toLowerCase().includes(searchUser));
+      }
+
+      this.filteredTickets.set(filtered.map(({ displayTitle, displayUser, ...ticket }) => ticket as Ticket));
+      this.currentPage.set(1);
+    }, 500);
   }
   //flippa i ticket per avere il più recente prima e il più lontano dopo
-  sortedTickets = computed(() =>
-    [...this.tickets()].sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    )
-  );
+sortedTickets = computed((): EnrichedTicket[] => {
+  const enriched = this.filteredTickets().map(ticket => {
+    const user = this.users().find(u => u.oid === ticket.userCode);
+    const businessUnit = this.businessUnits().find(b =>
+      user?.businessUnit === null ? b.name === 'Admin' : b.name === user?.businessUnit?.name
+    );
+    const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
+
+    let displayTitle = 'Richiesta ';
+    const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+    if (ticket.operation === 'ASSIGNED') {
+      const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
+      displayTitle += `Assegnazione: ${assetType?.name}`;
+    } else if (ticket.operation === 'DISMISSED') {
+      displayTitle += `Dismissione: ${asset?.serialNumber}`;
+    } else {
+      displayTitle += `Riparazione: ${asset?.serialNumber}`;
+    }
+
+    return { ...ticket, displayTitle, displayUser };
+  });
+
+  return enriched.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+});
+
+paginatedTickets = computed((): EnrichedTicket[] => {
+  const start = (this.currentPage() - 1) * this.itemsPerPage();
+  return this.sortedTickets().slice(start, start + this.itemsPerPage());
+});
 
   currentPage = signal(1);
   itemsPerPage = signal(8);
@@ -144,13 +189,6 @@ export class TicketList implements OnInit {
   // ricalcolo e aggiorno automaticamente dopo ogni cambiamento
   totalPages = computed(() => {
     return Math.ceil(this.sortedTickets().length / this.itemsPerPage());
-  });
-
-  // si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi users
-  paginatedTickets = computed(() => {
-    const start = (this.currentPage() - 1) * this.itemsPerPage();
-    const end = start + this.itemsPerPage();
-    return this.sortedTickets().slice(start, end);
   });
 
   //creazione stringa display range.
@@ -162,12 +200,6 @@ export class TicketList implements OnInit {
   goToPage(page: number): void {
     this.currentPage.set(page);
   }
-  control(){
-    console.log('calledUsers: ', this.calledUsers());
-    console.log(this.users());
-    console.log(this.tickets());
-  }
-
   onNavigate(code: string){
     this.router.navigate(['/tickets/ticket-detail', code]);
   }

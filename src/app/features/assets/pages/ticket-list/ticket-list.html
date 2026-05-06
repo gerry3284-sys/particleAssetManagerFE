@@ -51,12 +51,12 @@
         @if(paginatedTickets().length === 0){
           <div class="ticket-row-empty">
               <div style="color:#b4abb9">
-                E possibile che la combinazione di filtri inserita non abbia attuali tipologie di asset
+                E possibile che la combinazione di filtri inserita non abbia attuali ticket
               </div>
           </div>
         }
         @else {
-          @for(ticket of paginatedTickets(); track ticket.ticketCode; let id = $index){
+          @for(ticket of paginatedTickets(); track ticket.ticketCode;){
             <div class="ticket-row" (click)="onNavigate(ticket.ticketCode)" style="cursor: pointer;">
               <div class="status">
                 @if (ticket.status === 'OPEN') {
@@ -72,8 +72,8 @@
                   <span class="status-box"></span>
                 }
               </div>
-              <div>{{titleTicket()[id]}}</div>
-              <div>{{calledUsers()[id]}}</div>
+              <div>{{ticket.displayTitle}}</div>
+              <div>{{ticket.displayUser}}</div>
               <div>{{ ticket.date | date: 'dd/MM/yyyy - HH.mm'}}</div>
             </div>
             }

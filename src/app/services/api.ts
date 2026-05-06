@@ -65,8 +65,8 @@ export class ApiService {
     console.log(ticketCode);
     return this.http.put(`${this.baseUrl}/ticket/inPogress/${ticketCode}`, null);
   }
-  putTicketChangeStatus(ticketCode: string, status: string, ticket: Object): Observable<any>{
-    return this.http.put(`${this.baseUrl}/ticket/changeStatus/${ticketCode}/${status}`, ticket, { responseType: 'text' });
+  putTicketChangeStatus(ticketCode: string, status: string, ticket: Object): Observable<Ticket>{
+    return this.http.put<Ticket>(`${this.baseUrl}/ticket/changeStatus/${ticketCode}/${status}`, ticket);
   }
   postAssetType(assetType: Object): Observable<AssetType> {
     return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' }).pipe(

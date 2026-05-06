@@ -1,8 +1,11 @@
 .ticket-page {
 	display: flex;
 	flex-direction: column;
-	padding: 1rem;
-	gap: 1rem;
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+	padding-left: 2rem;
+	padding-right: 2rem;
+	gap: 1.3rem;
 }
 .page-header {
   display: flex;
@@ -147,7 +150,7 @@
   font-size: 13px;
   color: #1F2937;
   padding: 10px 12px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   background: #FFFFFF;
