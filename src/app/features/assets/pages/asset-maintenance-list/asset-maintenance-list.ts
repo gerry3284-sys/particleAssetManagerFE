@@ -24,8 +24,6 @@ export class AssetMaintenanceListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  workingAssetCodes = computed(() => this.assetService.workingMaintenanceAssetCodes());
-
   currentPage = signal(1);
   itemsPerPage = signal(8);
 

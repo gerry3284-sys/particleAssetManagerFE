@@ -880,12 +880,40 @@ export class AssetDetailComponent implements OnInit {
 
   markAsWorking(): void {
     const current = this.asset();
-    if (!current || current.status !== 'UnderMaintenance' || this.isAssetInWorking()) {
+    if (!current || current.status !== 'UnderMaintenance' || current.inProgress) {
       return;
     }
 
-    this.assetService.markAssetInWorking(current.assetCode);
-    this.popupMessageService.success('Asset messo in lavorazione');
+    this.settingMaintenanceStatus.set(true);
+
+    const payload = {
+      brand: current.brand,
+      model: current.model,
+      serialNumber: current.serialNumber,
+      note: (current.notes ?? '').trim(),
+      storage: '',
+      businessUnitCode: current.businessUnitCode ?? '',
+      assetTypeCode: current.assetTypeCode ?? '',
+      assetStatusTypeCode: current.assetStatusTypeCode ?? 'UnderMaintenance',
+      ram: Number(current.ram ?? 0),
+      endMaintenance: current.endMaintenanceDate || null
+    };
+
+    this.assetService.markAssetInWorking(current.assetCode, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.assetService.addAssetToWorking(current.assetCode);
+          this.popupMessageService.success('Asset messo in lavorazione');
+          this.loadAssetDetail(this.assetId());
+          this.settingMaintenanceStatus.set(false);
+        },
+        error: err => {
+          console.error('Errore aggiornamento asset in lavorazione:', err);
+          this.popupMessageService.error('Errore durante l\'aggiornamento dello stato asset');
+          this.settingMaintenanceStatus.set(false);
+        }
+      });
   }
 
   markAsAvailable(): void {

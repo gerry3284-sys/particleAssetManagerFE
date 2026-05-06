@@ -94,7 +94,7 @@
                 <span class="info-label">Stato</span>
                 <span class="status-badge" [ngClass]="getStatusClass()">
                   {{ asset()!.statusLabel }}
-                  @if (asset()!.status === 'UnderMaintenance' && isAssetInWorking()) {
+                  @if (asset()!.status === 'UnderMaintenance' && asset()!.inProgress) {
                     <span class="status-working-label">, in lavorazione</span>
                   }
                 </span>
@@ -217,11 +217,12 @@
                 </app-button>
               }
 
-              @if (asset()!.status === 'UnderMaintenance' && !isAssetInWorking()) {
+              @if (asset()!.status === 'UnderMaintenance') {
                 <app-button
                   variant="ghost-orange"
                   type="button"
                   [fullWidth]="true"
+                  [disabled]="asset()!.inProgress ?? false"
                   (pressed)="markAsWorking()">
                   In lavorazione
                 </app-button>
