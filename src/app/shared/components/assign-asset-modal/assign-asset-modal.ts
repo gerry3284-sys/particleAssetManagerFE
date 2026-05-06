@@ -13,6 +13,7 @@ import { ButtonComponent } from '../button/button';
 
 interface UserOption {
   id: string;
+  userCode?: string;
   name: string;
   surname: string;
   businessUnit?: string;
@@ -53,7 +54,7 @@ export class AssignAssetModalComponent implements OnDestroy {
   );
 
   // assignmentDate = signal('');
-  selectedUserId = signal('');
+  selectedUserCode = signal('');
   notes = signal('');
 
   // dateError = signal(false);
@@ -69,6 +70,7 @@ export class AssignAssetModalComponent implements OnDestroy {
     if (api.length) {
       return api.map(user => ({
         id: String(user.id),
+        userCode: user.oid?.trim() || String(user.id),
         name: user.name,
         surname: user.surname,
         businessUnit: user.businessUnit?.name,
@@ -82,14 +84,14 @@ export class AssignAssetModalComponent implements OnDestroy {
 
   userOptions = computed<DropdownOption[]>(() =>
     this.availableUsers().map(user => ({
-      value: user.id,
+      value: user.userCode ?? user.id,
       label: `${user.name} ${user.surname}`,
       subLabel: user.businessUnit
     }))
   );
 
   selectedUser = computed(() =>
-    this.availableUsers().find(user => user.id === this.selectedUserId()) ?? null
+    this.availableUsers().find(user => (user.userCode ?? user.id) === this.selectedUserCode()) ?? null
   );
 
   constructor() {
@@ -160,15 +162,17 @@ export class AssignAssetModalComponent implements OnDestroy {
       return;
     }
 
+    const userCode = user.userCode ?? user.id;
+
     this.assign.emit({
-      userId: user.id,
+      userCode,
       userName: `${user.name} ${user.surname}`,
       notes: this.notes().trim() || undefined,
     });
   }
 
   private resetForm(): void {
-    this.selectedUserId.set('');
+    this.selectedUserCode.set('');
     this.notes.set('');
     this.userError.set(false);
   }

@@ -78,6 +78,13 @@
                 <span class="info-value">{{ getDisplayedReturnDate() }}</span>
               </div>
 
+              @if (asset()!.status === 'UnderMaintenance') {
+                <div class="info-item">
+                  <span class="info-label">Fine manutenzione</span>
+                  <span class="info-value">{{ getDisplayedEndMaintenanceDate() }}</span>
+                </div>
+              }
+
               <div class="info-item full-width">
                 <span class="info-label">Note</span>
                 <span class="info-value">{{ asset()!.notes || '-' }}</span>
@@ -87,6 +94,9 @@
                 <span class="info-label">Stato</span>
                 <span class="status-badge" [ngClass]="getStatusClass()">
                   {{ asset()!.statusLabel }}
+                  @if (asset()!.status === 'UnderMaintenance' && isAssetInWorking()) {
+                    <span class="status-working-label">, in lavorazione</span>
+                  }
                 </span>
               </div>
 
@@ -204,6 +214,16 @@
                   loadingLabel="Aggiornamento..."
                   (pressed)="markAsMaintenance()">
                   Metti in manutenzione
+                </app-button>
+              }
+
+              @if (asset()!.status === 'UnderMaintenance' && !isAssetInWorking()) {
+                <app-button
+                  variant="ghost-orange"
+                  type="button"
+                  [fullWidth]="true"
+                  (pressed)="markAsWorking()">
+                  In lavorazione
                 </app-button>
               }
 
