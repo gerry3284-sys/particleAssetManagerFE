@@ -1,4 +1,7 @@
 import { Injectable } from '@angular/core';
+import { jsPDF } from 'jspdf';
+
+type JsPdfDocument = import('jspdf').jsPDF;
 
 export interface AssignmentReceiptPdfData {
   assetType: string;
@@ -25,9 +28,7 @@ export class AssignmentReceiptPdfService {
     return dataUri.split(',')[1] || '';
   }
 
-  private async buildDocument(data: AssignmentReceiptPdfData): Promise<{ doc: import('jspdf').jsPDF }> {
-    const { jsPDF } = await import('jspdf');
-
+  private async buildDocument(data: AssignmentReceiptPdfData): Promise<{ doc: JsPdfDocument }> {
     const doc = new jsPDF({
       unit: 'pt',
       format: 'a4'
@@ -115,7 +116,7 @@ export class AssignmentReceiptPdfService {
   }
 
   private drawSection(
-    doc: import('jspdf').jsPDF,
+    doc: JsPdfDocument,
     config: {
       title: string;
       startY: number;

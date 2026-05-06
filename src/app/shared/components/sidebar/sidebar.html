@@ -65,6 +65,9 @@
         <img src="/assets/list.png" alt="Asset in manutenzione">
       </span>
       <span class="label">Asset in manutenzione</span>
+      @if (newMaintenanceAssetsCount() > 0) {
+        <span class="notification-badge">{{ newMaintenanceAssetsCount() }}</span>
+      }
     </a>
 
     <a routerLink="/tickets"
