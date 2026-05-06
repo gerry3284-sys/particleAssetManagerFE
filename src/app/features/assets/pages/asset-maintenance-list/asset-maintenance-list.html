@@ -42,14 +42,14 @@
       @for (asset of paginatedMaintenanceAssets(); track asset.assetCode) {
         <div
           class="asset-row maintenance-row"
-          [class.asset-working]="workingAssetCodes().includes(asset.assetCode)"
+          [class.asset-working]="asset.inProgress"
           (click)="goToAssetDetail(asset.assetCode)"
           style="cursor: pointer;">
           <div class="status">
             <span class="status-dot status-under-maintenance"></span>
             <span>
               In manutenzione
-              @if (workingAssetCodes().includes(asset.assetCode)) {
+              @if (asset.inProgress) {
                 <span class="status-working-label">, in lavorazione</span>
               }
             </span>
