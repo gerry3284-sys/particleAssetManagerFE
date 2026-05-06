@@ -93,9 +93,14 @@
                     <span class="info-label">Inserire la risposta al ticket</span>
                     <textarea name="reply" rows="4" class="textarea"
                       [(ngModel)]="message" [disabled]="isInvalidTextArea(ticket()?.status)"></textarea>
+                    @if(ticket()?.status === 'CLOSED'){
+                      <div style="color: red; margin: 0.1rem;  display: flex; text-align: center;"> 
+                        E impossibile inviare messaggi ad un ticket già chiuso. Se si vuole inviare ulteriori messaggi, si prega di aprire un nuovo ticket.
+                      </div>
+                    }
                 </div>
             </div>
-            <div class="info-item full-width">
+            <div class="info-item">
               <app-button 
                 variant="secondary" 
                 type="button" 
@@ -132,7 +137,7 @@
         @if(paginatedReplies().length === 0){
           <div class="ticket-row-empty">
               <div style="color:#b4abb9">
-                E possibile che la combinazione di filtri inserita non abbia attuali tipologie di asset
+                Questo ticket non presenta replies
               </div>
           </div>
         }

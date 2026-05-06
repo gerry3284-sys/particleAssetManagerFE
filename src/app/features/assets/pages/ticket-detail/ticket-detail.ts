@@ -127,6 +127,7 @@ export class TicketDetail {
     const status = 'CLOSED';
     this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
       next: (updatedTicket) =>{
+        console.log(updatedTicket);
         this.ticket.set(updatedTicket);
       },
       error: (err) =>{
