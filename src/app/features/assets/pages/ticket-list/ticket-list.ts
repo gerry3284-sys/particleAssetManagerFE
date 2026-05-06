@@ -82,27 +82,27 @@ export class TicketList implements OnInit {
   }
 
   enrichedTickets = computed(() =>
-  this.tickets().map(ticket => {
-    const user = this.users().find(u => u.oid === ticket.userCode);
-    const businessUnit = this.businessUnits().find(b =>
-      user?.businessUnit === null ? b.name === 'Admin' : b.name === user?.businessUnit?.name
-    );
-    const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
+    this.tickets().map(ticket => {
+      const user = this.users().find(u => u.oid === ticket.userCode);
+      const businessUnit = this.businessUnits().find(b =>
+        user?.businessUnit === null ? b.name === 'Admin' : b.name === user?.businessUnit?.name
+      );
+      const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
 
-    let displayTitle = 'Richiesta ';
-    const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
-    if (ticket.operation === 'ASSIGNED') {
-      const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
-      displayTitle += `Assegnazione: ${assetType?.name}`;
-    } else if (ticket.operation === 'DISMISSED') {
-      displayTitle += `Dismissione: ${asset?.serialNumber}`;
-    } else {
-      displayTitle += `Riparazione: ${asset?.serialNumber}`;
-    }
+      let displayTitle = 'Richiesta ';
+      const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+      if (ticket.operation === 'ASSIGNED') {
+        const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
+        displayTitle += `Assegnazione: ${assetType?.name}`;
+      } else if (ticket.operation === 'DISMISSED') {
+        displayTitle += `Dismissione: ${asset?.serialNumber}`;
+      } else {
+        displayTitle += `Riparazione: ${asset?.serialNumber}`;
+      }
 
-    return { ...ticket, displayTitle, displayUser };
-  })
-);
+      return { ...ticket, displayTitle, displayUser };
+    })
+  );
 
   ngOnInit(): void {
     this.reloadDiv();

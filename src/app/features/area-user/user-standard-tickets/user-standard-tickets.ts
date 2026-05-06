@@ -14,6 +14,8 @@ import { DatePipe } from '@angular/common';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { AssetType } from '../../../shared/services/asset-type.service';
 
+type EnrichedTicket = TicketByUser & { displayTitle: string};
+
 @Component({
   selector: 'app-user-standard-tickets',
   imports: [DatePipe, PaginationComponent, FormsModule],
@@ -29,7 +31,10 @@ export class UserStandardTickets {
 
   statusFilter = '';
   titleFilter = '';
-  userFilter = '';
+  // userFilter = '';
+
+  filterTimeout: any;
+  filteredTickets = signal<TicketByUser[]>([]);
 
   loading = signal(true);
   private destroyRef = inject(DestroyRef);
@@ -53,10 +58,12 @@ export class UserStandardTickets {
     }).subscribe({
       next: ({ tickets, users, assets, businessUnits, assetTypes }) => {
         this.tickets.set(tickets ?? []);
+        this.filteredTickets.set(tickets ?? []);
         this.users.set(users ?? []);
         this.assets.set(assets ?? []);
         this.businessUnits.set(businessUnits ?? []);
         this.assetTypes.set(assetTypes ?? []);
+        this.onFilter();
 
         this.loading.set(false);
       },
@@ -76,12 +83,51 @@ export class UserStandardTickets {
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  //flippa i ticket per avere il più recente prima e il più lontano dopo
-  sortedTickets = computed(() =>
-    [...this.tickets()].sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    )
+  enrichedTickets = computed(() =>
+    this.tickets().map(ticket => {
+      const displayUser = ticket.user ?? '-';
+
+      let displayTitle = 'Richiesta ';
+      const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+      if (ticket.operation === 'ASSIGNED') {
+        const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
+        displayTitle += `Assegnazione: ${assetType?.name}`;
+      } else if (ticket.operation === 'DISMISSED') {
+        displayTitle += `Dismissione: ${asset?.serialNumber}`;
+      } else {
+        displayTitle += `Riparazione: ${asset?.serialNumber}`;
+      }
+
+      return { ...ticket, displayTitle};
+    })
   );
+
+  //flippa i ticket per avere il più recente prima e il più lontano dopo
+  sortedTickets = computed((): EnrichedTicket[] => {
+    return [...this.filteredTickets()]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .map(ticket => {
+        const displayUser = ticket.user ?? '-';
+
+        let displayTitle = 'Richiesta ';
+        const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+        if (ticket.operation === 'ASSIGNED') {
+          const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
+          displayTitle += `Assegnazione: ${assetType?.name}`;
+        } else if (ticket.operation === 'DISMISSED') {
+          displayTitle += `Dismissione: ${asset?.serialNumber}`;
+        } else {
+          displayTitle += `Riparazione: ${asset?.serialNumber}`;
+        }
+
+        return { ...ticket, displayTitle};
+      });
+  });
+
+paginatedTickets = computed((): EnrichedTicket[] => {
+  const start = (this.currentPage() - 1) * this.itemsPerPage();
+  return this.sortedTickets().slice(start, start + this.itemsPerPage());
+});
 
   titleTicket = computed(() =>{
     return this.tickets().map(ticket =>{
@@ -108,13 +154,6 @@ export class UserStandardTickets {
     return Math.ceil(this.sortedTickets().length / this.itemsPerPage());
   });
 
-  // si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi users
-  paginatedTickets = computed(() => {
-    const start = (this.currentPage() - 1) * this.itemsPerPage();
-    const end = start + this.itemsPerPage();
-    return this.sortedTickets().slice(start, end);
-  });
-
   //creazione stringa display range.
   displayRange = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
@@ -125,9 +164,32 @@ export class UserStandardTickets {
     this.currentPage.set(page);
   }
 
-  onFilter(){
-
-  }
+  onFilter() {
+      if (this.filterTimeout) {
+        clearTimeout(this.filterTimeout);
+      }
+  
+      this.filterTimeout = setTimeout(() => {
+        let filtered = this.enrichedTickets();
+  
+        if (this.statusFilter !== '') {
+          filtered = filtered.filter(e => e.status === this.statusFilter);
+        }
+  
+        if (this.titleFilter !== '') {
+          const searchTitle = this.titleFilter.toLowerCase();
+          filtered = filtered.filter(e => e.displayTitle.toLowerCase().includes(searchTitle));
+        }
+  
+        // if (this.userFilter !== '') {
+        //   const searchUser = this.userFilter.toLowerCase();
+        //   filtered = filtered.filter(e => e.displayUser.toLowerCase().includes(searchUser));
+        // }
+  
+        this.filteredTickets.set(filtered.map(({ displayTitle, ...ticket }) => ticket as TicketByUser));
+        this.currentPage.set(1);
+      }, 500);
+    }
   onNavigate(ticketCode: string) {
     this.router.navigate(['user-standard/:oid/ticket/ticket-detail/:ticketCode']
       .map(path => path.replace(':oid', this.route.snapshot.paramMap.get('oid') ?? '').replace(':ticketCode', ticketCode)));
