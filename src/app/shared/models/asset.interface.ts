@@ -51,6 +51,7 @@ export interface AssetDetail {
   assignmentDate: string | null;
   returnDate: string | null;
   endMaintenanceDate: string | null;
+  inProgress?: boolean;
   notes: string;
   status: 'Assigned' | 'Available' | 'Dismissed' | 'UnderMaintenance' | 'Unavailable';
   statusLabel: string;
@@ -74,6 +75,7 @@ export interface UnderMaintenanceAsset {
   assetCode: string;
   assetType: string;
   businessUnit: string;
+  inProgress: boolean;
   returnedDate: string;
   endMaintenanceDate: string;
 }

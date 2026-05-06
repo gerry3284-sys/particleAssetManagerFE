@@ -19,12 +19,14 @@ export interface AssetApi {
 }
 
 export interface UnderMaintenanceAssetApi {
+  code?: string;
   brand: string;
   model: string;
   serialNumber: string;
   assetCode: string;
   assetType: string;
   businessUnit: string;
+  inProgress: boolean;
   returnedDate: string | null;
   endMaintenanceDate: string | null;
 }
@@ -43,6 +45,7 @@ export interface AssetDetailApi {
   code: string;
   endMaintenance?: string | null;
   endMaintenanceDate?: string | null;
+  inProgress?: boolean;
 
   businessUnit: {
     id: number;
@@ -109,6 +112,7 @@ export class AssetService {
         assetCode: item.assetCode,
         assetType: item.assetType,
         businessUnit: item.businessUnit,
+        inProgress: item.inProgress ?? false,
         returnedDate: this.toDisplayDate(item.returnedDate),
         endMaintenanceDate: this.toDisplayDate(item.endMaintenanceDate)
       })))
@@ -250,25 +254,39 @@ export class AssetService {
     return this.http.put<void>(`${this.apiUrl}/${safeCode}`, payload);
   }
 
-  
-
-  markAssetInWorking(assetCode: string): void {
-    const normalizedCode = this.normalizeAssetCode(assetCode);
-    if (!normalizedCode) {
-      return;
-    }
-
-    this.workingMaintenanceAssetCodes.update(current => {
-      if (current.includes(normalizedCode)) {
-        return current;
-      }
-
-      const next = [...current, normalizedCode];
-      this.persistMaintenanceCodes(next);
-      return next;
-    });
+  // MARK ASSET IN WORKING (mette asset in lavorazione)
+  markAssetInWorking(assetCode: string, payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    storage: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    assetStatusTypeCode: string;
+    ram: number;
+    endMaintenance?: string | null;
+  }): Observable<void> {
+    return this.setAssetInProgress(assetCode, payload);
   }
 
+  setAssetInProgress(assetCode: string, payload: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    note: string;
+    storage: string;
+    businessUnitCode: string;
+    assetTypeCode: string;
+    assetStatusTypeCode: string;
+    ram: number;
+    endMaintenance?: string | null;
+  }): Observable<void> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    return this.http.put<void>(`${this.apiUrl}/inProgress/${safeCode}`, payload);
+  }
+
+  // Deprecated: use UnderMaintenanceAsset.inProgress field instead
   isAssetInWorking(assetCode: string): boolean {
     const normalizedCode = this.normalizeAssetCode(assetCode);
     if (!normalizedCode) {
@@ -276,6 +294,21 @@ export class AssetService {
     }
 
     return this.workingMaintenanceAssetCodes().includes(normalizedCode);
+  }
+
+  // Aggiunge un codice asset al localStorage dei codici in lavorazione
+  addAssetToWorking(assetCode: string): void {
+    const normalizedCode = this.normalizeAssetCode(assetCode);
+    if (!normalizedCode) {
+      return;
+    }
+
+    const currentCodes = this.workingMaintenanceAssetCodes();
+    if (!currentCodes.includes(normalizedCode)) {
+      const updatedCodes = [...currentCodes, normalizedCode];
+      this.workingMaintenanceAssetCodes.set(updatedCodes);
+      this.persistMaintenanceCodes(updatedCodes);
+    }
   }
 
   // AGGIORNA SOLO LO STATUS ASSET (nuovo endpoint backend)
@@ -356,6 +389,7 @@ export class AssetService {
       assignmentDate: null,
       returnDate: null,
       endMaintenanceDate: this.toDisplayDate(item.endMaintenance ?? item.endMaintenanceDate),
+      inProgress: item.inProgress ?? false,
       notes: item.note ?? '-',
       status,
       statusLabel: this.toItalianStatusLabel(status),

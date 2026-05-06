@@ -213,7 +213,6 @@
           <app-button
             variant="secondary"
             type="button"
-            [disabled]="isSubmitting()"
             (pressed)="cancel()">
             Annulla
           </app-button>
@@ -307,6 +306,32 @@
           (pressed)="confirmCreate()">
           Conferma e crea
         </app-button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showCancelConfirm()) {
+  <div class="confirm-overlay" (click)="closeCancelConfirm()">
+    <div class="confirm-card cancel-confirm-card" (click)="$event.stopPropagation()">
+      <div class="confirm-header cancel-confirm-header">
+        <div class="cancel-confirm-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+            <path d="M12 8V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            <circle cx="12" cy="16" r="1" fill="currentColor" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="cancel-confirm-title">Annulla creazione asset</h3>
+          <p class="cancel-confirm-subtitle">Sei sicuro di voler annullare?</p>
+          <p class="cancel-confirm-warning">Le modifiche non salvate andranno perse.</p>
+        </div>
+      </div>
+
+      <div class="confirm-actions">
+        <app-button type="button" variant="secondary" (pressed)="closeCancelConfirm()">Continua modifica</app-button>
+        <app-button type="button" variant="danger" (pressed)="confirmCancel()">Annulla e torna</app-button>
       </div>
     </div>
   </div>

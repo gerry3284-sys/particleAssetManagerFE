@@ -26,7 +26,7 @@ export class SidebarComponent implements OnInit {
 
   newMaintenanceAssetsCount = computed(() => {
     return this.maintenanceAssets().filter(
-      (asset: UnderMaintenanceAsset) => !this.assetService.isAssetInWorking(asset.assetCode)
+      (asset: UnderMaintenanceAsset) => !asset.inProgress
     ).length;
   });
 
