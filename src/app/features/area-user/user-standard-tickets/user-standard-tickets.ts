@@ -1,4 +1,5 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { FormsModule } from "@angular/forms";
 import { TicketByUser } from '../../../models/ticket.model';
 import { ApiService } from '../../../services/api';
 import { PopupMessageService } from '../../../shared/services/popup-message.service';
@@ -11,10 +12,11 @@ import { User } from '../../../models/user.model';
 import { Subject } from 'rxjs/internal/Subject';
 import { DatePipe } from '@angular/common';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
+import { AssetType } from '../../../shared/services/asset-type.service';
 
 @Component({
   selector: 'app-user-standard-tickets',
-  imports: [DatePipe, PaginationComponent],
+  imports: [DatePipe, PaginationComponent, FormsModule],
   templateUrl: './user-standard-tickets.html',
   styleUrl: './user-standard-tickets.css',
 })
@@ -22,7 +24,12 @@ export class UserStandardTickets {
   users = signal<User[]>([]);
   businessUnits = signal<BusinessUnit[]>([]);
   assets = signal<Asset[]>([]);
+  assetTypes = signal<AssetType[]>([]);
   tickets = signal<TicketByUser[]>([]);
+
+  statusFilter = '';
+  titleFilter = '';
+  userFilter = '';
 
   loading = signal(true);
   private destroyRef = inject(DestroyRef);
@@ -41,13 +48,16 @@ export class UserStandardTickets {
       tickets: this.apiService.getTicketsByUser(oid ?? ''),
       users: this.apiService.getUsers(),
       businessUnits: this.apiService.getBusinessUnits(),
-      assets: this.assetService.getAssets()
+      assets: this.assetService.getAssets(),
+      assetTypes: this.apiService.getAssetTypes()
     }).subscribe({
-      next: ({ tickets, users, assets, businessUnits }) => {
+      next: ({ tickets, users, assets, businessUnits, assetTypes }) => {
         this.tickets.set(tickets ?? []);
         this.users.set(users ?? []);
         this.assets.set(assets ?? []);
         this.businessUnits.set(businessUnits ?? []);
+        this.assetTypes.set(assetTypes ?? []);
+
         this.loading.set(false);
       },
       error: (error) => {
@@ -58,6 +68,8 @@ export class UserStandardTickets {
         this.users.set([]);
         this.assets.set([]);
         this.businessUnits.set([]);
+        this.assetTypes.set([]);
+
         this.loading.set(false);
       }
     });
@@ -70,6 +82,23 @@ export class UserStandardTickets {
       new Date(b.date).getTime() - new Date(a.date).getTime()
     )
   );
+
+  titleTicket = computed(() =>{
+    return this.tickets().map(ticket =>{
+      let title = 'Richiesta ';
+      let asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+
+      const operation = ticket.operation;
+      if(operation === 'ASSIGNED'){
+        const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
+        return title = title + `Assegnazione: ${assetType?.name}`;
+      } else if(operation === 'DISMISSED'){
+        return title = title + `Dismissione: ${asset?.serialNumber}`;
+      } else{
+        return title = title + `Riparazione: ${asset?.serialNumber}`;
+      }
+    })
+  });
 
   currentPage = signal(1);
   itemsPerPage = signal(8);
@@ -96,6 +125,9 @@ export class UserStandardTickets {
     this.currentPage.set(page);
   }
 
+  onFilter(){
+
+  }
   onNavigate(ticketCode: string) {
     this.router.navigate(['user-standard/:oid/ticket/ticket-detail/:ticketCode']
       .map(path => path.replace(':oid', this.route.snapshot.paramMap.get('oid') ?? '').replace(':ticketCode', ticketCode)));

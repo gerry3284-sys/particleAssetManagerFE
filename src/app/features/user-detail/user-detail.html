@@ -60,11 +60,11 @@
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
                             @if(movement.movementType === 'ASSIGNED'){
-                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
                                 <td>ASSEGNAZIONE</td>
                             }
                             @else {
-                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
                                 <td>RICONSEGNA</td>
                             }
 
@@ -84,11 +84,11 @@
                             <td>{{movement.asset.model}}</td>
                             <td>{{movement.asset.serialNumber}}</td>
                             @if(movement.movementType === 'ASSIGNED'){
-                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
                                 <td>ASSEGNAZIONE</td>
                             }
                             @else {
-                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
                                 <td>RICONSEGNA</td>
                             }
                             <!-- @if(movement.updateDate === undefined){

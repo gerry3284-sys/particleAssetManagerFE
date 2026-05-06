@@ -20,5 +20,6 @@ export interface TicketByUser {
     operation: 'ASSIGNED' | 'DISMISSED' | 'RETURNED',
     assetTypeCode: string,
     assetCode: string,
+    status: 'OPEN' | 'WORKING' | 'CLOSED',
     date: string
 }

@@ -86,10 +86,10 @@ export class UserStandard{
     }*/
 
     const subscription = forkJoin({
-      user: this.apiService.getUsersById(id?id:''),
+      user: this.apiService.getUsersById(id? id:''),
       // assetStatusType: this.filterService.getAssetStatusTypes(false),
       assetType: this.apiService.getAssetTypes(),
-      movements: this.apiService.getMovementByUserId(id?id:''),
+      movements: this.apiService.getMovementByUserId(id? id:''),
     }).subscribe({
       next: ({ user, assetType, movements }) => {
         this.user.set(user ?? {});

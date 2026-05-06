@@ -6,7 +6,7 @@ import { environment } from '../features/environment';
 import {MovementByuserID, User } from '../models/user.model';
 import { AssetType } from '../shared/services/asset-type.service';
 import { BusinessUnit } from '../shared/services/business-unit.service';
-import { Ticket, TicketByUser } from '../models/ticket.model';
+import { Reply, Ticket, TicketByUser } from '../models/ticket.model';
 
 @Injectable({
   providedIn: 'root',
@@ -61,6 +61,13 @@ export class ApiService {
   putBusinessActiveChangeById(code: string, businessUnit: Object): Observable<any>{
     return this.http.put(`${this.baseUrl}/businessUnit/activateDeactivate/${code}`, businessUnit, { responseType: 'text' })
   }
+  putTicketInProgress(ticketCode: string): Observable<any> {
+    console.log(ticketCode);
+    return this.http.put(`${this.baseUrl}/ticket/inPogress/${ticketCode}`, null);
+  }
+  putTicketChangeStatus(ticketCode: string, status: string, ticket: Object): Observable<any>{
+    return this.http.put(`${this.baseUrl}/ticket/changeStatus/${ticketCode}/${status}`, ticket, { responseType: 'text' });
+  }
   postAssetType(assetType: Object): Observable<AssetType> {
     return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' }).pipe(
       map(response => JSON.parse(response))
@@ -74,7 +81,7 @@ export class ApiService {
       map(response => JSON.parse(response))
     );
   }
-  postReply(reply: Object, ticketCode: string): Observable<any>{
-    return this.http.post(`${this.baseUrl}/ticket/${ticketCode}/reply`, reply, { responseType: 'text' });
+  postReply(reply: Object, ticketCode: string): Observable<Reply> {
+    return this.http.post<Reply>(`${this.baseUrl}/ticket/${ticketCode}/reply`, reply);
   }
 }

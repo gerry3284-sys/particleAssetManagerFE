@@ -122,8 +122,8 @@ export class BusinessUnitList {
       }
       this.apiService.putBusinessActiveChangeById(this.editableBusinessUnit.code, this.editableBusinessUnit.active)
       .subscribe({
-        next: (updatedAssetType) => {
-          const updatedList = this.businessUnits().map(at => at.code === updatedAssetType.code ? updatedAssetType : at);
+        next: (updatedbusinessUnit) => {
+          const updatedList = this.businessUnits().map(at => at.code === updatedbusinessUnit.code ? updatedbusinessUnit : at);
           this.businessUnits.set(updatedList);
           this.reloadDiv();
         },
