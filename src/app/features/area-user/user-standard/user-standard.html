@@ -16,7 +16,7 @@
                 <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
             </div>
             <div class="div-btn">
-                <app-button variant="primary"type="button" (click)="onLogout()" style="margin-bottom: 0.5rem;"> Logout </app-button>
+                <app-button variant="secondary"type="button" (click)="onLogout()" style="margin-bottom: 0.5rem;"> Logout </app-button>
                 <app-button variant="primary"type="button" (click)="onOpenAskDialog()" style="margin-bottom: 0.5rem;">Inoltra richiesta per Asset</app-button>
                 <app-button variant="primary"type="button" (click)="onViewTickets()" style="margin-bottom: 0.5rem;">Visualizza Ticket</app-button>
             </div>
@@ -197,9 +197,10 @@
         <div class="asset-type-modal-field">
             <label class="ask-control label">Selezionare lo stato richiesto per l'asset: </label>
             <select class="ask-control select" [(ngModel)]="controlRequest">
-                <option>ASSEGNAZIONE</option>
-                <option>DISMISSIONE</option>
-                <option>RIPARAZIONE</option>
+                <option value="">selezionare il tipo di richiesta</option>
+                <option value="ASSEGNAZIONE">ASSEGNAZIONE</option>
+                <option value="DISMISSIONE">DISMISSIONE</option>
+                <option value="RIPARAZIONE">RIPARAZIONE</option>
             </select>
             
             @if(controlRequest() === 'ASSEGNAZIONE'){

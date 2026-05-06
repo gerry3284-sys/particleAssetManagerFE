@@ -10,7 +10,7 @@
   @if(loading()){
     <div class="loading">Caricamento in corso...</div>
   }
-    <!-- informazioni del ticket -->
+<!-- informazioni del ticket -->
     <div class="content">
           
         <!-- Card: Informazioni Asset -->
@@ -22,37 +22,60 @@
             <div class="info-grid"> 
                 <div class="info-item full-width">
                     <span class="info-label">User assegnato</span>
-                    <span class="info-value">{{ ticket()?.userCode }}</span>
+                    <span class="info-value">{{ fullName() }}</span>
                 </div>
 
                 <div class="info-item">
                     <span class="info-label">Operazione</span>
                     <span class="info-value">{{ ticket()?.operation }}</span>
                 </div>
-
                 <div class="info-item">
-                    <span class="info-label">Stato</span>
-                    <span class="info-value">{{ ticket()?.status }}</span>
+                  <span class="info-label">Stato</span>
+                  <div class="status">
+                    @if (ticket()?.status === 'OPEN') {
+                      <span class="status-dot status-open"></span>
+                      <span>Aperto</span>
+                    } @else if (ticket()?.status === 'WORKING') {
+                      <span class="status-dot status-working"></span>
+                      <span>In lavorazione</span>
+                    } @else if (ticket()?.status === 'CLOSED') {
+                      <span class="status-dot status-closed"></span>
+                      <span>Chiuso</span>
+                    } @else {
+                      <span class="status-box"></span>
+                    }
+                  </div>
                 </div>
 
                 <div class="info-item">
-                    <span class="info-label">Numero Seriale</span>
-                    <span class="info-value">{{ ticket()?.date | date: 'dd/MM/yyyy'}}</span>
+                    <span class="info-label">Data di creazione</span>
+                    <span class="info-value">{{ ticket()?.date | date: 'dd/MM/yyyy - HH.mm'}}</span>
                 </div>
+
                 <div class="info-item full-width">
                     <span class="info-label">Inserire la risposta al ticket</span>
-                    <textarea name="reply" rows="4" class="textarea" [(ngModel)]="message"></textarea>
+                    <textarea name="reply" rows="4" class="textarea"
+                      [(ngModel)]="message" [disabled]="isInvalidTextArea(ticket()?.status)"></textarea>
                 </div>
             </div>
-            <app-button variant="secondary" type="button" (click)="onAlertDialogOpen()" [disabled]="isInvalid(ticket()?.status)"> Invia </app-button>
-            <app-button 
+            <div class="info-item full-width">
+              <app-button 
+                variant="secondary" 
+                type="button" 
+                (click)="onAlertDialogOpen()" 
+                [disabled]="isInvalid(ticket()?.status)"
+              > 
+                Invia 
+              </app-button>
+            </div>
+            <!-- <app-button 
              variant="primary"
              type="button"
              style="margin-left: 0.5rem;"
              (click)="onAlertClosingDialogOpen()"
              [disabled]="isInvalid(ticket()?.status)"> 
                 Invia e Chiudi 
-            </app-button>
+            </app-button> -->
         </div>
     </div>
 
@@ -72,16 +95,31 @@
         @if(paginatedReplies().length === 0){
           <div class="ticket-row-empty">
               <div style="color:#b4abb9">
-                E possibile che la combinazione di filtri inserita non abbia attuali tipologie di asset
+                Questo ticket non presenta replies
               </div>
           </div>
         }
         @else {
           @for(reply of paginatedReplies(); track $index;){
             <div class="ticket-row" style="cursor: pointer;">
-              <div>{{ reply.status}}</div>
+              <div class="info-item">
+                <div class="status">
+                  @if (reply.status === 'OPEN') {
+                    <span class="status-dot status-open"></span>
+                    <span>Aperto</span>
+                  } @else if (reply.status === 'WORKING') {
+                    <span class="status-dot status-working"></span>
+                    <span>In lavorazione</span>
+                  } @else if (reply.status === 'CLOSED') {
+                    <span class="status-dot status-closed"></span>
+                    <span>Chiuso</span>
+                  } @else {
+                    <span class="status-box"></span>
+                  }
+                </div>
+              </div>
               <div>{{ reply.message}}</div>
-              <div>{{ reply.date | date: 'dd/MM/yyyy'}}</div>
+              <div>{{ reply.date | date: 'dd/MM/yyyy - HH.mm'}}</div>
               <div>{{ reply.user }}</div>
             </div>
            }

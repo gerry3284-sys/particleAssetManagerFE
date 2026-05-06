@@ -12,6 +12,32 @@
       <p class="page-subtitle">Visualizza e gestisci tutti i ticket.</p>
     </div>
   </div>
+    <!-- filtro per la tabella -->
+  <div class="filters-card" (change)="onFilter()">
+    <div class="filters-grid">
+      <div class="filter-item">
+        <label class="filter-label">Stato</label>
+        <select class="filter-control" [(ngModel)]="statusFilter" (ngModelChange)="onFilter()" style="max-width: 302.4px; max-height: 39.2px;">
+          <option value="">Tutti gli stati</option>
+          <option value="OPEN">Aperto</option>
+          <option value="WORKING">In lavorazione</option>
+          <option value="CLOSED">Chiuso</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label class="filter-label">Titolo ticket</label>
+        <input type="text" class="filter-control" name="title" 
+        placeholder="Cerca per titolo..." style="max-width: 302.4px; max-height: 31.2px;"
+        [(ngModel)]="titleFilter" (ngModelChange)="onFilter()">
+      </div>
+      <div class="filter-item">
+        <label class="filter-label">User Assegnato</label>
+        <input type="text" class="filter-control" name="title" 
+        placeholder="Cerca per nome..." style="max-width: 302.4px; max-height: 31.2px;"
+        [(ngModel)]="userFilter" (ngModelChange)="onFilter()">
+      </div>
+    </div>
+  </div>
   @if(loading()){
     <div class="loading">Caricamento in corso...</div>
   }
@@ -20,8 +46,8 @@
 
       <!-- Header -->
       <div class="ticket-row ticket-header">
-        <div>Codice identificativo</div>
-        <div>Tipo di operazione</div>
+        <div>stato</div>
+        <div>Titolo richiesta</div>
         <div>User chiamante</div>
         <div>Data di invio richiesta</div>
       </div>
@@ -38,8 +64,21 @@
         @else {
           @for(ticket of paginatedTickets(); track ticket.ticketCode; let id = $index){
             <div class="ticket-row" (click)="onNavigate(ticket.ticketCode)" style="cursor: pointer;">
-              <div>{{ ticket.assetCode}} {{ ticket.assetTypeCode}}</div>
-              <div>{{ ticket.operation}}</div>
+              <div class="status">
+                @if (ticket.status === 'OPEN') {
+                  <span class="status-dot status-open"></span>
+                  <span>Aperto</span>
+                } @else if (ticket.status === 'WORKING') {
+                  <span class="status-dot status-working"></span>
+                  <span>In lavorazione</span>
+                } @else if (ticket.status === 'CLOSED') {
+                  <span class="status-dot status-closed"></span>
+                  <span>Chiuso</span>
+                } @else {
+                  <span class="status-box"></span>
+                }
+              </div>
+              <div>{{ titleTicket()[id]}}</div>
               <div>{{ticket.user}}</div>
               <div>{{ ticket.date | date: 'dd/MM/yyyy'}}</div>
             </div>

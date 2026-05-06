@@ -22,6 +22,45 @@
 	font-size: 0.8rem;
 	color: #9CA3AF;
 }
+.filters-card {
+	background-color: #FFFFFF;
+	border: 1px solid #EFEFEF;
+	border-radius: 1rem;
+	padding: 1rem 1rem;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.filters-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.filter-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.filter-label {
+	font-size: 0.688rem;
+	font-weight: 600;
+	color: #6B7280;
+	transition: border-color 0.15s ease;
+}
+
+.filter-control {
+	font-size: 0.8rem;
+	border-radius: 0.5rem;
+	border: 1px solid #E5E7EB;
+	padding: 0.5rem 0.8rem;
+	color: #6B7280;
+}
+.filter-control:focus {
+  outline: none;
+  border-color: #E56A3D;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.1);
+}
 .loading {
 	padding: 10px 12px;
 	font-size: 12px;
@@ -57,6 +96,34 @@
   gap: 1rem;
   text-align: center;
   vertical-align: middle;
+}
+.status {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+}
+.status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	display: inline-block;
+}
+.status-closed {
+	background-color: #f63b3b;
+}
+.status-open {
+	background-color: #22C55E;
+}
+.status-working {
+	background-color: #F59E0B;
+}
+.status-box {
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	background-color: #E5E7EB;
+	display: inline-block;
 }
 .ticket-header {
 	background-color: #F9FAFB;

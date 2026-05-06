@@ -199,3 +199,35 @@ dialog::backdrop {
   gap: 12px;
   margin-top: 20px;
 }
+.status {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+}
+.status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	display: inline-block;
+}
+.status-closed {
+	background-color: #f63b3b;
+}
+.status-open {
+	background-color: #22C55E;
+}
+.status-working {
+	background-color: #F59E0B;
+}
+.status-box {
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	background-color: #E5E7EB;
+	display: inline-block;
+}
+.btn-status {
+  display: flex;
+  flex-direction: row;
+}

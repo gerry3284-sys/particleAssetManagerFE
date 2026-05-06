@@ -9,6 +9,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../shared/components/button/button';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { User } from '../../../models/user.model';
 
 @Component({
   selector: 'app-user-standard-tickets-detail',
@@ -19,6 +20,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 export class UserStandardTicketsDetail {
     ticket = signal<Ticket | null>(null);
     replies = signal<Reply[]>([]);
+    user = signal<User | null>(null);
     
     message = '';
     alertTitle = '';
@@ -31,16 +33,18 @@ export class UserStandardTicketsDetail {
     constructor(private apiService: ApiService,
       public route: ActivatedRoute,
       private readonly popupMessageService: PopupMessageService,
-      private assetService: AssetService,
       private router: Router
     ){
       const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
+      const id = this.route.snapshot.paramMap.get('oid');
 
       const subscription = forkJoin({
+        user: this.apiService.getUsersById(id? id:''),
         ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
         replies: this.apiService.getTicketChat(ticketCode ?? '')
       }).subscribe({
         next: (results) => {
+          this.user.set(results.user);
           this.ticket.set(results.ticket);
           this.replies.set(results.replies);
           this.loading.set(false);
@@ -48,6 +52,7 @@ export class UserStandardTicketsDetail {
       , error: (error) => {
           console.error('Errore durante il recupero dei dati:', error);
           this.popupMessageService.error('Errore durante il caricamento dei dati');
+          this.user.set(null);
           this.ticket.set(null);
           this.replies.set([]);
           this.loading.set(false);
@@ -61,6 +66,12 @@ export class UserStandardTicketsDetail {
         new Date(b.date).getTime() - new Date(a.date).getTime()
       )
     );
+
+    fullName = computed(() => {
+      const user = this.user();
+      if (!user) return '-';
+      return `${user.name} ${user.surname}`;
+    });
 
   currentPage = signal(1);
   itemsPerPage = signal(8);
@@ -137,6 +148,9 @@ export class UserStandardTicketsDetail {
   }
   isInvalid(stato: string | undefined): boolean {
     return !(this.message.trim().length > 0 && stato !== 'CLOSED' && this.message.length <= 500);
+  }
+  isInvalidTextArea(stato: string | undefined): boolean{
+    return !(stato !== 'CLOSED');
   }
   goBack(): void {
     this.router.navigate(['/user-standard', this.ticket()?.userCode, 'ticket']);

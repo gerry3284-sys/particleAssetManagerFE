@@ -9,6 +9,8 @@ import { DatePipe } from '@angular/common';
 import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
 import { ButtonComponent } from "../../../../shared/components/button/button";
 import { FormsModule } from '@angular/forms';
+import { User } from '../../../../models/user.model';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -19,10 +21,14 @@ import { FormsModule } from '@angular/forms';
 export class TicketDetail {
     ticket = signal<Ticket | null>(null);
     replies = signal<Reply[]>([]);
+    users = signal<User[]>([]);
     
     message = '';
     alertTitle = '';
     closed = false;
+
+    // isVisible = signal(true);
+    // reload$ = new Subject<boolean>();
     loading = signal(true);
     private destroyRef = inject(DestroyRef);
 
@@ -31,18 +37,20 @@ export class TicketDetail {
     constructor(private apiService: ApiService,
       public route: ActivatedRoute,
       private readonly popupMessageService: PopupMessageService,
-      private assetService: AssetService,
       private router: Router
     ){
       const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
 
       const subscription = forkJoin({
         ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
-        replies: this.apiService.getTicketChat(ticketCode ?? '')
+        replies: this.apiService.getTicketChat(ticketCode ?? ''),
+        users: this.apiService.getUsers()
       }).subscribe({
         next: (results) => {
           this.ticket.set(results.ticket);
           this.replies.set(results.replies);
+          this.users.set(results.users);
+
           this.loading.set(false);
         }
       , error: (error) => {
@@ -50,17 +58,20 @@ export class TicketDetail {
           this.popupMessageService.error('Errore durante il caricamento dei dati');
           this.ticket.set(null);
           this.replies.set([]);
+          this.users.set([]);
+
           this.loading.set(false);
         }
       });
       this.destroyRef.onDestroy(() => subscription.unsubscribe());
     }
 
-    sortedReplies = computed(() =>
-      [...this.replies()].sort((a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      )
-    );
+  sortedReplies = computed(() => [...this.replies()].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
+  username = computed(() => {
+    const user = this.users().find(u => u.oid === this.ticket()?.userCode);
+    return `${user?.name} ${user?.surname}`
+  });
 
   currentPage = signal(1);
   itemsPerPage = signal(8);
@@ -95,37 +106,62 @@ export class TicketDetail {
     this.alertTitle = '';
     this.alertDialog.nativeElement.close();
   }
-  onAlertClosingDialogOpen(){
-    this.alertTitle = 'Conferma invio risposta e chiusura ticket';
-    this.alertDialog.nativeElement.showModal();
+  // onAlertClosingDialogOpen(){
+  //   this.alertTitle = 'Conferma invio risposta e chiusura ticket';
+  //   this.alertDialog.nativeElement.showModal();
+  // }
+
+  changeStatusInWorking(){
+    const status = 'WORKING';
+    this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
+      next: (updatedTicket) =>{
+        this.ticket.set(updatedTicket);
+      },
+      error: (err) =>{
+        this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
+        console.error('errore cambiamento stato', err);
+      }
+    });
   }
-
+  changeStatusInClosed(){
+    const status = 'CLOSED';
+    this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
+      next: (updatedTicket) =>{
+        this.ticket.set(updatedTicket);
+      },
+      error: (err) =>{
+        this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
+        console.error('errore cambiamento stato', err);
+      }
+    });
+  }
   onPostReply(){
-    const user = this.ticket()?.userCode;
+    // const user = this.ticket()?.userCode;
 
-    if(this.alertTitle.includes('chiusura')){
-      this.closed = true;
-    }
+    // if(this.alertTitle.includes('chiusura')){
+    //   this.closed = true;
+    // }
     const postableReply = {
       message: this.message,
-      //oid: user,
+      // oid: user,
       oid: '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1',
-      closed: this.closed
+      // closed: this.closed
     }
 
     this.apiService.postReply(postableReply, this.ticket()?.ticketCode ?? '').subscribe({
       next: (createdReply) =>{
-        const updatedReplies = [...this.replies(), createdReply];
-        this.replies.set(updatedReplies);
+        this.replies.update(replies => [createdReply, ...replies]);
+        this.message = ''
+        
         if(this.closed){
           this.popupMessageService.success('Risposta inviata con successo e ticket chiuso');
           this.router.navigate(['/assets/tickets']);
-        }
-        else{
+        } else {
           this.popupMessageService.success('Risposta inviata con successo');
         }
+        
+        this.apiService.putTicketInProgress(this.ticket()!.ticketCode);
         this.alertTitle = '';
-
         this.alertDialog.nativeElement.close();
       },
       error: (error) => {
@@ -133,12 +169,22 @@ export class TicketDetail {
         this.popupMessageService.error('Errore durante l\'invio della risposta');
         this.alertDialog.nativeElement.close();
       }
-    }); 
+    });
   }
   isInvalid(stato: string | undefined): boolean {
     return !(this.message.trim().length > 0 && stato !== 'CLOSED' && this.message.length <= 500);
   }
+  isInvalidTextArea(stato: string | undefined): boolean{
+    return !(stato !== 'CLOSED');
+  }
   goBack(): void {
     this.router.navigate(['/tickets']);
   }
+  //   reloadDiv() {
+  //   this.isVisible.set(false);
+  //   setTimeout(() => {
+  //     this.isVisible.set(true);
+  //     this.reload$.next(true);
+  //   }, 0);
+  // }
 }
