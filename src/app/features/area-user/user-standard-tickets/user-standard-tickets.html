@@ -31,10 +31,10 @@
         [(ngModel)]="titleFilter" (ngModelChange)="onFilter()">
       </div>
       <div class="filter-item">
-        <label class="filter-label">User Assegnato</label>
+        <!-- <label class="filter-label">User Assegnato</label>
         <input type="text" class="filter-control" name="title" 
         placeholder="Cerca per nome..." style="max-width: 302.4px; max-height: 31.2px;"
-        [(ngModel)]="userFilter" (ngModelChange)="onFilter()">
+        [(ngModel)]="userFilter" (ngModelChange)="onFilter()"> -->
       </div>
     </div>
   </div>
@@ -78,7 +78,7 @@
                   <span class="status-box"></span>
                 }
               </div>
-              <div>{{ titleTicket()[id]}}</div>
+              <div>{{ticket.displayTitle}}</div>
               <div>{{ticket.user}}</div>
               <div>{{ ticket.date | date: 'dd/MM/yyyy'}}</div>
             </div>
