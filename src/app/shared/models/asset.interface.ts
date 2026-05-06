@@ -29,6 +29,7 @@ export interface AssetMovement {
   date: string;
   user: string;
   userId: string;
+  userCode: string;
   movementType: 'Assigned' | 'Returned' | 'Dismissed';
   movementLabel: string;
   note?: string;
@@ -49,6 +50,7 @@ export interface AssetDetail {
   assignedUserId: string | null;
   assignmentDate: string | null;
   returnDate: string | null;
+  endMaintenanceDate: string | null;
   notes: string;
   status: 'Assigned' | 'Available' | 'Dismissed' | 'UnderMaintenance' | 'Unavailable';
   statusLabel: string;
@@ -60,7 +62,7 @@ export interface AssetDetail {
 
 export interface AssignAssetForm {
   assignmentDate?: string;
-  userId: string;
+  userCode: string;
   userName: string;
   notes?: string;
 }

@@ -140,6 +140,11 @@
   width: fit-content;
 }
 
+.status-working-label {
+  color: #92400E;
+  font-weight: 600;
+}
+
 .status-assigned {
   background-color: #DBEAFE;
   color: #1E40AF;

@@ -39,8 +39,8 @@
             [options]="userOptions()"
             [error]="userError()"
             placeholder="Inizia a scrivere..."
-            [ngModel]="selectedUserId()"
-            (ngModelChange)="selectedUserId.set($event); userError.set(false)"
+            [ngModel]="selectedUserCode()"
+            (ngModelChange)="selectedUserCode.set($event); userError.set(false)"
             required
           ></app-dropdown-search>
           <p class="helper-text">

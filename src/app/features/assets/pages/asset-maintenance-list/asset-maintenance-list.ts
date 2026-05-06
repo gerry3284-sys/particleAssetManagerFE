@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination';
@@ -16,10 +16,15 @@ import { FilterValues } from '../../../../shared/models/filter-config.interface'
   styleUrl: './asset-maintenance-list.css'
 })
 export class AssetMaintenanceListComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly assetService = inject(AssetService);
+
   maintenanceAssets = signal<UnderMaintenanceAsset[]>([]);
   currentFilters = signal<FilterValues>({});
   loading = signal(true);
   error = signal<string | null>(null);
+
+  workingAssetCodes = computed(() => this.assetService.workingMaintenanceAssetCodes());
 
   currentPage = signal(1);
   itemsPerPage = signal(8);
@@ -69,11 +74,6 @@ export class AssetMaintenanceListComponent implements OnInit {
     const end = Math.min(this.currentPage() * this.itemsPerPage(), totalItems);
     return `Mostrando ${start}-${end} di ${totalItems}`;
   });
-
-  constructor(
-    private readonly router: Router,
-    private readonly assetService: AssetService
-  ) {}
 
   ngOnInit(): void {
     this.loadMaintenanceAssets();
