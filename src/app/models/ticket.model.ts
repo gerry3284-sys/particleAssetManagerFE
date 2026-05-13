@@ -21,5 +21,6 @@ export interface TicketByUser {
     assetTypeCode: string,
     assetCode: string,
     status: 'OPEN' | 'WORKING' | 'CLOSED',
-    date: string
+    date: string,
+    priority: 'HIGH' | 'MEDIUM' | 'LOW'
 }

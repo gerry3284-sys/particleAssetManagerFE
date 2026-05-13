@@ -198,9 +198,9 @@
             <label class="ask-control label">Selezionare lo stato richiesto per l'asset: </label>
             <select class="ask-control select" [(ngModel)]="controlRequest">
                 <option value="">selezionare il tipo di richiesta</option>
-                <option value="ASSEGNAZIONE">ASSEGNAZIONE</option>
-                <option value="DISMISSIONE">DISMISSIONE</option>
-                <option value="RIPARAZIONE">RIPARAZIONE</option>
+                <option value="ASSEGNAZIONE">Assegnazione</option>
+                <option value="RIPARAZIONE">Riconsegna</option>
+                <option value="DISMISSIONE">Dismissione</option>
             </select>
             
             @if(controlRequest() === 'ASSEGNAZIONE'){
@@ -217,11 +217,11 @@
                     <label class="ask-control label">Selezionare l'asset: </label>
                     <select class="ask-control select" [(ngModel)]="requestAsset">
                         @if(assigneedAssets().length === 0){
-                            <option value="" disabled>Non hai asset assegnati</option>
+                            <option value="" disabled>Non hai asset assegnati </option>
                         }
                         @else{
-                            @for(asset of assets(); track asset.assetCode){
-                                <option [value]="asset.assetCode"> {{asset.brand}} {{asset.model}} ({{asset.serialNumber}}) </option>
+                            @for(asset of assigneedAssets(); track asset.code){
+                                <option [value]="asset.code"> {{asset.brand}} {{asset.model}} ({{asset.serialNumber}}) </option>
                             }
                         }
                     </select>

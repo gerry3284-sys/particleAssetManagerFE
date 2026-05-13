@@ -67,9 +67,12 @@ export class UserStandard{
     return `${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
   });
   assigneedAssets = computed(() => {
-    const user = this.user();
+    /*const user = this.user();
     if (!user) return [];
-    return this.assets().filter(asset => asset.assignedUser === user.name);
+    return this.assets().filter(asset => asset.assignedUser === user.name);*/
+    const assetList = this.movements();
+    if(!assetList) return [];
+    return assetList.filter(movement => movement.movementType === 'ASSIGNED').map(movement => movement.asset);
   });
 
   //request per prendere tutte le info

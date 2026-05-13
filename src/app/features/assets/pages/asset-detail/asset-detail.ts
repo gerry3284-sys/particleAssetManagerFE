@@ -70,6 +70,7 @@ export class AssetDetailComponent implements OnInit {
   pendingAssignmentReceipt = signal<AssignmentReceiptPdfData | null>(null);
   pendingReturnReceipt = signal<ReturnReceiptPdfData | null>(null);
   pendingDismissReceipt = signal<DismissReceiptPdfData | null>(null);
+  selectedPriority = signal<'LOW' | 'MEDIUM' | 'HIGH'>('LOW');
   assignmentReceiptBanner = signal<ReceiptBannerState>({
     type: 'success',
     message: 'Assegnazione registrata correttamente.'
@@ -848,20 +849,7 @@ export class AssetDetailComponent implements OnInit {
 
     const endMaintenance = new Date().toISOString().split('T')[0];
 
-    const payload = {
-      brand: current.brand,
-      model: current.model,
-      serialNumber: current.serialNumber,
-      note: (current.notes ?? '').trim(),
-      storage: '',
-      businessUnitCode: current.businessUnitCode ?? '',
-      assetTypeCode: current.assetTypeCode ?? '',
-      assetStatusTypeCode: 'UnderMaintenance',
-      ram: Number(current.ram ?? 0),
-      endMaintenance
-    };
-
-    this.assetService.updateAssetStatus(current.assetCode, payload)
+    this.assetService.updateAssetStatus(current.assetCode, this.selectedPriority())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
@@ -899,12 +887,13 @@ export class AssetDetailComponent implements OnInit {
       endMaintenance: current.endMaintenanceDate || null
     };
 
-    this.assetService.markAssetInWorking(current.assetCode, payload)
+    this.assetService.setAssetInProgress(current.assetCode, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.assetService.addAssetToWorking(current.assetCode);
           this.popupMessageService.success('Asset messo in lavorazione');
+          this.assetStateService.notifyAssetStateChanged({ type: 'working', assetCode: current.assetCode }); // ← aggiungi
           this.loadAssetDetail(this.assetId());
           this.settingMaintenanceStatus.set(false);
         },
@@ -948,11 +937,12 @@ export class AssetDetailComponent implements OnInit {
             endMaintenance: null
           };
 
-          this.assetService.updateAssetStatus(current.assetCode, payload)
+          this.assetService.updateAssetStatus(current.assetCode, null)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: () => {
                 this.popupMessageService.success('Asset impostato come Disponibile');
+                this.assetStateService.notifyAssetStateChanged({ type: 'available', assetCode: current.assetCode });
                 this.loadAssetDetail(this.assetId());
                 this.settingAvailableStatus.set(false);
               },

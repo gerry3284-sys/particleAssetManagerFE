@@ -151,6 +151,7 @@
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   background: #FFFFFF;
+  resize: none;
 }
 dialog.popup-window {
   position: fixed;
@@ -198,6 +199,23 @@ dialog::backdrop {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 20px;
+}
+.char-counter {
+  font-size: 11px;
+  color: var(--color-text-secondary, #888);
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.char-counter.char-limit {
+  color: red;
+}
+
+.ticket-row > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .status {
 	display: inline-flex;

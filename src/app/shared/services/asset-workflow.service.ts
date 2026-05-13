@@ -61,20 +61,8 @@ export class AssetWorkflowService {
         this.resolveUnderMaintenanceStatusCode().pipe(
           switchMap(statusCode => {
             const endMaintenance = new Date().toISOString().split('T')[0];
-            const payload = {
-              brand: asset.brand,
-              model: asset.model,
-              serialNumber: asset.serialNumber,
-              note: (asset.notes ?? '').trim(),
-              storage: '',
-              businessUnitCode: asset.businessUnitCode ?? '',
-              assetTypeCode: asset.assetTypeCode ?? '',
-              assetStatusTypeCode: statusCode,
-              ram: Number(asset.ram ?? 0),
-              endMaintenance
-            };
 
-            return this.assetService.updateAssetStatus(asset.assetCode, payload);
+            return this.assetService.updateAssetStatus(asset.assetCode, 'LOW');
           })
         )
       )

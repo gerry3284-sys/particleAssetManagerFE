@@ -154,12 +154,12 @@ export class TicketDetail {
         this.replies.update(replies => [createdReply, ...replies]);
         this.message = ''
         
-        if(this.closed){
+        /*if(this.closed){
           this.popupMessageService.success('Risposta inviata con successo e ticket chiuso');
           this.router.navigate(['/assets/tickets']);
-        } else {
+        } else*/ //{
           this.popupMessageService.success('Risposta inviata con successo');
-        }
+        //}
         
         this.apiService.putTicketInProgress(this.ticket()!.ticketCode);
         this.alertTitle = '';

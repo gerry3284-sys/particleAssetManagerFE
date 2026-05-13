@@ -204,8 +204,19 @@
                 (pressed)="dismissAsset()">
                 Dismetti Asset
               </app-button>
-
+              <hr>
               @if (canSetMaintenance()) {
+                  <div class="priority-select-wrapper">
+                  <label class="priority-label">Priorità manutenzione</label>
+                  <select class="priority-select" 
+                          [value]="selectedPriority()"
+                          (change)="selectedPriority.set($any($event.target).value)">
+                    <option value="LOW">Bassa</option>
+                    <option value="MEDIUM">Media</option>
+                    <option value="HIGH">Alta</option>
+                  </select>
+                </div>
+
                 <app-button
                   variant="secondary"
                   type="button"
@@ -222,7 +233,7 @@
                   variant="ghost-orange"
                   type="button"
                   [fullWidth]="true"
-                  [disabled]="asset()!.inProgress ?? false"
+                  [disabled]="asset()!.inProgress === true"
                   (pressed)="markAsWorking()">
                   In lavorazione
                 </app-button>

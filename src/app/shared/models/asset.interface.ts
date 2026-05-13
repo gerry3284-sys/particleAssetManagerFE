@@ -78,4 +78,5 @@ export interface UnderMaintenanceAsset {
   inProgress: boolean;
   returnedDate: string;
   endMaintenanceDate: string;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
 }

@@ -29,6 +29,7 @@ export interface UnderMaintenanceAssetApi {
   inProgress: boolean;
   returnedDate: string | null;
   endMaintenanceDate: string | null;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
 // MODELLO BACKEND DETTAGLIO
@@ -114,7 +115,8 @@ export class AssetService {
         businessUnit: item.businessUnit,
         inProgress: item.inProgress ?? false,
         returnedDate: this.toDisplayDate(item.returnedDate),
-        endMaintenanceDate: this.toDisplayDate(item.endMaintenanceDate)
+        endMaintenanceDate: this.toDisplayDate(item.endMaintenanceDate),
+        priority: item.priority
       })))
     );
   }
@@ -255,7 +257,7 @@ export class AssetService {
   }
 
   // MARK ASSET IN WORKING (mette asset in lavorazione)
-  markAssetInWorking(assetCode: string, payload: {
+  /*markAssetInWorking(assetCode: string, payload: {
     brand: string;
     model: string;
     serialNumber: string;
@@ -268,7 +270,7 @@ export class AssetService {
     endMaintenance?: string | null;
   }): Observable<void> {
     return this.setAssetInProgress(assetCode, payload);
-  }
+  }*/
 
   setAssetInProgress(assetCode: string, payload: {
     brand: string;
@@ -312,20 +314,9 @@ export class AssetService {
   }
 
   // AGGIORNA SOLO LO STATUS ASSET (nuovo endpoint backend)
-  updateAssetStatus(assetCode: string, payload: {
-    brand: string;
-    model: string;
-    serialNumber: string;
-    note: string;
-    storage: string;
-    businessUnitCode: string;
-    assetTypeCode: string;
-    assetStatusTypeCode: string;
-    ram: number;
-    endMaintenance?: string | null;
-  }): Observable<void> {
+  updateAssetStatus(assetCode: string, priority: 'LOW' | 'MEDIUM' | 'HIGH' | null): Observable<void> {
     const safeCode = this.toSafeAssetCode(assetCode);
-    return this.http.put<void>(`${this.apiUrl}/updateAssetStatus/${safeCode}`, payload);
+    return this.http.put<void>(`${this.apiUrl}/updateAssetStatus/${safeCode}/${priority}`, null);
   }
 
   // Normalizza il codice prima di usarlo in URL.

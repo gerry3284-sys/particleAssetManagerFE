@@ -1,6 +1,6 @@
 /* Layout principale sidebar */
 .sidebar {
-  width: 230px;
+  width: 280px;
   height: 100vh; /* Altezza piena schermo */
   background-color: #FFFFFF;
   border-right: 1px solid #EFEFEF;

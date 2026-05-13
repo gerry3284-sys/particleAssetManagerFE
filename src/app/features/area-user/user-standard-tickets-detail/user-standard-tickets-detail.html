@@ -54,8 +54,9 @@
 
                 <div class="info-item full-width">
                     <span class="info-label">Inserire la risposta al ticket</span>
-                    <textarea name="reply" rows="4" class="textarea"
+                    <textarea name="reply" rows="4" class="textarea" maxlength="500"
                       [(ngModel)]="message" [disabled]="isInvalidTextArea(ticket()?.status)"></textarea>
+                    <span class="char-counter" [class.char-limit]="message.length >= 450">{{ message.length }}/500</span>
                     @if(ticket()?.status === 'CLOSED'){
                       <div style="color: red; margin: 0.1rem; display: flex; text-align: center;"> 
                         E impossibile inviare messaggi ad un ticket già chiuso. Se si vuole inviare ulteriori messaggi, si prega di aprire un nuovo ticket.
@@ -63,7 +64,7 @@
                     }
                 </div>
             </div>
-            <div class="info-item full-width">
+            <!--<div class="info-item full-width">-->
               <app-button 
                 variant="secondary" 
                 type="button" 
@@ -72,7 +73,7 @@
               > 
                 Invia 
               </app-button>
-            </div>
+            <!--</div>-->
             <!-- <app-button 
              variant="primary"
              type="button"

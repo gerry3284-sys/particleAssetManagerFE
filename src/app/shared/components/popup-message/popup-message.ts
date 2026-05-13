@@ -8,7 +8,7 @@ import { PopupMessageService } from '../../services/popup-message.service';
   imports: [CommonModule],
   templateUrl: './popup-message.html',
   styleUrl: './popup-message.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  //changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PopupMessageComponent {
   private readonly popupMessageService = inject(PopupMessageService);

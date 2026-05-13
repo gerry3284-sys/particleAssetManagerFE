@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
 export type AssetStateChangeEvent = {
-  type: 'maintenance' | 'return' | 'dismiss' | 'edit';
+  type: 'working' | 'available' | 'maintenance' | 'return' | 'dismiss' | 'edit';
   assetCode: string;
 };
 

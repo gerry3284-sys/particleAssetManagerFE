@@ -41,7 +41,7 @@ export class SidebarComponent implements OnInit {
     this.assetStateService.assetStateChanged
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => {
-        if (event.type === 'maintenance') {
+        if (event.type === 'maintenance' || event.type === 'available' || event.type === 'working') {
           // Ricarica gli asset in manutenzione quando uno viene messo in manutenzione
           this.loadMaintenanceAssets();
         }

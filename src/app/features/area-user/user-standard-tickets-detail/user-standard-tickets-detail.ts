@@ -114,13 +114,13 @@ export class UserStandardTicketsDetail {
   onPostReply(){
     const user = this.ticket()?.userCode;
 
-    if(this.alertTitle.includes('chiusura')){
+    /*if(this.alertTitle.includes('chiusura')){
       this.closed = true;
-    }
+    }*/
     const postableReply = {
       message: this.message,
       //oid: user,
-      oid: '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1',
+      oid: user,
       closed: this.closed
     }
 
@@ -128,15 +128,16 @@ export class UserStandardTicketsDetail {
       next: (createdReply) =>{
         const updatedReplies = [...this.replies(), createdReply];
         this.replies.set(updatedReplies);
-        if(this.closed){
+        /*if(this.closed){
           this.popupMessageService.success('Risposta inviata con successo e ticket chiuso');
           this.router.navigate(['/assets/tickets']);
         }
-        else{
+        else{*/
+          this.message = '';
+          console.log('Risposta inviata con successo');
           this.popupMessageService.success('Risposta inviata con successo');
-        }
+        //}
         this.alertTitle = '';
-
         this.alertDialog.nativeElement.close();
       },
       error: (error) => {

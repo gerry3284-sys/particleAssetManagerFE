@@ -31,30 +31,37 @@ export class AssetMaintenanceListComponent implements OnInit {
     return Math.ceil(this.filteredMaintenanceAssets().length / this.itemsPerPage());
   });
 
-  filteredMaintenanceAssets = computed(() => {
-    const filters = this.currentFilters();
-    let assets = this.maintenanceAssets();
+filteredMaintenanceAssets = computed(() => {
+  const filters = this.currentFilters();
+  let assets = this.maintenanceAssets();
 
-    if (filters.assetType) {
-      assets = assets.filter(asset => asset.assetType === filters.assetType);
-    }
+  if (filters.assetType) {
+    assets = assets.filter(asset => asset.assetType === filters.assetType);
+  }
 
-    if (filters.businessUnit) {
-      assets = assets.filter(asset => asset.businessUnit === filters.businessUnit);
-    }
+  if (filters.businessUnit) {
+    assets = assets.filter(asset => asset.businessUnit === filters.businessUnit);
+  }
 
-    if (filters.assignedUser) {
-      const search = filters.assignedUser.toLowerCase();
-      assets = assets.filter(asset =>
-        asset.assetCode.toLowerCase().includes(search)
-        || asset.brand.toLowerCase().includes(search)
-        || asset.model.toLowerCase().includes(search)
-        || asset.serialNumber.toLowerCase().includes(search)
-      );
-    }
+  if (filters.assignedUser) {
+    const search = filters.assignedUser.toLowerCase();
+    assets = assets.filter(asset =>
+      asset.assetCode.toLowerCase().includes(search)
+      || asset.brand.toLowerCase().includes(search)
+      || asset.model.toLowerCase().includes(search)
+      || asset.serialNumber.toLowerCase().includes(search)
+    );
+  }
 
-    return assets;
+  const priorityOrder: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+  return [...assets].sort((a, b) => {
+    const priorityDiff = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
+    if (priorityDiff !== 0) return priorityDiff;
+
+    return new Date(b.returnedDate).getTime() - new Date(a.returnedDate).getTime();
   });
+});
 
   paginatedMaintenanceAssets = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage();
