@@ -5,7 +5,10 @@ export interface Ticket {
     assetTypeCode: string,
     assetCode: string,
     status: 'OPEN' | 'WORKING' | 'CLOSED',
-    date: string
+    date: string,
+    priority: 'HIGH' | 'MEDIUM' | 'LOW',
+    userCheckReply: boolean,
+    adminCheckReply: boolean
 }
 export interface Reply {
     TicketCode: string,
@@ -22,5 +25,6 @@ export interface TicketByUser {
     assetCode: string,
     status: 'OPEN' | 'WORKING' | 'CLOSED',
     date: string,
-    priority: 'HIGH' | 'MEDIUM' | 'LOW'
+    priority: 'HIGH' | 'MEDIUM' | 'LOW',
+    userCheckReply: boolean
 }

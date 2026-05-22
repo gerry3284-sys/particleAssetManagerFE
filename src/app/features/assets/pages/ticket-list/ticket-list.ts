@@ -13,8 +13,10 @@ import { Subject } from 'rxjs/internal/Subject';
 import { BusinessUnit } from '../../../../shared/services/business-unit.service';
 import { Router } from '@angular/router';
 import { AssetType } from '../../../../shared/services/asset-type.service';
+import { AssetStateService } from '../../../../shared/services/asset-state.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-type EnrichedTicket = Ticket & { displayTitle: string; displayUser: string };
+type EnrichedTicket = Ticket & { displayTitle: string; displayUser: string; priority: string };
 
 @Component({
   selector: 'app-ticket-list',
@@ -45,10 +47,11 @@ export class TicketList implements OnInit {
 
   constructor(private apiService: ApiService,
     private readonly popupMessageService: PopupMessageService,
+    private ticketStateService: AssetStateService,
     private assetService: AssetService,
     private router: Router
   ){
-    const subscription = forkJoin({
+    /*const subscription = forkJoin({
       tickets: this.apiService.getTickets(),
       users: this.apiService.getUsers(),
       businessUnits: this.apiService.getBusinessUnits(),
@@ -77,8 +80,9 @@ export class TicketList implements OnInit {
 
         this.loading.set(false);
       }
-    });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+    });*/
+    this.loadTickets();
+    //this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   enrichedTickets = computed(() =>
@@ -100,13 +104,51 @@ export class TicketList implements OnInit {
         displayTitle += `Riparazione: ${asset?.serialNumber}`;
       }
 
-      return { ...ticket, displayTitle, displayUser };
+      return { ...ticket, displayTitle, displayUser, priority: ticket.priority };
     })
   );
 
   ngOnInit(): void {
     this.reloadDiv();
+
+    this.ticketStateService.ticketsChanged
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(() => {
+      this.loadTickets();
+    });
   }
+
+  private loadTickets(): void {
+  this.loading.set(true);
+  const subscription = forkJoin({
+    tickets: this.apiService.getTickets(),
+    users: this.apiService.getUsers(),
+    businessUnits: this.apiService.getBusinessUnits(),
+    assets: this.assetService.getAssets(),
+    assetTypes: this.apiService.getAssetTypes()
+  }).subscribe({
+    next: ({ tickets, users, assets, businessUnits, assetTypes }) => {
+      this.tickets.set(tickets ?? []);
+      this.filteredTickets.set(tickets ?? []);
+      this.users.set(users ?? []);
+      this.assets.set(assets ?? []);
+      this.businessUnits.set(businessUnits ?? []);
+      this.assetTypes.set(assetTypes ?? []);
+      this.onFilter();
+      this.loading.set(false);
+    },
+    error: (error) => {
+      console.error('Errore durante il recupero dei dati:', error);
+      this.popupMessageService.error('Errore durante il caricamento dei dati');
+      this.tickets.set([]);
+      this.users.set([]);
+      this.assets.set([]);
+      this.businessUnits.set([]);
+      this.loading.set(false);
+    }
+  });
+  this.destroyRef.onDestroy(() => subscription.unsubscribe());
+}
   // ngOnInit(): void {
   //   for(let ticket in this.tickets()){
   //     const ticketUser = this.tickets()[ticket];

@@ -2,41 +2,43 @@
     In "asset-details.ts" e "asset-workflow.service.ts" è stato aggiunto un priority di tipo "LOW" di default.
     Da cambiare ↑
     Aggiungere Ellipsis - Aggiunto
+    TICKET_DETAILS possiede un valore fixed per userCode (1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1)
+    quando il login sarà implementato, si dovrà sostituire con il codice dell'utente loggato
+
+    Cambiamenti da effettuare:
+    - Aggiungere il filtro per data invio richiesta delle pagine dei ticket (sia per l'utente che per l'admin)
+    - Aggiungere la possibilità di modificare la priorità di un ticket (solo per l'admin)
+    - Spostare nell'angolo il numero di ticket con messaggi non letti (l'utente)
 
     Modfiche Effettuate
     1) Lista Ticket:
-      - Quando si prova a cambiare lo stato di un ticket (OPEN → WORKING → CLOSED o OPEN → CLOSED o WORKING → CLOSED), 
-        viene mostrato il cambio ma quando si rientra nel ticket, mostra lo stato che aveva all'inizio
-      - "E impossibile inviare messaggi ad un ticket già chiuso. Se si vuole inviare ulteriori messaggi, 
-        si prega di aprire un nuovo ticket". L'admin non può aprire nuovi ticket
-      - Per qualche motivo, premendo a destra del bottone "Invia" (quindi non premendo sul bottone ma a destra di esso) 
-        compare il pop-up del messaggio di invio messaggio.
-    
+    - Aggiunta la notifica per i ticket con messaggi non letti (per admin)
+    - Aggiunto l'aggiornamento automatico della lista dei ticket quando viene inviata una nuova richiesta
+    - Aggiunta la colorazione della riga per i ticket che hanno messaggi non risposti
+
     2) Visualizza Ticket:
-      - I ticket mostrati non hanno lo stato corretto
-      - Per qualche motivo, premendo a destra del bottone "Invia" (quindi non premendo sul bottone ma a destra di esso) 
-        compare il pop-up del messaggio di invio messaggio
-      - “Risposta Inviata con successo” non compare quando si invia un messaggio
-      - Inserire nella box del messaggio il numero di caratteri disponibili (inserendo l’eventuale blocco se si supera questo limite)
+    - Modificato il dettaglio dei ticket in modo da mostrare per bene l'operazione che si sta svolgendo e 
+      l'asset o il tipo di asset coinvolto (es. Assegnazione di Laptop, Restituzione di Monitor, Dismissione di Stampante)
+    - Aggiunta la possibilità di cliccare sui messaggi ricevuti per visualizzarli per intero in un pop-up
+    - Aggiunta la colorazione della riga per i ticket che hanno messaggi non risposti
 
     3) Inoltra Richiesta Per Asset:
-      - "RIPARAZIONE" dovrebbe chiamarsi "Riconsegna"
-      - "RIPARAZIONE" e "DISMISSIONE" dicono sempre che l'utente non ha asset assegnati
-      - Impedire di ingrandire la box di messaggio
+    - Modificato in modo che venga richiesta anche la priorità della richiesta (ALTA, MEDIA, BASSA)
 
     4) Dettaglio Asset:
-      - Quando si preme "In Lavorazione", il bottone non si disattiva e non compare neanche la scritta "in lavorazione" 
-        fino a quando non si ricarica la pagina
-      - Quando si preme su "Rendi Disponibile", il valore della notifica in "Asset in manutenzione" 
-        non decresce fino al ricaricamento della pagina
-      - Filtrare (di base) gli asset per il livello di priorità e per la data più recente
-      - Inserire il livello di priorità per quanto si deve mettere un asset in manutenzione
+    - Aggiunta la data di fine manutenzione (con possibilità di modifica da parte dell'utente)
 
     5) Asset in Manutenzione:
-      - "Asset in manutenzione" dovrebbe chiamarsi "Asset in Manutenzione”
-      - Quando si aggiunge un asset in manutenzione, la scritta "manutenzione" in "Asset in manutenzione" va a capo
-      - "ASSET CODE" non deve essere mostrato
-      - Modificare l'header della tabella così che non compaia più il giallo nel caso di hover
+    - Modificato in modo che venga mostrata la data di inizio manutenzione invece della data di riconsegna
+    - Modificato in modo che venga mostrata la priorità dell'asset in manutenzione (ALTA, MEDIA, BASSA)
+    - Aggiunto filtro (default) per data di inizio manutenzione, priorità e stato (in lavorazione o meno)
+    - Inseriti dei badge colorati per la priorità (ALTA = rosso, MEDIA = arancione, BASSA = verde)
+
+    6) Dettaglio Ticket:
+    - Aggiunta la possibilità di cliccare sui messaggi ricevuti per visualizzarli per intero in un pop-up
+
+    7) Utente Standard:
+    - Aggiunta la notifica per i ticket con messaggi non letti (per user)
 -->
 <!doctype html>
 <html lang="en">

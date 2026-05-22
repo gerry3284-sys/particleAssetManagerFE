@@ -34,8 +34,9 @@
         <div>Numero seriale</div>
         <div>Tipologia</div>
         <div>Business Unit</div>
-        <div>Data riconsegna</div>
+        <div>Inizio Manutenzione</div>
         <div>Fine manutenzione</div>
+        <div>Priorità</div>
       </div>
 
       @for (asset of paginatedMaintenanceAssets(); track asset.assetCode) {
@@ -58,8 +59,13 @@
           <div>{{ asset.serialNumber }}</div>
           <div>{{ asset.assetType || '-' }}</div>
           <div>{{ asset.businessUnit || '-' }}</div>
-          <div>{{ asset.returnedDate || '-' }}</div>
+          <div>{{ asset.startMaintenanceDate || '-' }}</div>
           <div>{{ asset.endMaintenanceDate || '-' }}</div>
+          <div>
+            @if(asset.priority === 'HIGH') { <span class="priority-badge priority-high">Alta</span> } 
+            @else if(asset.priority === 'MEDIUM') { <span class="priority-badge priority-medium">Media</span> } 
+            @else if(asset.priority === 'LOW') { <span class="priority-badge priority-low">Bassa</span> }
+          </div>
         </div>
       }
     </div>

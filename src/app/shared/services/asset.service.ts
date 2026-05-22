@@ -28,6 +28,7 @@ export interface UnderMaintenanceAssetApi {
   businessUnit: string;
   inProgress: boolean;
   returnedDate: string | null;
+  startMaintenanceDate: string;
   endMaintenanceDate: string | null;
   priority: 'HIGH' | 'MEDIUM' | 'LOW';
 }
@@ -114,7 +115,7 @@ export class AssetService {
         assetType: item.assetType,
         businessUnit: item.businessUnit,
         inProgress: item.inProgress ?? false,
-        returnedDate: this.toDisplayDate(item.returnedDate),
+        startMaintenanceDate: this.toDisplayDate(item.startMaintenanceDate),
         endMaintenanceDate: this.toDisplayDate(item.endMaintenanceDate),
         priority: item.priority
       })))
@@ -127,6 +128,14 @@ export class AssetService {
     return this.http.get<AssetDetailApi>(`${this.apiUrl}/${safeCode}`).pipe(
       map(item => this.mapAssetDetail(item))
     );
+  }
+
+  // MODIFICA DATA MANUTENZIONE
+  updateAssetEndMaintenanceDate(assetCode: string, endDate: string | null): Observable<void> {
+    const safeCode = this.toSafeAssetCode(assetCode);
+    const payload = endDate ? { endMaintenance: endDate } : { endMaintenance: null };
+    console.log("Test: ", payload, ", ", endDate);
+    return this.http.put<void>(`${this.apiUrl}/endMaintenanceDate/${safeCode}`, payload);
   }
 
   // MOVIMENTI ASSET

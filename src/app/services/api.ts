@@ -28,6 +28,12 @@ export class ApiService {
   getAssetTypes(): Observable<AssetType[]>{
     return this.http.get<AssetType[]>(`${this.baseUrl}/assetType`);
   }
+  getAssetTypeByCode(code: string): Observable<AssetType>{
+    return this.http.get<AssetType>(`${this.baseUrl}/assetType/${code}`);
+  }
+  checkNotification(ticketCode: string, userCode: string): Observable<any>{
+    return this.http.put(`${this.baseUrl}/ticket/checkReply/${ticketCode}/${userCode}`, null);
+  }
   getBusinessUnits(): Observable<BusinessUnit[]>{
     return this.http.get<BusinessUnit[]>(`${this.baseUrl}/businessUnit`);
   }

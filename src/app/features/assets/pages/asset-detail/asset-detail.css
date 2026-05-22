@@ -746,6 +746,25 @@
   }
 }
 
+.end-maintenance-input {
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1F2937;
+  padding: 10px 12px;
+  outline: none;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.end-maintenance-input:focus {
+  border-color: #E56A3D;
+  box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.12);
+}
+
 .priority-select-wrapper {
   display: flex;
   flex-direction: column;

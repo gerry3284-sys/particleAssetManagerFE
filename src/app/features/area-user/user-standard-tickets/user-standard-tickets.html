@@ -50,6 +50,7 @@
         <div>Titolo richiesta</div>
         <div>User chiamante</div>
         <div>Data di invio richiesta</div>
+        <div>Priorità</div>
       </div>
 
       <!-- Righe dinamiche -->
@@ -63,7 +64,7 @@
         }
         @else {
           @for(ticket of paginatedTickets(); track ticket.ticketCode; let id = $index){
-            <div class="ticket-row" (click)="onNavigate(ticket.ticketCode)" style="cursor: pointer;">
+            <div class="ticket-row" [class.ticket-replied]="ticket.userCheckReply" (click)="onNavigate(ticket.ticketCode)" style="cursor: pointer;">
               <div class="status">
                 @if (ticket.status === 'OPEN') {
                   <span class="status-dot status-open"></span>
@@ -80,7 +81,12 @@
               </div>
               <div>{{ticket.displayTitle}}</div>
               <div>{{ticket.user}}</div>
-              <div>{{ ticket.date | date: 'dd/MM/yyyy'}}</div>
+              <div>{{ ticket.date | date: 'dd/MM/yyyy - HH.mm'}}</div>
+              <div>
+                @if(ticket.priority === 'HIGH') { <span class="priority-badge priority-high">Alta</span> } 
+                @else if(ticket.priority === 'MEDIUM') { <span class="priority-badge priority-medium">Media</span> } 
+                @else if(ticket.priority === 'LOW') { <span class="priority-badge priority-low">Bassa</span> }
+              </div>
             </div>
             }
           }

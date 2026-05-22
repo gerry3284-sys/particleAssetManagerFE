@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, DestroyRef, computed } from '@angula
 import { CommonModule, DOCUMENT, isPlatformBrowser, Location } from '@angular/common';
 import { PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AssignAssetModalComponent } from '../../../../shared/components/assign-asset-modal/assign-asset-modal';
 import { DismissAssetModalComponent, DismissAssetForm } from '../../../../shared/components/dismiss-asset-modal/dismiss-asset-modal';
 import { ReturnCertifyModalComponent, ReturnCertifyForm } from '../../components/return-certify-modal/return-certify-modal';
@@ -43,7 +43,7 @@ type PendingAssetEditPayload = {
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AssignAssetModalComponent, ReturnCertifyModalComponent, DismissAssetModalComponent, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, AssignAssetModalComponent, ReturnCertifyModalComponent, DismissAssetModalComponent, ButtonComponent, FormsModule],
   templateUrl: './asset-detail.html',
   styleUrl: './asset-detail.css' // correzione: styleUrls (plurale)
 })
@@ -71,6 +71,8 @@ export class AssetDetailComponent implements OnInit {
   pendingReturnReceipt = signal<ReturnReceiptPdfData | null>(null);
   pendingDismissReceipt = signal<DismissReceiptPdfData | null>(null);
   selectedPriority = signal<'LOW' | 'MEDIUM' | 'HIGH'>('LOW');
+  endMaintenanceDate = signal<string>('');
+  minDate: string = '';
   assignmentReceiptBanner = signal<ReceiptBannerState>({
     type: 'success',
     message: 'Assegnazione registrata correttamente.'
@@ -208,6 +210,11 @@ export class AssetDetailComponent implements OnInit {
       this.loadAssetDetail(code);
       this.loadAssetMovements(code);
     });
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    this.minDate = `${year}-${month}-${day}`;
   }
 
   // --- Funzione principale: carica i dettagli dell'asset
@@ -219,6 +226,10 @@ export class AssetDetailComponent implements OnInit {
       .subscribe({
         next: (asset) => {
           this.asset.set(asset);
+          console.log(this.endMaintenanceDate());
+          console.log("date Asset: ", asset.endMaintenanceDate);
+          console.log("asset: ", asset);
+          this.endMaintenanceDate.set(this.toInputDateFormat(asset.endMaintenanceDate));
           this.isLoading.set(false);
         },
         error: (err) => {
@@ -1224,4 +1235,40 @@ export class AssetDetailComponent implements OnInit {
       default: return '';
     }
   }
+
+  resetDate() 
+  { 
+    //const raw = this.asset()?.endMaintenanceDate;
+    this.endMaintenanceDate.set(''); 
+    this.insertEndMaintenanceDate();
+  }
+
+  private toInputDateFormat(value: string | null | undefined): string 
+  {
+    if (!value || value === '-') return '';
+
+    // Se già in formato yyyy-MM-dd
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+    // Se in formato dd/MM/yyyy
+    const parts = value.split('/');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+
+    return '';
+  }
+
+  insertEndMaintenanceDate() 
+  { 
+    this.assetService.updateAssetEndMaintenanceDate(this.assetId(), this.endMaintenanceDate()).subscribe({
+      next: () => {
+        this.popupMessageService.success('Data di fine manutenzione aggiornata con successo');
+        this.loadAssetDetail(this.assetId());
+      }
+      , error: err => {
+        console.error('Errore aggiornamento data di fine manutenzione:', err);
+        this.popupMessageService.error('Errore durante l\'aggiornamento della data di fine manutenzione');
+      }
+    }); }
 }

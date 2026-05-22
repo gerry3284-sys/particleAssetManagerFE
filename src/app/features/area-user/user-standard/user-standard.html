@@ -18,7 +18,11 @@
             <div class="div-btn">
                 <app-button variant="secondary"type="button" (click)="onLogout()" style="margin-bottom: 0.5rem;"> Logout </app-button>
                 <app-button variant="primary"type="button" (click)="onOpenAskDialog()" style="margin-bottom: 0.5rem;">Inoltra richiesta per Asset</app-button>
-                <app-button variant="primary"type="button" (click)="onViewTickets()" style="margin-bottom: 0.5rem;">Visualizza Ticket</app-button>
+                <app-button variant="primary" type="button" (click)="onViewTickets()" 
+                    style="margin-bottom: 0.5rem; display: inline-flex; align-items: center;">
+                    Visualizza Ticket
+                    @if(nonViewedTickets() > 0) { <span class="notification-badge">{{ nonViewedTickets() }}</span> }
+                </app-button>
             </div>
         </div>
         <!-- informazioni dell'utente -->
@@ -199,13 +203,14 @@
             <select class="ask-control select" [(ngModel)]="controlRequest">
                 <option value="">selezionare il tipo di richiesta</option>
                 <option value="ASSEGNAZIONE">Assegnazione</option>
-                <option value="RIPARAZIONE">Riconsegna</option>
+                <option value="RICONSEGNA">Riconsegna</option>
                 <option value="DISMISSIONE">Dismissione</option>
             </select>
             
             @if(controlRequest() === 'ASSEGNAZIONE'){
                 <label class="ask-control label">Inserire la tipologia di asset: </label>
                     <select class="ask-control select" [(ngModel)]="requestType">
+                    <option value="">selezionare la tipologia di asset</option>
                     @for(assetType of assetTypes(); track assetType.code)
                     {
                         <option [value]="assetType.name"> {{assetType.name}} </option>
@@ -213,19 +218,30 @@
                     </select>
             }
             @else {
-                @if(controlRequest() === 'DISMISSIONE' || controlRequest() === 'RIPARAZIONE'){
+                @if(controlRequest() === 'DISMISSIONE' || controlRequest() === 'RICONSEGNA'){
                     <label class="ask-control label">Selezionare l'asset: </label>
                     <select class="ask-control select" [(ngModel)]="requestAsset">
                         @if(assigneedAssets().length === 0){
                             <option value="" disabled>Non hai asset assegnati </option>
                         }
                         @else{
+                            <option value="">selezionare l'asset per la richiesta</option>
                             @for(asset of assigneedAssets(); track asset.code){
                                 <option [value]="asset.code"> {{asset.brand}} {{asset.model}} ({{asset.serialNumber}}) </option>
                             }
                         }
                     </select>
                 }
+            }
+            @if(controlRequest())
+            {
+                <label class="ask-control label">Selezionare la priorità della richiesta: </label>
+                <select class="ask-control select" [(ngModel)]="requestPriority">
+                    <option value="">selezionare la priorità della richiesta</option>
+                    <option value="LOW">Bassa</option>
+                    <option value="MEDIUM">Media</option>
+                    <option value="HIGH">Alta</option>
+                </select>
             }
             <label class="ask-control label">Motivazione della richiesta: </label>
             <textarea

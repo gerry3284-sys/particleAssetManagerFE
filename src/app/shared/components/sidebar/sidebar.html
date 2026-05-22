@@ -79,6 +79,9 @@
         <img src="/assets/icona-business-unit.png" alt="Avatar">
       </span>
       <span class="label">Lista Ticket</span>
+      @if(nonViewedTickets() > 0) {
+        <span class="notification-badge">{{ nonViewedTickets() }}</span>
+      }
     </a>
   </nav>
 

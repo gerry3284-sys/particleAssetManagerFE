@@ -11,6 +11,7 @@ import { ButtonComponent } from "../../../../shared/components/button/button";
 import { FormsModule } from '@angular/forms';
 import { User } from '../../../../models/user.model';
 import { Subject } from 'rxjs';
+import { AssetStateService } from '../../../../shared/services/asset-state.service';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -22,6 +23,8 @@ export class TicketDetail {
     ticket = signal<Ticket | null>(null);
     replies = signal<Reply[]>([]);
     users = signal<User[]>([]);
+    assetType = signal<string>('');
+    asset = signal<string>('');
     
     message = '';
     alertTitle = '';
@@ -33,38 +36,79 @@ export class TicketDetail {
     private destroyRef = inject(DestroyRef);
 
     @ViewChild('alertDialog') alertDialog!: ElementRef<HTMLDialogElement>;
+    @ViewChild('messageDialog') messageDialog!: ElementRef<HTMLDialogElement>;
 
-    constructor(private apiService: ApiService,
-      public route: ActivatedRoute,
-      private readonly popupMessageService: PopupMessageService,
-      private router: Router
-    ){
-      const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
+    constructor(
+  private apiService: ApiService,
+  private assetService: AssetService,
+  private ticketStateService: AssetStateService,
+  public route: ActivatedRoute,
+  private readonly popupMessageService: PopupMessageService,
+  private router: Router
+) {
+  const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
 
-      const subscription = forkJoin({
-        ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
-        replies: this.apiService.getTicketChat(ticketCode ?? ''),
-        users: this.apiService.getUsers()
-      }).subscribe({
-        next: (results) => {
-          this.ticket.set(results.ticket);
-          this.replies.set(results.replies);
-          this.users.set(results.users);
+  const subscription = forkJoin({
+    ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
+    replies: this.apiService.getTicketChat(ticketCode ?? ''),
+    users: this.apiService.getUsers()
+  }).subscribe({
+    next: (results) => {
+      this.ticket.set(results.ticket);
+      this.replies.set(results.replies);
+      this.users.set(results.users);
 
-          this.loading.set(false);
-        }
-      , error: (error) => {
-          console.error('Errore durante il recupero dei dati:', error);
-          this.popupMessageService.error('Errore durante il caricamento dei dati');
-          this.ticket.set(null);
-          this.replies.set([]);
-          this.users.set([]);
+        this.apiService.checkNotification(results.ticket.ticketCode, '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1').subscribe({
+          next: () => {
+            console.log('Notifica aggiornata con successo');
+            this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
+          },
+          error: (error) => {
+            console.error('Errore durante l\'aggiornamento della notifica:', error);
+          }
+        });
 
-          this.loading.set(false);
-        }
-      });
-      this.destroyRef.onDestroy(() => subscription.unsubscribe());
+      if (results.ticket?.assetCode) {
+        const assetSubscription = this.assetService.getAssetByCode(results.ticket.assetCode).subscribe({
+          next: (asset) => {
+            this.asset.set(asset.brand + ' ' + asset.model);
+            this.assetType.set('Esempio');
+          },
+          error: (error) => {
+            console.error('Errore durante il recupero dei dati dell\'asset:', error);
+            this.popupMessageService.error('Errore durante il caricamento dei dati dell\'asset');
+            this.asset.set('Dati asset non disponibili');
+            this.assetType.set('Dati asset non disponibili');
+          }
+        });
+        this.destroyRef.onDestroy(() => assetSubscription.unsubscribe());
+      } else {
+        const assetTypeSubscription = this.apiService.getAssetTypeByCode(results.ticket?.assetTypeCode ?? '').subscribe({
+          next: (assetType) => {
+            this.assetType.set(assetType.name);
+          },
+          error: (error) => {
+            console.error('Errore durante il recupero dei dati del tipo di asset:', error);
+            this.popupMessageService.error('Errore durante il caricamento dei dati del tipo di asset');
+            this.assetType.set('Dati tipo asset non disponibili');
+          }
+        });
+        this.destroyRef.onDestroy(() => assetTypeSubscription.unsubscribe());
+      }
+      this.loading.set(false);
+    },
+    error: (error) => {
+      console.error('Errore durante il recupero dei dati:', error);
+      this.popupMessageService.error('Errore durante il caricamento dei dati');
+      this.ticket.set(null);
+      this.replies.set([]);
+      this.users.set([]);
+      this.loading.set(false);
     }
+  });
+
+  this.destroyRef.onDestroy(() => subscription.unsubscribe());
+}
 
   sortedReplies = computed(() => [...this.replies()].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
@@ -159,9 +203,10 @@ export class TicketDetail {
           this.router.navigate(['/assets/tickets']);
         } else*/ //{
           this.popupMessageService.success('Risposta inviata con successo');
+          this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
         //}
         
-        this.apiService.putTicketInProgress(this.ticket()!.ticketCode);
+        ///this.apiService.putTicketInProgress(this.ticket()!.ticketCode);
         this.alertTitle = '';
         this.alertDialog.nativeElement.close();
       },
@@ -188,4 +233,18 @@ export class TicketDetail {
   //     this.reload$.next(true);
   //   }, 0);
   // }
+  // Add a property to store the selected message
+  selectedMessage: Reply | null = null;
+
+  // Method to handle message click
+  onMessageClick(reply: Reply): void {
+    this.selectedMessage = reply;
+    this.messageDialog.nativeElement.showModal();
+  }
+
+  // Method to close the message dialog
+  onMessageDialogClose(): void {
+    this.selectedMessage = null;
+    this.messageDialog.nativeElement.close();
+  }
 }

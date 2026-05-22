@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { TicketByUser } from '../../../models/ticket.model';
 import { ApiService } from '../../../services/api';
@@ -13,6 +13,8 @@ import { Subject } from 'rxjs/internal/Subject';
 import { DatePipe } from '@angular/common';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { AssetType } from '../../../shared/services/asset-type.service';
+import { AssetStateService } from '../../../shared/services/asset-state.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type EnrichedTicket = TicketByUser & { displayTitle: string};
 
@@ -22,7 +24,7 @@ type EnrichedTicket = TicketByUser & { displayTitle: string};
   templateUrl: './user-standard-tickets.html',
   styleUrl: './user-standard-tickets.css',
 })
-export class UserStandardTickets {
+export class UserStandardTickets implements OnInit {
   users = signal<User[]>([]);
   businessUnits = signal<BusinessUnit[]>([]);
   assets = signal<Asset[]>([]);
@@ -46,42 +48,53 @@ export class UserStandardTickets {
     private assetService: AssetService,
     private router: Router,
     public route: ActivatedRoute,
+    private ticketStateService: AssetStateService
   ){
-    const oid = this.route.snapshot.paramMap.get('oid');
+  this.loadTickets();
+}
 
-    const subscription = forkJoin({
-      tickets: this.apiService.getTicketsByUser(oid ?? ''),
-      users: this.apiService.getUsers(),
-      businessUnits: this.apiService.getBusinessUnits(),
-      assets: this.assetService.getAssets(),
-      assetTypes: this.apiService.getAssetTypes()
-    }).subscribe({
-      next: ({ tickets, users, assets, businessUnits, assetTypes }) => {
-        this.tickets.set(tickets ?? []);
-        this.filteredTickets.set(tickets ?? []);
-        this.users.set(users ?? []);
-        this.assets.set(assets ?? []);
-        this.businessUnits.set(businessUnits ?? []);
-        this.assetTypes.set(assetTypes ?? []);
-        this.onFilter();
+private loadTickets(): void {
+  const oid = this.route.snapshot.paramMap.get('oid');
+  this.loading.set(true);
 
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('Errore durante il recupero dei dati:', error);
-        this.popupMessageService.error('Errore durante il caricamento dei dati');
+  const subscription = forkJoin({
+    tickets: this.apiService.getTicketsByUser(oid ?? ''),
+    users: this.apiService.getUsers(),
+    businessUnits: this.apiService.getBusinessUnits(),
+    assets: this.assetService.getAssets(),
+    assetTypes: this.apiService.getAssetTypes()
+  }).subscribe({
+    next: ({ tickets, users, assets, businessUnits, assetTypes }) => {
+      this.tickets.set(tickets ?? []);
+      this.filteredTickets.set(tickets ?? []);
+      this.users.set(users ?? []);
+      this.assets.set(assets ?? []);
+      this.businessUnits.set(businessUnits ?? []);
+      this.assetTypes.set(assetTypes ?? []);
+      this.onFilter();
+      this.loading.set(false);
+    },
+    error: (error) => {
+      console.error('Errore durante il recupero dei dati:', error);
+      this.popupMessageService.error('Errore durante il caricamento dei dati');
+      this.tickets.set([]);
+      this.users.set([]);
+      this.assets.set([]);
+      this.businessUnits.set([]);
+      this.assetTypes.set([]);
+      this.loading.set(false);
+    }
+  });
+  this.destroyRef.onDestroy(() => subscription.unsubscribe());
+}
 
-        this.tickets.set([]);
-        this.users.set([]);
-        this.assets.set([]);
-        this.businessUnits.set([]);
-        this.assetTypes.set([]);
-
-        this.loading.set(false);
-      }
+ngOnInit(): void {
+  this.ticketStateService.ticketsChanged
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(() => {
+      this.loadTickets();
     });
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
-  }
+}
 
   enrichedTickets = computed(() =>
     this.tickets().map(ticket => {
@@ -119,7 +132,7 @@ export class UserStandardTickets {
         } else {
           displayTitle += `Riparazione: ${asset?.serialNumber}`;
         }
-
+    
         return { ...ticket, displayTitle};
       });
   });

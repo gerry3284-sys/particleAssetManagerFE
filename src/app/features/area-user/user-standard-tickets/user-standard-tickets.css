@@ -83,15 +83,52 @@
 }
 .ticket-row {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(5, minmax(0, 1fr));
 	align-items: center;
 	padding: 0.8rem 1rem;
 	font-size: 0.875rem;
 	border-bottom: 1px solid #F3F4F6;
+	background-color: rgba(251, 191, 36, 0.12);
 }
+
+.ticket-row:not(.ticket-header):not(.ticket-replied):hover {
+  background-color: rgba(251, 191, 36, 0.18); /* giallo più scuro all'hover */
+}
+
+.ticket-row.ticket-replied:hover {
+  background-color: #F9FAFB;
+}
+
+.ticket-row.ticket-replied {
+  background-color: #FFFFFF;
+}
+
 .ticket-row:last-child {
 	border-bottom: none;
 }
+
+.priority-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.priority-high {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.priority-medium {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.priority-low {
+  background-color: #DCFCE7;
+  color: #16A34A;
+}
+
 .ticket-row-empty{
   display: grid;
   padding: 0.8rem;
@@ -155,7 +192,7 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 	.ticket-row {
-		grid-template-columns: 1.2fr 1fr 1.2fr 1.3fr;
+		grid-template-columns: 1.2fr 1fr 1.2fr 1.3fr 1fr;
 		row-gap: 8px;
 	}
 	.ticket-row > div:nth-child(n + 5) {

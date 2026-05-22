@@ -12,6 +12,9 @@ import { AssetType } from '../../../shared/services/asset-type.service';
 // import { AssetStatusType } from '../../../shared/models/filter-config.interface';
 import { Asset } from '../../../shared/models/asset.interface';
 import { AssetService } from '../../../shared/services/asset.service';
+import { AssetStateService } from '../../../shared/services/asset-state.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TicketByUser } from '../../../models/ticket.model';
 
 @Component({
   selector: 'app-user-standard',
@@ -35,6 +38,8 @@ export class UserStandard{
   requestNotes = signal<string>('');
   requestType = signal<string>('');
   requestAsset = signal<string>('');
+  requestPriority = signal<string>('');
+  nonViewedTickets = signal<number>(0);
 
   @ViewChild('myDialog') dialog!: ElementRef<HTMLDialogElement>;
   @ViewChild('askDialog') askDialog!: ElementRef<HTMLDialogElement>;
@@ -78,9 +83,11 @@ export class UserStandard{
   //request per prendere tutte le info
   constructor(private apiService: ApiService,
     private route: ActivatedRoute,
+    private ticketStateService: AssetStateService,
     private router: Router,
     private readonly popupMessageService: PopupMessageService,
-    private assetService: AssetService
+    private assetService: AssetService,
+    private ticketService: ApiService
   ){
     const id = this.route.snapshot.paramMap.get('oid');
     /*if (!id || isNaN(+id)) {
@@ -105,6 +112,7 @@ export class UserStandard{
           this.router.navigate(['/404']);
           return;
         }
+        this.loadNonViewedTickets();
         // const processed = this.mergeMovements(movements ?? []);
         // this.movements.set(processed);
       },
@@ -129,6 +137,7 @@ export class UserStandard{
 
   //request per ottenere asset
   ngOnInit(): void {
+
     const subscription = this.assetService.getAssets().subscribe({
       next: (data) => {
         this.assets.set(data ?? []);
@@ -141,7 +150,22 @@ export class UserStandard{
     });
 
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
+
+    this.ticketStateService.ticketsChanged
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadNonViewedTickets();
+      });
   }
+
+  private loadNonViewedTickets(): void 
+    {
+      this.ticketService.getTicketsByUser(this.user()!.oid).subscribe({
+        next:(tickets: TicketByUser[]) => this.nonViewedTickets.set
+          (tickets.filter(ticket => ticket.userCheckReply === false).length),
+        error: (err: any) => console.error('Errore caricamento ticket:', err)
+      })
+    }
 
   //flippa i movement per avere il più recente prima e il più lontano dopo
   sortedMovements = computed(() =>
@@ -243,11 +267,11 @@ export class UserStandard{
   isInvalid(): boolean {
     if(this.controlRequest() !==''){
       if(this.controlRequest() === 'ASSEGNAZIONE'){
-        if(this.requestType() === '' || this.requestNotes() === '') return true;
+        if(this.requestType() === '' || this.requestNotes() === '' || this.requestPriority() === '') return true;
         return false;
       }
-      else if(this.controlRequest() === 'DISMISSIONE' || this.controlRequest() === 'RIPARAZIONE'){
-        if(this.requestAsset() === '' || this.requestNotes() === '') return true;
+      else if(this.controlRequest() === 'DISMISSIONE' || this.controlRequest() === 'RICONSEGNA'){
+        if(this.requestAsset() === '' || this.requestNotes() === '' || this.requestPriority() === '') return true;
         return false;
       }
       else return true;
@@ -276,14 +300,16 @@ export class UserStandard{
         assetTypeCode: requestTypeId,
         assetCode: null,
         message: this.requestNotes(),
-        status: 'OPEN'
+        //status: 'OPEN',
+        priority: this.requestPriority()
       }
       this.apiService.postTicket(postableAssignedRequest).subscribe({
         next: () => {
           this.popupMessageService.success('Richiesta di assegnazione inviata con successo.');
+          this.ticketStateService.notifyTicketsChanged();
         },
-        error: () => {
-          this.popupMessageService.error('Errore nell\'inzio della richiesta.');
+        error: (err) => {
+          this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
         }
       });
     }
@@ -296,18 +322,20 @@ export class UserStandard{
           assetTypeCode: null,
           assetCode: this.requestAsset(),
           message: this.requestNotes(),
-          status: 'OPEN'
+          //status: 'OPEN',
+          priority: this.requestPriority()
         }
         this.apiService.postTicket(postableDismissedRequest).subscribe({
           next: () => {
             this.popupMessageService.success('Richiesta di dismissione inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
           },
-          error: () => {
-            this.popupMessageService.error('Errore nell\'inzio della richiesta.');
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
           }
         });
       }
-      else if(this.controlRequest() === 'RIPARAZIONE'){
+      else if(this.controlRequest() === 'RICONSEGNA'){
         console.log(this.requestAsset());
         const postableReturnedRequest = {
           userCode: this.user()!.oid,
@@ -315,14 +343,16 @@ export class UserStandard{
           assetTypeCode: null,
           assetCode: this.requestAsset(),
           message: this.requestNotes(),
-          status: 'OPEN'
+          //status: 'OPEN',
+          priority: this.requestPriority()
         }
         this.apiService.postTicket(postableReturnedRequest).subscribe({
           next: () => {
-            this.popupMessageService.success('Richiesta di riparazione inviata con successo.');
+            this.popupMessageService.success('Richiesta di riconsegna inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
           },
-          error: () => {
-            this.popupMessageService.error('Errore nell\'inzio della richiesta.');
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
           }
         });
       }
@@ -334,6 +364,7 @@ export class UserStandard{
     this.requestNotes.set('');
     this.requestType.set('');
     this.requestAsset.set('');
+    this.requestPriority.set('');
     
     this.askDialog.nativeElement.close();
   }

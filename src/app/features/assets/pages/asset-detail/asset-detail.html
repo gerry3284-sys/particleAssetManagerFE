@@ -81,7 +81,7 @@
               @if (asset()!.status === 'UnderMaintenance') {
                 <div class="info-item">
                   <span class="info-label">Fine manutenzione</span>
-                  <span class="info-value">{{ getDisplayedEndMaintenanceDate() }}</span>
+                  <span class="info-value">{{ endMaintenanceDate() || '-' }}</span>
                 </div>
               }
 
@@ -204,8 +204,8 @@
                 (pressed)="dismissAsset()">
                 Dismetti Asset
               </app-button>
-              <hr>
               @if (canSetMaintenance()) {
+                <hr>
                   <div class="priority-select-wrapper">
                   <label class="priority-label">Priorità manutenzione</label>
                   <select class="priority-select" 
@@ -229,6 +229,7 @@
               }
 
               @if (asset()!.status === 'UnderMaintenance') {
+                <hr>
                 <app-button
                   variant="ghost-orange"
                   type="button"
@@ -237,6 +238,23 @@
                   (pressed)="markAsWorking()">
                   In lavorazione
                 </app-button>
+              }
+
+              @if(asset()!.inProgress)
+              {
+                <div class="priority-select-wrapper">
+                  <label class="priority-label">Data fine manutenzione</label>
+                  <input type="date" [(ngModel)]="endMaintenanceDate" (input)="insertEndMaintenanceDate()"
+                        class="end-maintenance-input" name="endMaintenanceDate" id="endMaintenanceDate"
+                        [min]="minDate"/>
+                  <app-button
+                    variant="ghost-orange"
+                    type="button"
+                    [fullWidth]="true"
+                    (pressed)="resetDate()">
+                    Reset Data
+                  </app-button>
+                </div>
               }
 
               @if (canSetAvailable()) {

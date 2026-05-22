@@ -27,7 +27,11 @@
 
                 <div class="info-item">
                     <span class="info-label">Operazione</span>
-                    <span class="info-value">{{ ticket()?.operation }}</span>
+                    <span class="info-value">
+                      @if(ticket()?.operation === 'ASSIGNED') { Assegnazione di {{ assetType() }} }
+                      @else if(ticket()?.operation === 'RETURNED') { Restituzione di {{asset()}} }
+                      @else { Dismissione di {{asset()}} }
+                    </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Stato</span>
@@ -107,7 +111,7 @@
         }
         @else {
           @for(reply of paginatedReplies(); track $index;){
-            <div class="ticket-row" style="cursor: pointer;">
+            <div class="ticket-row" style="cursor: pointer;" (click)="onMessageClick(reply)">
               <div class="info-item">
                 <div class="status">
                   @if (reply.status === 'OPEN') {
@@ -154,6 +158,25 @@
     <div class="ticket-modal-actions">
       <app-button type="button" variant="secondary" (click)="onAlertDialogClose()">Cancella</app-button>
       <app-button type="button" variant="primary" (click)="onPostReply()">Conferma</app-button>
+    </div>
+  </dialog>
+
+  <!-- Modal for displaying full message details -->
+  <dialog #messageDialog class="popup-window">
+    <div class="ticket-modal-header">
+      <div class="ticket-modal-icon" aria-hidden="true">i</div>
+      <div class="ticket-modal-title">Dettagli Messaggio</div>
+    </div>
+    <div class="ticket-modal-content">
+      <div class="message-container">
+        <span class="message-label">Messaggio:</span>
+        <span class="message-content">{{ selectedMessage?.message }}</span>
+      </div>
+      <p><strong>Inviato da:</strong> {{ selectedMessage?.user }}</p>
+      <p><strong>Orario:</strong> {{ selectedMessage?.date | date: 'dd/MM/yyyy - HH.mm' }}</p>
+    </div>
+    <div class="ticket-modal-actions">
+      <app-button type="button" variant="secondary" (click)="onMessageDialogClose()">Chiudi</app-button>
     </div>
   </dialog>
 </div>

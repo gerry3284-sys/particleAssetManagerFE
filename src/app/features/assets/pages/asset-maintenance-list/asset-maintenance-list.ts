@@ -56,11 +56,14 @@ filteredMaintenanceAssets = computed(() => {
   const priorityOrder: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 
   return [...assets].sort((a, b) => {
-    const priorityDiff = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
-    if (priorityDiff !== 0) return priorityDiff;
+      const inProgressDiff = (a.inProgress ? 1 : 0) - (b.inProgress ? 1 : 0);
+      if (inProgressDiff !== 0) return inProgressDiff;
 
-    return new Date(b.returnedDate).getTime() - new Date(a.returnedDate).getTime();
-  });
+      const priorityDiff = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
+      if (priorityDiff !== 0) return priorityDiff;
+
+      return new Date(b.startMaintenanceDate).getTime() - new Date(a.startMaintenanceDate).getTime();
+    });
 });
 
   paginatedMaintenanceAssets = computed(() => {

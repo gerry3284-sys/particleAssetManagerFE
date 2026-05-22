@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../shared/components/button/button';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { User } from '../../../models/user.model';
+import { AssetStateService } from '../../../shared/services/asset-state.service';
 
 @Component({
   selector: 'app-user-standard-tickets-detail',
@@ -21,6 +22,8 @@ export class UserStandardTicketsDetail {
     ticket = signal<Ticket | null>(null);
     replies = signal<Reply[]>([]);
     user = signal<User | null>(null);
+    assetType = signal<string>('');
+    asset = signal<string>('');
     
     message = '';
     alertTitle = '';
@@ -29,8 +32,11 @@ export class UserStandardTicketsDetail {
     private destroyRef = inject(DestroyRef);
 
     @ViewChild('alertDialog') alertDialog!: ElementRef<HTMLDialogElement>;
+    @ViewChild('messageDialog') messageDialog!: ElementRef<HTMLDialogElement>;
 
     constructor(private apiService: ApiService,
+      private assetService: AssetService,
+      private ticketStateService: AssetStateService,
       public route: ActivatedRoute,
       private readonly popupMessageService: PopupMessageService,
       private router: Router
@@ -43,10 +49,50 @@ export class UserStandardTicketsDetail {
         ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
         replies: this.apiService.getTicketChat(ticketCode ?? '')
       }).subscribe({
-        next: (results) => {
+        next: (results) => 
+        {
           this.user.set(results.user);
           this.ticket.set(results.ticket);
           this.replies.set(results.replies);
+
+          if(!results.ticket.userCheckReply)
+            this.apiService.checkNotification(results.ticket.ticketCode, results.user.oid).subscribe({
+              next: () => {
+                console.log('Notifica aggiornata con successo');
+                this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
+              },
+              error: (error) => {
+                console.error('Errore durante l\'aggiornamento della notifica:', error);
+              }
+            });
+
+          if (results.ticket?.assetCode) {
+        const assetSubscription = this.assetService.getAssetByCode(results.ticket.assetCode).subscribe({
+              next: (asset) => {
+                this.asset.set(asset.brand + ' ' + asset.model);
+                this.assetType.set('Esempio');
+              },
+              error: (error) => {
+                console.error('Errore durante il recupero dei dati dell\'asset:', error);
+                this.popupMessageService.error('Errore durante il caricamento dei dati dell\'asset');
+                this.asset.set('Dati asset non disponibili');
+                this.assetType.set('Dati asset non disponibili');
+              }
+            });
+            this.destroyRef.onDestroy(() => assetSubscription.unsubscribe());
+          } else {
+            const assetTypeSubscription = this.apiService.getAssetTypeByCode(results.ticket?.assetTypeCode ?? '').subscribe({
+              next: (assetType) => {
+                this.assetType.set(assetType.name);
+              },
+              error: (error) => {
+                console.error('Errore durante il recupero dei dati del tipo di asset:', error);
+                this.popupMessageService.error('Errore durante il caricamento dei dati del tipo di asset');
+                this.assetType.set('Dati tipo asset non disponibili');
+              }
+            });
+            this.destroyRef.onDestroy(() => assetTypeSubscription.unsubscribe());
+          }
           this.loading.set(false);
         }
       , error: (error) => {
@@ -136,6 +182,7 @@ export class UserStandardTicketsDetail {
           this.message = '';
           console.log('Risposta inviata con successo');
           this.popupMessageService.success('Risposta inviata con successo');
+          this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
         //}
         this.alertTitle = '';
         this.alertDialog.nativeElement.close();
@@ -155,5 +202,20 @@ export class UserStandardTicketsDetail {
   }
   goBack(): void {
     this.router.navigate(['/user-standard', this.ticket()?.userCode, 'ticket']);
+  }
+
+  // Add a property to store the selected message
+  selectedMessage: Reply | null = null;
+
+  // Method to handle message click
+  onMessageClick(reply: Reply): void {
+    this.selectedMessage = reply;
+    this.messageDialog.nativeElement.showModal();
+  }
+
+  // Method to close the message dialog
+  onMessageDialogClose(): void {
+    this.selectedMessage = null;
+    this.messageDialog.nativeElement.close();
   }
 }
