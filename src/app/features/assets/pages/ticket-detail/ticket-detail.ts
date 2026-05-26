@@ -29,6 +29,8 @@ export class TicketDetail {
     message = '';
     alertTitle = '';
     closed = false;
+    pendingAction: 'postReply' | 'changeStatus' | null = null;
+    pendingStatus: string | null = null;
 
     // isVisible = signal(true);
     // reload$ = new Subject<boolean>();
@@ -143,11 +145,15 @@ export class TicketDetail {
   }
 
   onAlertDialogOpen(){
+    this.pendingAction = 'postReply';
+    this.pendingStatus = null;
     this.alertTitle = 'Conferma invio risposta';
     this.alertDialog.nativeElement.showModal();
   }
   onAlertDialogClose(){
     this.alertTitle = '';
+    this.pendingAction = null;
+    this.pendingStatus = null;
     this.alertDialog.nativeElement.close();
   }
   // onAlertClosingDialogOpen(){
@@ -156,29 +162,53 @@ export class TicketDetail {
   // }
 
   changeStatusInWorking(){
-    const status = 'WORKING';
-    this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
-      next: (updatedTicket) =>{
-        this.ticket.set(updatedTicket);
-      },
-      error: (err) =>{
-        this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
-        console.error('errore cambiamento stato', err);
-      }
-    });
+    // Request confirmation before changing status to WORKING
+    this.requestStatusChange('WORKING');
   }
   changeStatusInClosed(){
-    const status = 'CLOSED';
-    this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
-      next: (updatedTicket) =>{
-        console.log(updatedTicket);
-        this.ticket.set(updatedTicket);
-      },
-      error: (err) =>{
-        this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
-        console.error('errore cambiamento stato', err);
-      }
-    });
+    // Request confirmation before changing status to CLOSED
+    this.requestStatusChange('CLOSED');
+  }
+
+  requestStatusChange(status: string){
+    this.pendingAction = 'changeStatus';
+    this.pendingStatus = status;
+    if(status === 'WORKING'){
+      this.alertTitle = 'Confermi di mettere il ticket in lavorazione?';
+    } else if(status === 'CLOSED'){
+      this.alertTitle = 'Confermi di chiudere il ticket?';
+    } else {
+      this.alertTitle = 'Confermi l\'operazione?';
+    }
+    this.alertDialog.nativeElement.showModal();
+  }
+
+  onConfirm(){
+    if(this.pendingAction === 'postReply'){
+      // reuse existing post reply flow
+      this.onPostReply();
+      this.pendingAction = null;
+      this.pendingStatus = null;
+      return;
+    }
+    if(this.pendingAction === 'changeStatus' && this.pendingStatus){
+      const status = this.pendingStatus;
+      this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
+        next: (updatedTicket) =>{
+          this.ticket.set(updatedTicket);
+          this.alertDialog.nativeElement.close();
+          this.pendingAction = null;
+          this.pendingStatus = null;
+        },
+        error: (err) =>{
+          this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
+          console.error('errore cambiamento stato', err);
+          this.alertDialog.nativeElement.close();
+          this.pendingAction = null;
+          this.pendingStatus = null;
+        }
+      });
+    }
   }
   onPostReply(){
     // const user = this.ticket()?.userCode;
@@ -247,4 +277,6 @@ export class TicketDetail {
     this.selectedMessage = null;
     this.messageDialog.nativeElement.close();
   }
+
+  // End of component
 }

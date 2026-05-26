@@ -9,36 +9,30 @@
     - Aggiungere il filtro per data invio richiesta delle pagine dei ticket (sia per l'utente che per l'admin)
     - Aggiungere la possibilità di modificare la priorità di un ticket (solo per l'admin)
     - Spostare nell'angolo il numero di ticket con messaggi non letti (l'utente)
+    - Inserire un filtro di default per le varie pagine dei ticket
+    - Completare l'implementazione del tema scuro {Fatto ma è da aggiornare in futuro}
 
     Modfiche Effettuate
-    1) Lista Ticket:
-    - Aggiunta la notifica per i ticket con messaggi non letti (per admin)
-    - Aggiunto l'aggiornamento automatico della lista dei ticket quando viene inviata una nuova richiesta
-    - Aggiunta la colorazione della riga per i ticket che hanno messaggi non risposti
+    1) Lista Ticket - Admin
+    - Modificata la parola da "Riparazione" a "Restituzione"
+    - Modificato il dato mostrato per "Restituizione" e "Dismissione" da serial number a brand e model
 
-    2) Visualizza Ticket:
-    - Modificato il dettaglio dei ticket in modo da mostrare per bene l'operazione che si sta svolgendo e 
-      l'asset o il tipo di asset coinvolto (es. Assegnazione di Laptop, Restituzione di Monitor, Dismissione di Stampante)
-    - Aggiunta la possibilità di cliccare sui messaggi ricevuti per visualizzarli per intero in un pop-up
-    - Aggiunta la colorazione della riga per i ticket che hanno messaggi non risposti
+    2) Dettaglio Ticket - Admin
+    - Modificata la scritta "Data di Creazione" in "Data di Creazione Ticket"
+    - Inserito un modale per quando si vuole cambiare lo stato del ticket in Lavorazione o Chiuso
 
-    3) Inoltra Richiesta Per Asset:
-    - Modificato in modo che venga richiesta anche la priorità della richiesta (ALTA, MEDIA, BASSA)
+    3) Lista Ticket - User
+    - Modificata la parola da "Riparazione" a "Restituzione"
+    - Modificato il dato mostrato per "Restituizione" e "Dismissione" da serial number a brand e model
 
-    4) Dettaglio Asset:
-    - Aggiunta la data di fine manutenzione (con possibilità di modifica da parte dell'utente)
+    4) Dettaglio Ticket - User
+    - Modificata la scritta "Data di Creazione" in "Data di Creazione Ticket"
 
-    5) Asset in Manutenzione:
-    - Modificato in modo che venga mostrata la data di inizio manutenzione invece della data di riconsegna
-    - Modificato in modo che venga mostrata la priorità dell'asset in manutenzione (ALTA, MEDIA, BASSA)
-    - Aggiunto filtro (default) per data di inizio manutenzione, priorità e stato (in lavorazione o meno)
-    - Inseriti dei badge colorati per la priorità (ALTA = rosso, MEDIA = arancione, BASSA = verde)
+    5) Generale
+    - Aggiornato il Tema Scuro
 
-    6) Dettaglio Ticket:
-    - Aggiunta la possibilità di cliccare sui messaggi ricevuti per visualizzarli per intero in un pop-up
-
-    7) Utente Standard:
-    - Aggiunta la notifica per i ticket con messaggi non letti (per user)
+    6) Base per Utenti
+    - Aggiunta la grandezza statica per i bottoni "Visualizza Ticket" nella pagina base dell'utente standard
 -->
 <!doctype html>
 <html lang="en">

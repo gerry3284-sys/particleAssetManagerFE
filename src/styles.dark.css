@@ -12,6 +12,19 @@ body.theme-dark {
   --green: #3ecf8e;
   --blue: #5b9cf6;
   --danger: #ff6b6b;
+  /* Ensure buttons keep the same palette as light theme by using shared variables */
+  --btn-primary-bg: #E56A3D;
+  --btn-primary-bg-hover: #D85E33;
+  --btn-primary-color: #FFFFFF;
+  --btn-primary-box-shadow: 0 4px 12px rgba(229, 106, 61, 0.2);
+
+  --btn-secondary-bg: #FFFFFF;
+  --btn-secondary-border: #E5E7EB;
+  --btn-secondary-color: #374151;
+  --btn-secondary-bg-hover: #F9FAFB;
+
+  --btn-danger-bg: #DC2626;
+  --btn-danger-bg-hover: #B91C1C;
   color-scheme: dark;
   background: var(--bg-page);
   color: var(--text-main);
@@ -316,40 +329,8 @@ body.theme-dark .dropdown .dropdown-icon {
   color: var(--text-dim);
 }
 
-body.theme-dark .btn-primary,
-body.theme-dark .btn-login {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 6px 14px rgba(232, 82, 26, 0.28);
-}
-
-body.theme-dark .btn-primary:hover:not(:disabled),
-body.theme-dark .btn-login:hover:not(:disabled) {
-  filter: brightness(1.05);
-}
-
-body.theme-dark .btn-secondary,
-body.theme-dark .btn-ghost-orange {
-  background: transparent;
-  border-color: #495269;
-  color: var(--text-mid);
-}
-
-body.theme-dark .btn-secondary:hover:not(:disabled),
-body.theme-dark .btn-ghost-orange:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: #5e677d;
-  color: var(--text-main);
-}
-
-body.theme-dark .btn-danger {
-  background: #c73a3a;
-}
-
-body.theme-dark .btn-danger:hover:not(:disabled) {
-  background: #dc4a4a;
-}
+/* Button colors are controlled via shared variables (defined in :root and mirrored
+   in body.theme-dark) so buttons keep identical palette across light/dark themes. */
 
 body.theme-dark .sidebar-theme-toggle,
 body.theme-dark .sidebar-logout,
@@ -385,6 +366,11 @@ body.theme-dark .status-box {
 body.theme-dark .popup-message {
   background: var(--bg-card);
   border: 1px solid var(--border);
+  color: var(--text-main);
+}
+
+/* Ticket dialog title color in dark theme */
+body.theme-dark .ticket-modal-title {
   color: var(--text-main);
 }
 
@@ -425,6 +411,37 @@ body.theme-dark .loading {
 body.theme-dark .brand-mark {
   background: rgba(232, 82, 26, 0.18);
   color: var(--accent);
+}
+
+/* Strong, final overrides to ensure header text is white in dark theme */
+body.theme-dark .page-title,
+body.theme-dark .page-subtitle,
+body.theme-dark .asset-row.asset-header,
+body.theme-dark .asset-row.asset-header > div,
+body.theme-dark .business-header,
+body.theme-dark .business-header > div,
+body.theme-dark .asset-header,
+body.theme-dark .asset-header > div,
+body.theme-dark thead th,
+body.theme-dark thead th > div {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Force data cell text to white in dark theme, but don't change action buttons */
+body.theme-dark .asset-row > div:not(.btn-position) {
+  color: #ffffff !important;
+}
+
+/* Same for business rows */
+body.theme-dark .business-row > div:not(.btn-position) {
+  color: #ffffff !important;
+}
+
+/* Ensure inactive/inline colored rows don't dim headers */
+body.theme-dark .asset-row[style],
+body.theme-dark .asset-row[style] > div {
+  /* do not change row content here, only force headers above rules to prevail */
 }
 
 body.theme-dark .remember input,
@@ -495,4 +512,67 @@ body.theme-dark ::-webkit-scrollbar-thumb {
 
 body.theme-dark ::-webkit-scrollbar-thumb:hover {
   background: #525a6d;
+}
+
+/* Extra-specific overrides for Users table to ensure white text */
+body.theme-dark table.table-card thead tr.user-header th,
+body.theme-dark table.table-card thead tr.user-header th * {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+body.theme-dark table.table-card tbody tr.user-row td,
+body.theme-dark table.table-card tbody tr.user-row td * {
+  color: #ffffff !important;
+}
+
+/* Ticket list: force white titles and row text in dark theme */
+body.theme-dark .ticket-page .page-title {
+  color: #ffffff !important;
+}
+
+body.theme-dark .ticket-page .page-subtitle {
+  color: var(--text-dim) !important;
+}
+
+body.theme-dark .ticket-header,
+body.theme-dark .ticket-header > div {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+body.theme-dark .ticket-row,
+body.theme-dark .ticket-row > div {
+  color: #ffffff !important;
+}
+
+/* Ensure status and priority badge text remain readable */
+body.theme-dark .ticket-row .status,
+body.theme-dark .priority-badge {
+  color: #ffffff !important;
+}
+
+/* Soften priority badges in dark theme so they don't blind */
+body.theme-dark .priority-badge {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: var(--text-main) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+body.theme-dark .priority-high {
+  background-color: rgba(220, 38, 38, 0.12) !important;
+  color: #ffd7d7 !important;
+  border-color: rgba(220, 38, 38, 0.20) !important;
+}
+
+body.theme-dark .priority-medium {
+  background-color: rgba(217, 119, 6, 0.10) !important;
+  color: #fff4db !important;
+  border-color: rgba(217, 119, 6, 0.18) !important;
+}
+
+body.theme-dark .priority-low {
+  background-color: rgba(16, 185, 129, 0.10) !important;
+  color: #dff8ea !important;
+  border-color: rgba(16, 185, 129, 0.18) !important;
 }

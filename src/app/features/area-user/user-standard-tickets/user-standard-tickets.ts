@@ -106,9 +106,9 @@ ngOnInit(): void {
         const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
         displayTitle += `Assegnazione: ${assetType?.name}`;
       } else if (ticket.operation === 'DISMISSED') {
-        displayTitle += `Dismissione: ${asset?.serialNumber}`;
+        displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
       } else {
-        displayTitle += `Riparazione: ${asset?.serialNumber}`;
+        displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
       }
 
       return { ...ticket, displayTitle};
@@ -128,9 +128,9 @@ ngOnInit(): void {
           const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
           displayTitle += `Assegnazione: ${assetType?.name}`;
         } else if (ticket.operation === 'DISMISSED') {
-          displayTitle += `Dismissione: ${asset?.serialNumber}`;
+          displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
         } else {
-          displayTitle += `Riparazione: ${asset?.serialNumber}`;
+          displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
         }
     
         return { ...ticket, displayTitle};
@@ -152,9 +152,9 @@ paginatedTickets = computed((): EnrichedTicket[] => {
         const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
         return title = title + `Assegnazione: ${assetType?.name}`;
       } else if(operation === 'DISMISSED'){
-        return title = title + `Dismissione: ${asset?.serialNumber}`;
+        return title = title + `Dismissione: ${asset?.brand} ${asset?.model}`;
       } else{
-        return title = title + `Riparazione: ${asset?.serialNumber}`;
+        return title = title + `Restituzione: ${asset?.brand} ${asset?.model}`;
       }
     })
   });

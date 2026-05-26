@@ -1,5 +1,21 @@
 @import './styles.dark.css';
 
+/* Themeable variables (buttons use these so colors stay identical across themes) */
+:root {
+  --btn-primary-bg: #E56A3D;
+  --btn-primary-bg-hover: #D85E33;
+  --btn-primary-color: #FFFFFF;
+  --btn-primary-box-shadow: 0 4px 12px rgba(229, 106, 61, 0.2);
+
+  --btn-secondary-bg: #FFFFFF;
+  --btn-secondary-border: #E5E7EB;
+  --btn-secondary-color: #374151;
+  --btn-secondary-bg-hover: #F9FAFB;
+
+  --btn-danger-bg: #DC2626;
+  --btn-danger-bg-hover: #B91C1C;
+}
+
 /* Reset CSS base */
 * {
   margin: 0;
@@ -77,34 +93,105 @@ img {
 
 /* Primary button (arancione) */
 .btn-primary {
-  background-color: #E56A3D;
-  color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(229, 106, 61, 0.2);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  box-shadow: var(--btn-primary-box-shadow);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #D85E33;
+  background-color: var(--btn-primary-bg-hover);
   box-shadow: 0 6px 16px rgba(229, 106, 61, 0.3);
 }
 
 /* Secondary button (bianco con bordo) */
 .btn-secondary {
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  color: #374151;
+  background-color: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  color: var(--btn-secondary-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #F9FAFB;
+  background-color: var(--btn-secondary-bg-hover);
   border-color: #D1D5DB;
 }
 
 /* Danger button (rosso) */
 .btn-danger {
-  background-color: #DC2626;
+  background-color: var(--btn-danger-bg);
   color: #FFFFFF;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #B91C1C;
+  background-color: var(--btn-danger-bg-hover);
 }
+
+/* ===== Global dark-theme overrides (high specificity, !important) ===== */
+/* These rules are intentionally broad to override component-local white backgrounds. */
+body.theme-dark .table-card,
+body.theme-dark .form-card,
+body.theme-dark .info-card,
+body.theme-dark .user-card,
+body.theme-dark .modal-card,
+body.theme-dark .edit-modal-card,
+body.theme-dark .receipt-modal-card,
+body.theme-dark .assignment-receipt-modal,
+body.theme-dark .dismiss-modal,
+body.theme-dark .return-modal,
+body.theme-dark .status-type-modal,
+body.theme-dark .asset-type-modal,
+body.theme-dark .business-unit-modal,
+body.theme-dark .login-card,
+body.theme-dark dialog.popup-window,
+body.theme-dark .table-card thead,
+body.theme-dark .table-card tbody,
+body.theme-dark .table-card tr,
+body.theme-dark .table-card td,
+body.theme-dark .table-card th,
+body.theme-dark .dropdown-panel,
+body.theme-dark .dropdown,
+body.theme-dark .select,
+body.theme-dark .textarea,
+body.theme-dark .ticket-row,
+body.theme-dark .user-union,
+body.theme-dark .user-union-2 {
+  background: var(--bg-card, #24282f) !important;
+  color: var(--text-mid, #9da3b4) !important;
+  border-color: var(--border, #2e3340) !important;
+  box-shadow: 0 16px 30px rgba(0,0,0,0.28) !important;
+}
+
+body.theme-dark .sidebar,
+body.theme-dark .layout,
+body.theme-dark .content,
+body.theme-dark .asset-page,
+body.theme-dark .asset-detail-page,
+body.theme-dark .user-page,
+body.theme-dark .ticket-page,
+body.theme-dark .create-asset-page,
+body.theme-dark .login-page {
+  background: var(--bg-page, #1a1d23) !important;
+  color: var(--text-main, #e2e5ed) !important;
+}
+
+body.theme-dark input,
+body.theme-dark textarea,
+body.theme-dark select,
+body.theme-dark .form-control,
+body.theme-dark .form-select,
+body.theme-dark .dropdown-trigger,
+body.theme-dark .dropdown input,
+body.theme-dark .dropdown-search input {
+  background: var(--bg-page, #1a1d23) !important;
+  color: var(--text-main, #e2e5ed) !important;
+  border-color: var(--border, #2e3340) !important;
+}
+
+body.theme-dark .menu-item:hover,
+body.theme-dark .btn-sidebar:hover:not(:disabled) {
+  background: var(--bg-hover, #2a2e37) !important;
+  color: var(--text-main, #e2e5ed) !important;
+}
+
+/* Note: removed automatic system-wide dark overrides to avoid interfering with explicit
+   in-app theme selection. The app bootstrap (`main.ts`) now applies `body.theme-dark`
+   based on saved preference or `prefers-color-scheme` once at load time. */

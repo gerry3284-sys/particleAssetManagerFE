@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="info-item">
-                    <span class="info-label">Data di creazione</span>
+                    <span class="info-label">Data di Creazione Ticket</span>
                     <span class="info-value">{{ ticket()?.date | date: 'dd/MM/yyyy - HH.mm'}}</span>
                 </div>
 
@@ -195,7 +195,7 @@
     </div>
     <div class="ticket-modal-actions">
       <app-button type="button" variant="secondary" (click)="onAlertDialogClose()">Cancella</app-button>
-      <app-button type="button" variant="primary" (click)="onPostReply()">Conferma</app-button>
+      <app-button type="button" variant="primary" (click)="onConfirm()">Conferma</app-button>
     </div>
   </dialog>
 

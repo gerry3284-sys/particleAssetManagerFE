@@ -99,9 +99,9 @@ export class TicketList implements OnInit {
         const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
         displayTitle += `Assegnazione: ${assetType?.name}`;
       } else if (ticket.operation === 'DISMISSED') {
-        displayTitle += `Dismissione: ${asset?.serialNumber}`;
+        displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
       } else {
-        displayTitle += `Riparazione: ${asset?.serialNumber}`;
+        displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
       }
 
       return { ...ticket, displayTitle, displayUser, priority: ticket.priority };
@@ -209,9 +209,9 @@ sortedTickets = computed((): EnrichedTicket[] => {
       const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
       displayTitle += `Assegnazione: ${assetType?.name}`;
     } else if (ticket.operation === 'DISMISSED') {
-      displayTitle += `Dismissione: ${asset?.serialNumber}`;
+      displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
     } else {
-      displayTitle += `Riparazione: ${asset?.serialNumber}`;
+      displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
     }
 
     return { ...ticket, displayTitle, displayUser };

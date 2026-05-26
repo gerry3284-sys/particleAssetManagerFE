@@ -1,11 +1,9 @@
 .ticket-page {
-	display: flex;
-	flex-direction: column;
-	padding-top: 1rem;
-	padding-bottom: 1rem;
-	padding-left: 2rem;
-	padding-right: 2rem;
-	gap: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 1rem 2rem;
+  gap: 1.3rem;
 }
 .page-header {
   display: flex;
@@ -80,6 +78,13 @@
 	border-radius: 12px;
 	overflow: hidden;
 	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+/* Let the table-card grow to fill vertical space so footer stays at bottom */
+.ticket-page .table-card {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 .ticket-row {
 	display: grid;

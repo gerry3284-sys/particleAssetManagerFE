@@ -20,8 +20,12 @@
                 <app-button variant="primary"type="button" (click)="onOpenAskDialog()" style="margin-bottom: 0.5rem;">Inoltra richiesta per Asset</app-button>
                 <app-button variant="primary" type="button" (click)="onViewTickets()" 
                     style="margin-bottom: 0.5rem; display: inline-flex; align-items: center;">
-                    Visualizza Ticket
-                    @if(nonViewedTickets() > 0) { <span class="notification-badge">{{ nonViewedTickets() }}</span> }
+                    <span class="ticket-button-content">
+                        <span>Visualizza Ticket</span>
+                        <span class="notification-badge" [class.notification-badge-hidden]="nonViewedTickets() === 0">
+                            {{ nonViewedTickets() > 0 ? nonViewedTickets() : '' }}
+                        </span>
+                    </span>
                 </app-button>
             </div>
         </div>

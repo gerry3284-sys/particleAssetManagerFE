@@ -4,11 +4,21 @@ import { App } from './app/app';
 
 if (typeof document !== 'undefined') {
   const themeStorageKey = 'pam-theme';
-  const savedTheme = typeof localStorage !== 'undefined'
-    ? localStorage.getItem(themeStorageKey)
-    : null;
+  let savedTheme: string | null = null;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      savedTheme = localStorage.getItem(themeStorageKey);
+    }
+  } catch (e) {
+    savedTheme = null;
+  }
 
-  document.body.classList.toggle('theme-dark', savedTheme === 'dark');
+  let isDark = savedTheme === 'dark';
+  if (savedTheme === null && typeof window !== 'undefined' && window.matchMedia) {
+    isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  document.body.classList.toggle('theme-dark', isDark);
 }
 
 bootstrapApplication(App, appConfig)
