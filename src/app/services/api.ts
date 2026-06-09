@@ -12,7 +12,8 @@ import { Reply, Ticket, TicketByUser } from '../models/ticket.model';
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = environment.apiUrl;
+  //private baseUrl = environment.apiUrl;
+  private baseUrl = environment.api.baseUrl;
 
   constructor(private http: HttpClient) {}
 

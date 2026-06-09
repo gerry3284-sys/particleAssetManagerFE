@@ -10,60 +10,22 @@
       </div>
     </div>
 
-    <!-- Form -->
-    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onLogin()">
+    <!-- Divisore -->
+    <div class="divider"></div>
 
-      <!-- Email -->
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          placeholder="nome.cognome@azienda.com"
-          formControlName="email"
-          [class.invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched"
-        />
-
-        @if (loginForm.controls.email.invalid && loginForm.controls.email.touched) {
-          <div class="error">Email obbligatoria e deve essere valida</div>
-        }
-      </div>
-
-      <!-- Password -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          formControlName="password"
-          [class.invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched"
-        />
-
-        @if (loginForm.controls.password.invalid && loginForm.controls.password.touched) {
-          <div class="error">Password obbligatoria</div>
-        }
-      </div>
-
-      <!-- Remember + Forgot password -->
-      <div class="form-row">
-        <label class="remember">
-          <input type="checkbox" />
-          Ricordami
-        </label>
-        <a class="link" href="javascript:void(0)">Password dimenticata?</a>
-      </div>
-
-      <!-- Submit -->
-      <app-button
-        type="submit"
-        variant="login"
-        [fullWidth]="true"
-        [disabled]="loginForm.invalid"
-      >
-        Accedi
-      </app-button>
-    </form>
+    <!-- Login Microsoft -->
+    <div class="microsoft-section">
+      <p class="microsoft-hint">Usa il tuo account aziendale Microsoft per accedere.</p>
+      <button class="microsoft-btn" (click)="onLogin()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 21 21">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+        </svg>
+        Accedi con Microsoft
+      </button>
+    </div>
 
     <!-- Footer -->
     <div class="login-footer">

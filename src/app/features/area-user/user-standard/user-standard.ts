@@ -15,6 +15,7 @@ import { AssetService } from '../../../shared/services/asset.service';
 import { AssetStateService } from '../../../shared/services/asset-state.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TicketByUser } from '../../../models/ticket.model';
+import { AuthService } from '../../../shared/services/authService';
 
 @Component({
   selector: 'app-user-standard',
@@ -87,7 +88,8 @@ export class UserStandard{
     private router: Router,
     private readonly popupMessageService: PopupMessageService,
     private assetService: AssetService,
-    private ticketService: ApiService
+    private ticketService: ApiService,
+    private authService: AuthService
   ){
     const id = this.route.snapshot.paramMap.get('oid');
     /*if (!id || isNaN(+id)) {
@@ -372,6 +374,6 @@ export class UserStandard{
     this.router.navigate([`/user-standard/${this.user()?.oid}/ticket`]);
   }
   onLogout() {
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }

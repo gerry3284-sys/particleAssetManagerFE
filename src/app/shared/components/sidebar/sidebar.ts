@@ -8,6 +8,7 @@ import { UnderMaintenanceAsset } from '../../models/asset.interface';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../../services/api';
 import { Ticket } from '../../../models/ticket.model';
+import { AuthService } from '../../services/authService';
 
 @Component({
   selector: 'app-sidebar',
@@ -22,6 +23,7 @@ export class SidebarComponent implements OnInit {
   private readonly assetService = inject(AssetService);
   private readonly assetStateService = inject(AssetStateService);
   private readonly ticketService = inject(ApiService);
+  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   isDarkTheme = signal(false);
@@ -82,7 +84,7 @@ export class SidebarComponent implements OnInit {
   }
 
   onLogout(): void {
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   onToggleTheme(): void {
