@@ -46,11 +46,12 @@ export class App implements OnInit {
         if (account) {
           // Imposta l'account attivo
           this.msalService.instance.setActiveAccount(account);
-            const result = await this.msalService.instance.acquireTokenSilent({
-              scopes: ['https://graph.microsoft.com/.default'],
-              account
-            });
-            ///console.log('TOKEN:', result.accessToken);
+          const result = await this.msalService.instance.acquireTokenSilent({
+            scopes: ['https://graph.microsoft.com/.default'],
+            account
+          });
+          //console.log('TOKEN:', result.accessToken);
+
           // Debug account
           console.log('Account MSAL attivo:', {
             name: account.name,
@@ -61,24 +62,30 @@ export class App implements OnInit {
             idTokenClaims: account.idTokenClaims
           });
 
+          // [MODIFICA] getUserGroups() viene chiamato prima di getMe()
+          // e getMe() parte solo nel next, quando il token Graph
+          // è già stato salvato nell'interceptor
           this.graphService.getUserGroups().subscribe({
             next: (groups) => {
               console.log('Gruppi utente da Graph:', groups);
+
+              // [MODIFICA] Chiamata al backend spostata qui,
+              // dentro il next di getUserGroups
+              this.authService.getMe().subscribe({
+                next: (user) => {
+                  console.log('Utente backend /user/me:', user);
+                  const nextRoute = this.authService.getPostLoginRoute(user);
+                  localStorage.setItem('user', JSON.stringify(user));
+                  this.router.navigateByUrl(nextRoute);
+                },
+                error: (err) => {
+                  console.error('Errore /user/me:', err);
+                  this.router.navigate(['/404']);
+                }
+              });
             },
             error: (err) => {
               console.error('Errore chiamata Graph:', err);
-            }
-          });
-
-          // Chiamata al backend
-          this.authService.getMe().subscribe({
-            next: (user) => {
-              console.log('Utente backend /user/me:', user);
-              const nextRoute = this.authService.getPostLoginRoute(user);
-              this.router.navigateByUrl(nextRoute);
-            },
-            error: (err) => {
-              console.error('Errore /user/me:', err);
               this.router.navigate(['/404']);
             }
           });

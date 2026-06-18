@@ -1,282 +1,387 @@
-import { Component, computed, DestroyRef, ElementRef, inject, signal, ViewChild } from '@angular/core';
-import { Reply, Ticket } from '../../../../models/ticket.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AssetService } from '../../../../shared/services/asset.service';
-import { PopupMessageService } from '../../../../shared/services/popup-message.service';
-import { ApiService } from '../../../../services/api';
-import { forkJoin } from 'rxjs/internal/observable/forkJoin';
-import { DatePipe } from '@angular/common';
-import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
-import { ButtonComponent } from "../../../../shared/components/button/button";
-import { FormsModule } from '@angular/forms';
-import { User } from '../../../../models/user.model';
-import { Subject } from 'rxjs';
-import { AssetStateService } from '../../../../shared/services/asset-state.service';
+  import { Component, computed, DestroyRef, ElementRef, inject, signal, ViewChild } from '@angular/core';
+  import { Reply, Ticket } from '../../../../models/ticket.model';
+  import { ActivatedRoute, Router } from '@angular/router';
+  import { AssetService } from '../../../../shared/services/asset.service';
+  import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+  import { ApiService } from '../../../../services/api';
+  import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+  import { DatePipe } from '@angular/common';
+  import { PaginationComponent } from "../../../../shared/components/pagination/pagination";
+  import { ButtonComponent } from "../../../../shared/components/button/button";
+  import { FormsModule } from '@angular/forms';
+  import { User } from '../../../../models/user.model';
+  import { Subject } from 'rxjs';
+  import { AssetStateService } from '../../../../shared/services/asset-state.service';
 
-@Component({
-  selector: 'app-ticket-detail',
-  imports: [DatePipe, PaginationComponent, ButtonComponent, FormsModule],
-  templateUrl: './ticket-detail.html',
-  styleUrl: './ticket-detail.css',
-})
-export class TicketDetail {
-    ticket = signal<Ticket | null>(null);
-    replies = signal<Reply[]>([]);
-    users = signal<User[]>([]);
-    assetType = signal<string>('');
-    asset = signal<string>('');
-    
-    message = '';
-    alertTitle = '';
-    closed = false;
-    pendingAction: 'postReply' | 'changeStatus' | null = null;
-    pendingStatus: string | null = null;
+  @Component({
+    selector: 'app-ticket-detail',
+    imports: [DatePipe, PaginationComponent, ButtonComponent, FormsModule],
+    templateUrl: './ticket-detail.html',
+    styleUrl: './ticket-detail.css',
+  })
+  export class TicketDetail {
+      ticket = signal<Ticket | null>(null);
+      replies = signal<Reply[]>([]);
+      users = signal<User[]>([]);
+      assetType = signal<string>('');
+      asset = signal<string>('');
+      selectedPriority = signal<Ticket['priority']>('LOW');
+      
+      assetCode = '';
+      message = '';
+      alertTitle = '';
+      alertMessage = '';
+      closed = false;
+      pendingAction: 'postReply' | 'changeStatus' | 'changePriority' | null = null;
+      pendingStatus: string | null = null;
+      pendingPriority: Ticket['priority'] | null = null;
 
-    // isVisible = signal(true);
-    // reload$ = new Subject<boolean>();
-    loading = signal(true);
-    private destroyRef = inject(DestroyRef);
+      // isVisible = signal(true);
+      // reload$ = new Subject<boolean>();
+      loading = signal(true);
+      private destroyRef = inject(DestroyRef);
 
-    @ViewChild('alertDialog') alertDialog!: ElementRef<HTMLDialogElement>;
-    @ViewChild('messageDialog') messageDialog!: ElementRef<HTMLDialogElement>;
+      @ViewChild('alertDialog') alertDialog!: ElementRef<HTMLDialogElement>;
+      @ViewChild('messageDialog') messageDialog!: ElementRef<HTMLDialogElement>;
 
-    constructor(
-  private apiService: ApiService,
-  private assetService: AssetService,
-  private ticketStateService: AssetStateService,
-  public route: ActivatedRoute,
-  private readonly popupMessageService: PopupMessageService,
-  private router: Router
-) {
-  const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
+      constructor(
+    private apiService: ApiService,
+    private assetService: AssetService,
+    private ticketStateService: AssetStateService,
+    public route: ActivatedRoute,
+    private readonly popupMessageService: PopupMessageService,
+    private router: Router
+  ) {
+    const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
 
-  const subscription = forkJoin({
-    ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
-    replies: this.apiService.getTicketChat(ticketCode ?? ''),
-    users: this.apiService.getUsers()
-  }).subscribe({
-    next: (results) => {
-      this.ticket.set(results.ticket);
-      this.replies.set(results.replies);
-      this.users.set(results.users);
+    const subscription = forkJoin({
+      ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
+      replies: this.apiService.getTicketChat(ticketCode ?? ''),
+      users: this.apiService.getUsers()
+    }).subscribe({
+      next: (results) => {
+        this.ticket.set(results.ticket);
+        this.selectedPriority.set(results.ticket.priority);
+        this.replies.set(results.replies);
+        this.users.set(results.users);
 
-        this.apiService.checkNotification(results.ticket.ticketCode, '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1').subscribe({
+        this.apiService.checkNotification(
+          results.ticket.ticketCode,
+          '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1'
+        ).subscribe({
           next: () => {
             console.log('Notifica aggiornata con successo');
-            this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
+            this.ticketStateService.notifyTicketsChanged();
           },
           error: (error) => {
             console.error('Errore durante l\'aggiornamento della notifica:', error);
           }
         });
 
-      if (results.ticket?.assetCode) {
-        const assetSubscription = this.assetService.getAssetByCode(results.ticket.assetCode).subscribe({
-          next: (asset) => {
-            this.asset.set(asset.brand + ' ' + asset.model);
-            this.assetType.set('Esempio');
-          },
-          error: (error) => {
-            console.error('Errore durante il recupero dei dati dell\'asset:', error);
-            this.popupMessageService.error('Errore durante il caricamento dei dati dell\'asset');
-            this.asset.set('Dati asset non disponibili');
-            this.assetType.set('Dati asset non disponibili');
-          }
-        });
-        this.destroyRef.onDestroy(() => assetSubscription.unsubscribe());
-      } else {
-        const assetTypeSubscription = this.apiService.getAssetTypeByCode(results.ticket?.assetTypeCode ?? '').subscribe({
-          next: (assetType) => {
-            this.assetType.set(assetType.name);
-          },
-          error: (error) => {
-            console.error('Errore durante il recupero dei dati del tipo di asset:', error);
-            this.popupMessageService.error('Errore durante il caricamento dei dati del tipo di asset');
-            this.assetType.set('Dati tipo asset non disponibili');
-          }
-        });
-        this.destroyRef.onDestroy(() => assetTypeSubscription.unsubscribe());
+        // -------------------------------
+        //   GESTIONE ASSET / ASSET TYPE
+        // -------------------------------
+        const assetCode = results.ticket?.assetCode;
+        const assetTypeCode = results.ticket?.assetTypeCode;
+
+        // Caso 1: entrambi null → nessuna ricerca
+        if (!assetCode && !assetTypeCode) {
+          this.asset.set('N/D');
+          this.assetType.set('N/D');
+        }
+
+        // Caso 2: assetCode presente → cerca asset
+        else if (assetCode) {
+          const assetSubscription = this.assetService.getAssetByCode(assetCode).subscribe({
+            next: (asset) => {
+              this.asset.set(`${asset.brand} ${asset.model}`);
+              this.assetCode = asset.assetCode;
+              //this.assetType.set(asset.assetType ?? 'N/D');
+            },
+            error: (error) => {
+              console.error('Errore durante il recupero dei dati dell\'asset:', error);
+              this.popupMessageService.error('Errore durante il caricamento dei dati dell\'asset');
+              this.asset.set('Dati asset non disponibili');
+              this.assetType.set('Dati asset non disponibili');
+            }
+          });
+          this.destroyRef.onDestroy(() => assetSubscription.unsubscribe());
+        }
+
+        // Caso 3: assetCode null ma assetTypeCode presente → cerca tipo asset
+        else if (assetTypeCode) {
+          const assetTypeSubscription = this.apiService.getAssetTypeByCode(assetTypeCode).subscribe({
+            next: (assetType) => {
+              this.assetType.set(assetType.name);
+              this.asset.set('N/D');
+            },
+            error: (error) => {
+              console.error('Errore durante il recupero dei dati del tipo di asset:', error);
+              this.popupMessageService.error('Errore durante il caricamento dei dati del tipo di asset');
+              this.assetType.set('Dati tipo asset non disponibili');
+            }
+          });
+          this.destroyRef.onDestroy(() => assetTypeSubscription.unsubscribe());
+        }
+
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Errore durante il recupero dei dati:', error);
+        this.popupMessageService.error('Errore durante il caricamento dei dati');
+        this.ticket.set(null);
+        this.replies.set([]);
+        this.users.set([]);
+        this.loading.set(false);
       }
-      this.loading.set(false);
-    },
-    error: (error) => {
-      console.error('Errore durante il recupero dei dati:', error);
-      this.popupMessageService.error('Errore durante il caricamento dei dati');
-      this.ticket.set(null);
-      this.replies.set([]);
-      this.users.set([]);
-      this.loading.set(false);
+    });
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
+
+
+    sortedReplies = computed(() => [...this.replies()].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
+    username = computed(() => {
+      const user = this.users().find(u => u.oid === this.ticket()?.userCode);
+      return `${user?.name} ${user?.surname}`
+    });
+
+    currentPage = signal(1);
+    itemsPerPage = signal(8);
+
+    // ricalcolo e aggiorno automaticamente dopo ogni cambiamento
+    totalPages = computed(() => {
+      return Math.ceil(this.sortedReplies().length / this.itemsPerPage());
+    });
+
+    // si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi users
+    paginatedReplies = computed(() => {
+      const start = (this.currentPage() - 1) * this.itemsPerPage();
+      const end = start + this.itemsPerPage();
+      return this.sortedReplies().slice(start, end);
+    });
+
+    //creazione stringa display range.
+    displayRange = computed(() => {
+      const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
+      const end = Math.min(this.currentPage() * this.itemsPerPage(), this.sortedReplies().length);
+      return `Mostrando ${start}-${end} di ${this.sortedReplies().length}`;
+    });
+    goToPage(page: number): void {
+      this.currentPage.set(page);
     }
-  });
 
-  this.destroyRef.onDestroy(() => subscription.unsubscribe());
-}
-
-  sortedReplies = computed(() => [...this.replies()].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-
-  username = computed(() => {
-    const user = this.users().find(u => u.oid === this.ticket()?.userCode);
-    return `${user?.name} ${user?.surname}`
-  });
-
-  currentPage = signal(1);
-  itemsPerPage = signal(8);
-
-  // ricalcolo e aggiorno automaticamente dopo ogni cambiamento
-  totalPages = computed(() => {
-    return Math.ceil(this.sortedReplies().length / this.itemsPerPage());
-  });
-
-  // si aggiorna automaticamente quando cambi pagina o aggiungi/rimuovi users
-  paginatedReplies = computed(() => {
-    const start = (this.currentPage() - 1) * this.itemsPerPage();
-    const end = start + this.itemsPerPage();
-    return this.sortedReplies().slice(start, end);
-  });
-
-  //creazione stringa display range.
-  displayRange = computed(() => {
-    const start = (this.currentPage() - 1) * this.itemsPerPage() + 1;
-    const end = Math.min(this.currentPage() * this.itemsPerPage(), this.sortedReplies().length);
-    return `Mostrando ${start}-${end} di ${this.sortedReplies().length}`;
-  });
-  goToPage(page: number): void {
-    this.currentPage.set(page);
-  }
-
-  onAlertDialogOpen(){
-    this.pendingAction = 'postReply';
-    this.pendingStatus = null;
-    this.alertTitle = 'Conferma invio risposta';
-    this.alertDialog.nativeElement.showModal();
-  }
-  onAlertDialogClose(){
-    this.alertTitle = '';
-    this.pendingAction = null;
-    this.pendingStatus = null;
-    this.alertDialog.nativeElement.close();
-  }
-  // onAlertClosingDialogOpen(){
-  //   this.alertTitle = 'Conferma invio risposta e chiusura ticket';
-  //   this.alertDialog.nativeElement.showModal();
-  // }
-
-  changeStatusInWorking(){
-    // Request confirmation before changing status to WORKING
-    this.requestStatusChange('WORKING');
-  }
-  changeStatusInClosed(){
-    // Request confirmation before changing status to CLOSED
-    this.requestStatusChange('CLOSED');
-  }
-
-  requestStatusChange(status: string){
-    this.pendingAction = 'changeStatus';
-    this.pendingStatus = status;
-    if(status === 'WORKING'){
-      this.alertTitle = 'Confermi di mettere il ticket in lavorazione?';
-    } else if(status === 'CLOSED'){
-      this.alertTitle = 'Confermi di chiudere il ticket?';
-    } else {
-      this.alertTitle = 'Confermi l\'operazione?';
+    onAlertDialogOpen(){
+      this.pendingAction = 'postReply';
+      this.pendingStatus = null;
+      this.pendingPriority = null;
+      this.alertTitle = 'Conferma invio risposta';
+      this.alertMessage = '';
+      this.alertDialog.nativeElement.showModal();
     }
-    this.alertDialog.nativeElement.showModal();
-  }
-
-  onConfirm(){
-    if(this.pendingAction === 'postReply'){
-      // reuse existing post reply flow
-      this.onPostReply();
+    onAlertDialogClose(){
+      this.alertTitle = '';
+      this.alertMessage = '';
       this.pendingAction = null;
       this.pendingStatus = null;
-      return;
+      this.pendingPriority = null;
+      this.alertDialog.nativeElement.close();
     }
-    if(this.pendingAction === 'changeStatus' && this.pendingStatus){
-      const status = this.pendingStatus;
-      this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
-        next: (updatedTicket) =>{
-          this.ticket.set(updatedTicket);
+    // onAlertClosingDialogOpen(){
+    //   this.alertTitle = 'Conferma invio risposta e chiusura ticket';
+    //   this.alertDialog.nativeElement.showModal();
+    // }
+
+    changeStatusInWorking(){
+      // Request confirmation before changing status to WORKING
+      this.requestStatusChange('WORKING');
+    }
+    changeStatusInClosed(){
+      // Request confirmation before changing status to CLOSED
+      this.requestStatusChange('CLOSED');
+    }
+
+    openPriorityConfirmDialog(): void {
+      const currentTicket = this.ticket();
+      const selectedPriority = this.selectedPriority();
+
+      if (!currentTicket || currentTicket.priority === selectedPriority) {
+        return;
+      }
+
+      this.pendingAction = 'changePriority';
+      this.pendingStatus = null;
+      this.pendingPriority = selectedPriority;
+      this.alertTitle = 'Conferma cambio priorità';
+      this.alertMessage = `Stai per cambiare la priorità da ${this.getPriorityLabel(currentTicket.priority)} a ${this.getPriorityLabel(selectedPriority)}.`;
+      this.alertDialog.nativeElement.showModal();
+    }
+
+    isPriorityConfirmDisabled(): boolean {
+      const currentTicket = this.ticket();
+      return !currentTicket || currentTicket.priority === this.selectedPriority();
+    }
+
+    getPriorityLabel(priority: Ticket['priority'] | null | undefined): string {
+      switch (priority) {
+        case 'HIGH':
+          return 'Alta';
+        case 'MEDIUM':
+          return 'Media';
+        case 'LOW':
+          return 'Bassa';
+        default:
+          return 'N/D';
+      }
+    }
+
+    requestStatusChange(status: string){
+      this.pendingAction = 'changeStatus';
+      this.pendingStatus = status;
+      this.pendingPriority = null;
+      this.alertMessage = '';
+      if(status === 'WORKING'){
+        this.alertTitle = 'Confermi di mettere il ticket in lavorazione?';
+      } else if(status === 'CLOSED'){
+        this.alertTitle = 'Confermi di chiudere il ticket?';
+      } else {
+        this.alertTitle = 'Confermi l\'operazione?';
+      }
+      this.alertDialog.nativeElement.showModal();
+    }
+
+    onConfirm(){
+      if(this.pendingAction === 'postReply'){
+        // reuse existing post reply flow
+        this.onPostReply();
+        this.pendingAction = null;
+        this.pendingStatus = null;
+        this.pendingPriority = null;
+        return;
+      }
+      if(this.pendingAction === 'changeStatus' && this.pendingStatus){
+        const status = this.pendingStatus;
+        this.apiService.putTicketChangeStatus(this.ticket()!.ticketCode, status, this.ticket()!).subscribe({
+          next: (updatedTicket) =>{
+            this.ticket.set(updatedTicket);
+            this.selectedPriority.set(updatedTicket.priority);
+            this.alertDialog.nativeElement.close();
+            this.pendingAction = null;
+            this.pendingStatus = null;
+            this.pendingPriority = null;
+            this.alertMessage = '';
+          },
+          error: (err) =>{
+            this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
+            console.error('errore cambiamento stato', err);
+            this.alertDialog.nativeElement.close();
+            this.pendingAction = null;
+            this.pendingStatus = null;
+            this.pendingPriority = null;
+            this.alertMessage = '';
+          }
+        });
+        return;
+      }
+      if(this.pendingAction === 'changePriority' && this.pendingPriority){
+        const currentTicket = this.ticket();
+        if(!currentTicket){
+          this.onAlertDialogClose();
+          return;
+        }
+
+        this.apiService.putTicketChangePriority(currentTicket.ticketCode, this.pendingPriority).subscribe({
+          next: (updatedTicket) => {
+            this.ticket.set(updatedTicket);
+            this.selectedPriority.set(updatedTicket.priority);
+            this.popupMessageService.success('Priorità ticket aggiornata con successo');
+            this.alertDialog.nativeElement.close();
+            this.pendingAction = null;
+            this.pendingStatus = null;
+            this.pendingPriority = null;
+            this.alertMessage = '';
+          },
+          error: (error) => {
+            this.selectedPriority.set(currentTicket.priority);
+            this.popupMessageService.error('Errore durante l\'aggiornamento della priorità del ticket');
+            console.error('errore cambiamento priorità', error);
+            this.alertDialog.nativeElement.close();
+            this.pendingAction = null;
+            this.pendingStatus = null;
+            this.pendingPriority = null;
+            this.alertMessage = '';
+          }
+        });
+      }
+    }
+    onPostReply(){
+      // const user = this.ticket()?.userCode;
+
+      // if(this.alertTitle.includes('chiusura')){
+      //   this.closed = true;
+      // }
+      const postableReply = {
+        message: this.message,
+        // oid: user,
+        oid: '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1',
+        // closed: this.closed
+      }
+
+      this.apiService.postReply(postableReply, this.ticket()?.ticketCode ?? '').subscribe({
+        next: (createdReply) =>{
+          this.replies.update(replies => [createdReply, ...replies]);
+          this.message = ''
+          
+          /*if(this.closed){
+            this.popupMessageService.success('Risposta inviata con successo e ticket chiuso');
+            this.router.navigate(['/assets/tickets']);
+          } else*/ //{
+            this.popupMessageService.success('Risposta inviata con successo');
+            this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
+          //}
+          
+          ///this.apiService.putTicketInProgress(this.ticket()!.ticketCode);
+          this.alertTitle = '';
           this.alertDialog.nativeElement.close();
-          this.pendingAction = null;
-          this.pendingStatus = null;
         },
-        error: (err) =>{
-          this.popupMessageService.error('Errore durante l\'aggiornamento dello stato del ticket');
-          console.error('errore cambiamento stato', err);
+        error: (error) => {
+          console.error('Errore durante l\'invio della risposta:', error);
+          this.popupMessageService.error('Errore durante l\'invio della risposta');
           this.alertDialog.nativeElement.close();
-          this.pendingAction = null;
-          this.pendingStatus = null;
         }
       });
     }
-  }
-  onPostReply(){
-    // const user = this.ticket()?.userCode;
-
-    // if(this.alertTitle.includes('chiusura')){
-    //   this.closed = true;
+    isInvalid(stato: string | undefined): boolean {
+      return !(this.message.trim().length > 0 && stato !== 'CLOSED' && this.message.length <= 500);
+    }
+    isInvalidTextArea(stato: string | undefined): boolean{
+      return !(stato !== 'CLOSED');
+    }
+    goBack(): void {
+      this.router.navigate(['/tickets']);
+    }
+    //   reloadDiv() {
+    //   this.isVisible.set(false);
+    //   setTimeout(() => {
+    //     this.isVisible.set(true);
+    //     this.reload$.next(true);
+    //   }, 0);
     // }
-    const postableReply = {
-      message: this.message,
-      // oid: user,
-      oid: '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1',
-      // closed: this.closed
+    // Add a property to store the selected message
+    selectedMessage: Reply | null = null;
+
+    // Method to handle message click
+    onMessageClick(reply: Reply): void {
+      this.selectedMessage = reply;
+      this.messageDialog.nativeElement.showModal();
     }
 
-    this.apiService.postReply(postableReply, this.ticket()?.ticketCode ?? '').subscribe({
-      next: (createdReply) =>{
-        this.replies.update(replies => [createdReply, ...replies]);
-        this.message = ''
-        
-        /*if(this.closed){
-          this.popupMessageService.success('Risposta inviata con successo e ticket chiuso');
-          this.router.navigate(['/assets/tickets']);
-        } else*/ //{
-          this.popupMessageService.success('Risposta inviata con successo');
-          this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
-        //}
-        
-        ///this.apiService.putTicketInProgress(this.ticket()!.ticketCode);
-        this.alertTitle = '';
-        this.alertDialog.nativeElement.close();
-      },
-      error: (error) => {
-        console.error('Errore durante l\'invio della risposta:', error);
-        this.popupMessageService.error('Errore durante l\'invio della risposta');
-        this.alertDialog.nativeElement.close();
-      }
-    });
-  }
-  isInvalid(stato: string | undefined): boolean {
-    return !(this.message.trim().length > 0 && stato !== 'CLOSED' && this.message.length <= 500);
-  }
-  isInvalidTextArea(stato: string | undefined): boolean{
-    return !(stato !== 'CLOSED');
-  }
-  goBack(): void {
-    this.router.navigate(['/tickets']);
-  }
-  //   reloadDiv() {
-  //   this.isVisible.set(false);
-  //   setTimeout(() => {
-  //     this.isVisible.set(true);
-  //     this.reload$.next(true);
-  //   }, 0);
-  // }
-  // Add a property to store the selected message
-  selectedMessage: Reply | null = null;
+    // Method to close the message dialog
+    onMessageDialogClose(): void {
+      this.selectedMessage = null;
+      this.messageDialog.nativeElement.close();
+    }
 
-  // Method to handle message click
-  onMessageClick(reply: Reply): void {
-    this.selectedMessage = reply;
-    this.messageDialog.nativeElement.showModal();
+    onNavigate() { this.router.navigate(['assets', this.assetCode], { relativeTo: this.route.parent }); }
   }
-
-  // Method to close the message dialog
-  onMessageDialogClose(): void {
-    this.selectedMessage = null;
-    this.messageDialog.nativeElement.close();
-  }
-
-  // End of component
-}

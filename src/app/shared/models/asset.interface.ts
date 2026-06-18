@@ -34,6 +34,7 @@ export interface AssetMovement {
   movementLabel: string;
   note?: string;
   receiptAvailable?: boolean;
+  outdated?: boolean;
 }
 
 export interface AssetDetail {
@@ -44,7 +45,7 @@ export interface AssetDetail {
   brand: string;
   model: string;
   serialNumber: string;
-  hardDisk?: string | null;
+  storage?: string | null;
   ram?: number | null;
   assignedUser: string | null;
   assignedUserId: string | null;

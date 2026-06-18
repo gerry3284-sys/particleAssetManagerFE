@@ -93,8 +93,8 @@ export class TicketList implements OnInit {
       );
       const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
 
-      let displayTitle = 'Richiesta ';
-      const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+      let displayTitle = ticket.operation;
+      /*const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
       if (ticket.operation === 'ASSIGNED') {
         const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
         displayTitle += `Assegnazione: ${assetType?.name}`;
@@ -102,7 +102,7 @@ export class TicketList implements OnInit {
         displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
       } else {
         displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
-      }
+      }*/
 
       return { ...ticket, displayTitle, displayUser, priority: ticket.priority };
     })
@@ -203,8 +203,8 @@ sortedTickets = computed((): EnrichedTicket[] => {
     );
     const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
 
-    let displayTitle = 'Richiesta ';
-    const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+    let displayTitle = ticket.operation;
+    /*const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
     if (ticket.operation === 'ASSIGNED') {
       const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
       displayTitle += `Assegnazione: ${assetType?.name}`;
@@ -212,7 +212,7 @@ sortedTickets = computed((): EnrichedTicket[] => {
       displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
     } else {
       displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
-    }
+    }*/
 
     return { ...ticket, displayTitle, displayUser };
   });

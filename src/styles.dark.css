@@ -112,6 +112,24 @@ body.theme-dark .movement-note-label {
   color: var(--text-mid);
 }
 
+body.theme-dark .asset-type-modal .combo-btn .label {
+  color: var(--text-main);
+}
+
+body.theme-dark .asset-type-modal .combo-btn input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  accent-color: var(--accent);
+}
+
 body.theme-dark .menu-item,
 body.theme-dark .menu-item .icon,
 body.theme-dark .btn-sidebar {
@@ -256,13 +274,13 @@ body.theme-dark tbody tr:hover {
 
 body.theme-dark .form-control,
 body.theme-dark .form-select,
-body.theme-dark input,
+body.theme-dark input:not([type="checkbox"]),
 body.theme-dark textarea,
 body.theme-dark select,
 body.theme-dark .dropdown-trigger,
 body.theme-dark .dismiss-modal-textarea,
-body.theme-dark .status-type-modal-field input,
-body.theme-dark .asset-type-modal-field input,
+body.theme-dark .status-type-modal-field input:not([type="checkbox"]),
+body.theme-dark .asset-type-modal-field input:not([type="checkbox"]),
 body.theme-dark .business-unit-modal-field input,
 body.theme-dark .return-modal-field input,
 body.theme-dark .return-modal-field select,
@@ -296,7 +314,7 @@ body.theme-dark .filters-card .input-with-icon .input-icon {
 }
 
 body.theme-dark .form-control::placeholder,
-body.theme-dark input::placeholder,
+body.theme-dark input:not([type="checkbox"] )::placeholder,
 body.theme-dark textarea::placeholder,
 body.theme-dark .dropdown-label.placeholder,
 body.theme-dark .dropdown-empty,
@@ -304,9 +322,30 @@ body.theme-dark .dropdown-panel small {
   color: var(--text-dim);
 }
 
+body.theme-dark .movements-data.expanded {
+  background: var(--bg-hover) !important;
+}
+
+body.theme-dark .movement-receipt-btn {
+  background: var(--bg-page) !important;
+  border-color: var(--border) !important;
+  color: var(--text-main) !important;
+}
+
+body.theme-dark .movement-receipt-btn:hover:not(:disabled) {
+  background: var(--bg-hover) !important;
+  border-color: var(--text-dim) !important;
+}
+
+body.theme-dark .movement-note,
+body.theme-dark .movement-note-label,
+body.theme-dark .movement-note-text {
+  color: var(--text-mid) !important;
+}
+
 body.theme-dark .form-control:focus,
 body.theme-dark .form-select:focus,
-body.theme-dark input:focus,
+body.theme-dark input:not([type="checkbox"]):focus,
 body.theme-dark textarea:focus,
 body.theme-dark select:focus,
 body.theme-dark .dropdown-trigger:focus {
@@ -438,12 +477,6 @@ body.theme-dark .business-row > div:not(.btn-position) {
   color: #ffffff !important;
 }
 
-/* Ensure inactive/inline colored rows don't dim headers */
-body.theme-dark .asset-row[style],
-body.theme-dark .asset-row[style] > div {
-  /* do not change row content here, only force headers above rules to prevail */
-}
-
 body.theme-dark .remember input,
 body.theme-dark .storage-option input[type="checkbox"] {
   accent-color: var(--accent);
@@ -544,6 +577,14 @@ body.theme-dark .ticket-header > div {
 body.theme-dark .ticket-row,
 body.theme-dark .ticket-row > div {
   color: #ffffff !important;
+}
+
+body.theme-dark .ticket-row:not(.ticket-replied):not(.ticket-header) {
+  background-color: rgba(251, 191, 36, 0.08) !important;
+}
+
+body.theme-dark .ticket-row:not(.ticket-replied):not(.ticket-header):hover {
+  background-color: rgba(251, 191, 36, 0.14) !important;
 }
 
 /* Ensure status and priority badge text remain readable */

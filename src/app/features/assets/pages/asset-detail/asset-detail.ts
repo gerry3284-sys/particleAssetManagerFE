@@ -23,6 +23,7 @@ import {
   BusinessUnit as FilterBusinessUnit,
   AssetStatusType
 } from '../../../../shared/models/filter-config.interface';
+import { BreakEveryNPipe } from "../../../../core/pipes/break-every-n.pipe";
 
 type ReceiptBannerState = {
   type: 'success' | 'error';
@@ -43,7 +44,7 @@ type PendingAssetEditPayload = {
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AssignAssetModalComponent, ReturnCertifyModalComponent, DismissAssetModalComponent, ButtonComponent, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AssignAssetModalComponent, ReturnCertifyModalComponent, DismissAssetModalComponent, ButtonComponent, FormsModule, BreakEveryNPipe],
   templateUrl: './asset-detail.html',
   styleUrl: './asset-detail.css' // correzione: styleUrls (plurale)
 })
@@ -284,7 +285,7 @@ export class AssetDetailComponent implements OnInit {
     }
 
     // Parsa il valore storage dal backend (formato: "SSD 512 GB" o simile)
-    const { storageType, storageSize, storageUnit } = this.parseStorageValue(current.hardDisk || '');
+    const { storageType, storageSize, storageUnit } = this.parseStorageValue(current.storage || '');
 
     this.editAssetForm.setValue({
       brand: current.brand || '',

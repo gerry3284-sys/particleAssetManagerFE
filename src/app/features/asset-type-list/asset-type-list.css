@@ -235,7 +235,7 @@ dialog::backdrop {
   font-weight: 600;
   color: #1f2937;
 }
-.asset-type-modal-field input {
+.asset-type-modal-field input:not([type="checkbox"]) {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   padding: 10px 14px;
@@ -244,7 +244,7 @@ dialog::backdrop {
   transition: all 0.15s ease;
   font-family: inherit;
 }
-.asset-type-modal-field input:focus {
+.asset-type-modal-field input:not([type="checkbox"]):focus {
   outline: none;
   border-color: #e56a3d;
   box-shadow: 0 0 0 3px rgba(229, 106, 61, 0.1);
@@ -279,7 +279,20 @@ dialog::backdrop {
 .combo-btn{
     display: inline-flex;
     flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
     margin-bottom:1rem;
+}
+
+.combo-btn input[type="checkbox"] {
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	accent-color: #E56A3D;
 }
 .window-footer {
   display: flex;

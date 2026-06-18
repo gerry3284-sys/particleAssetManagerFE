@@ -19,6 +19,7 @@ import {
   InteractionType,
 } from '@azure/msal-browser';
 import { msalConfig, loginRequest, apiRequest } from './core/layout/auth-layout/auth-config/auth.config';
+import { GraphTokenInterceptor } from './shared/interceptors/graph-token.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -31,6 +32,12 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: MsalInterceptor,
+      multi: true
+    },
+
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: GraphTokenInterceptor,
       multi: true
     },
 

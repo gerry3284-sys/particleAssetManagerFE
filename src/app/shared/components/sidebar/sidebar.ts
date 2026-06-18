@@ -29,6 +29,7 @@ export class SidebarComponent implements OnInit {
   isDarkTheme = signal(false);
   maintenanceAssets = signal<UnderMaintenanceAsset[]>([]);
   nonViewedTickets = signal<number>(0);
+  user = signal<any>(null);
 
   newMaintenanceAssetsCount = computed(() => {
     return this.maintenanceAssets().filter(
@@ -48,7 +49,7 @@ export class SidebarComponent implements OnInit {
   {
     this.loadMaintenanceAssets();
     this.loadNonViewedTickets();
-
+    this.user.set(JSON.parse(localStorage.getItem('user') ?? '{}'));
 
     // Ascolta i cambiamenti di stato degli asset
     this.assetStateService.assetStateChanged

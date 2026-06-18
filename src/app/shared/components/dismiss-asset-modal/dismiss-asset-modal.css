@@ -77,6 +77,18 @@
   color: #1f2937;
 }
 
+.char-counter {
+  font-size: 11px;
+  color: var(--color-text-secondary, #888);
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.char-counter.char-limit {
+  color: red;
+}
+
 .dismiss-modal-textarea {
   width: 100%;
   border-radius: 8px;

@@ -40,7 +40,8 @@ export interface AssetDetailApi {
   model: string;
   serialNumber: string;
   note: string | null;
-  hardDisk?: string | null;
+  storage: string | null;
+  //hardDisk?: string | null;
   ram?: number | null;
   creationDate: string;
   updateDate: string | null;
@@ -77,6 +78,7 @@ export interface AssetMovementApi {
   receipt?: string | null;
   receiptBase64?: string | null;
   receiptAvailable?: boolean | null;
+  outdated?: boolean;
   user?: {
     id: number;
     oid: string;
@@ -382,7 +384,7 @@ export class AssetService {
       brand: item.brand,
       model: item.model,
       serialNumber: item.serialNumber,
-      hardDisk: item.hardDisk ?? null,
+      storage: item.storage ?? null,
       ram: item.ram ?? null,
       assignedUser: null,
       assignedUserId: null,
@@ -418,7 +420,8 @@ export class AssetService {
       movementType,
       movementLabel: this.getMovementLabel(movementType),
       note: sanitizedNote ? sanitizedNote : undefined,
-      receiptAvailable
+      receiptAvailable,
+      outdated: item.outdated ?? false   // ← aggiungi questo
     };
   }
 

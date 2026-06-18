@@ -57,9 +57,13 @@
             #notesInput
             rows="3"
             placeholder="Es. rimossa SSD, ecc..."
+            maxlength="250"
             [value]="notes()"
             (input)="notes.set(notesInput.value)"
           ></textarea>
+          <span class="char-counter" [class.char-limit]="notes().length >= 200">
+            {{ notes().length }}/250
+          </span>
         </div>
       </div>
 

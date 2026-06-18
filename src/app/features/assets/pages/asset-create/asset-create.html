@@ -204,7 +204,11 @@
               class="form-control textarea"
               rows="4"
               placeholder="Es. numero di telefono, note varie..."
+              maxlength="500"
               formControlName="notes"></textarea>
+              <span class="char-counter" [class.char-limit]="assetForm.controls.notes.value.length >= 450">
+              {{ assetForm.controls.notes.value.length }}/500
+            </span>
           </div>
         </div>
 

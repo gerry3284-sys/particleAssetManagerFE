@@ -1,5 +1,4 @@
 <div class="ticket-page">
-    <!-- tasto per tornare indieto e titolo -->
     <div class="page-header d-flex align-items-start justify-content-between gap-3">
         <div>
             <a (click)="goBack()" style="cursor: pointer;">&larr; Indietro</a>
@@ -10,10 +9,7 @@
   @if(loading()){
     <div class="loading">Caricamento in corso...</div>
   }
-    <!-- informazioni del ticket -->
     <div class="content">
-          
-        <!-- Card: Informazioni Asset -->
         <div class="info-card">
             <div class="info-card-header">
                 <h2 class="card-title">Informazioni Ticket</h2>
@@ -28,11 +24,25 @@
                 <div class="info-item">
                     <span class="info-label">Operazione</span>
                     <span class="info-value">
-                      @if(ticket()?.operation === 'ASSIGNED') { Assegnazione di {{ assetType() }} }
-                      @else if(ticket()?.operation === 'RETURNED') { Restituzione di {{asset()}} }
-                      @else { Dismissione di {{asset()}} }
+                        <!--@if(ticket()?.operation === 'ASSIGNED') { Assegnazione di {{ assetType() }} }
+                        @else if(ticket()?.operation === 'RETURNED') { Restituzione di {{asset()}} }
+                        @else { Dismissione di {{asset()}} }-->
+                        <span class="info-value">
+                        {{ ticket()?.operation }}
+                        @if(assetType() && assetType() !== 'N/D') 
+                        {
+                          <span> {{ assetType() }}</span>
+                        }
+                        @if(asset() && asset() !== 'N/D') 
+                        {
+                          : <span style="cursor: pointer; text-decoration: underline;" (click)="onNavigate()"> 
+                            {{ asset() }}
+                          </span>
+                        }
+                      </span>
                     </span>
                 </div>
+
                 <div class="info-item">
                   <span class="info-label">Stato</span>
                   <div class="status">
@@ -57,7 +67,8 @@
                 </div>
 
                 @if(ticket()?.status === 'OPEN'){
-                  <div class="info-item">
+                  
+                  <div class="btn-status-item">
                     <div class="btn-status">
                       <app-button 
                         variant="secondary" 
@@ -76,21 +87,98 @@
                       </app-button>
                     </div>
                   </div>
-                }
-                @else {
-                  @if(ticket()?.status === 'WORKING'){
-                    <div class="info-item">
-                      <div class="btn-status">
-                        <app-button 
-                          variant="secondary" 
-                          type="button" 
-                          (click)="changeStatusInClosed()" 
-                        > 
-                          cambia stato in chiuso
+
+                  <div class="info-item">
+                    <!--<span class="info-label">Priorità</span>
+                    @if(ticket()?.priority) {
+                      <span
+                        class="priority-badge"
+                        [class.priority-high]="ticket()?.priority === 'HIGH'"
+                        [class.priority-medium]="ticket()?.priority === 'MEDIUM'"
+                        [class.priority-low]="ticket()?.priority === 'LOW'">
+                        {{ getPriorityLabel(ticket()?.priority) }}
+                      </span>
+                    }-->
+                      <span class="info-label">Cambia Priorità</span>
+                      <div class="priority-row">
+                        <select
+                          class="priority-select"
+                          [value]="selectedPriority()"
+                          (change)="selectedPriority.set($any($event.target).value)">
+                          <option value="LOW">Bassa</option>
+                          <option value="MEDIUM">Media</option>
+                          <option value="HIGH">Alta</option>
+                        </select>
+                        <app-button
+                          variant="primary"
+                          type="button"
+                          (pressed)="openPriorityConfirmDialog()"
+                          [disabled]="isPriorityConfirmDisabled()">
+                          Conferma
                         </app-button>
                       </div>
                     </div>
-                  }
+
+                } @else if(ticket()?.status === 'WORKING'){
+
+                  <div class="btn-status-item">
+                    <div class="btn-status">
+                      <app-button 
+                        variant="secondary" 
+                        type="button" 
+                        (click)="changeStatusInClosed()" 
+                      > 
+                        cambia stato in chiuso
+                      </app-button>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <!--<span class="info-label">Priorità</span>
+                    @if(ticket()?.priority) {
+                      <span
+                        class="priority-badge"
+                        [class.priority-high]="ticket()?.priority === 'HIGH'"
+                        [class.priority-medium]="ticket()?.priority === 'MEDIUM'"
+                        [class.priority-low]="ticket()?.priority === 'LOW'">
+                        {{ getPriorityLabel(ticket()?.priority) }}
+                      </span>
+                    }-->
+                      <span class="info-label">Cambia Priorità</span>
+                      <div class="priority-row">
+                        <select
+                          class="priority-select"
+                          [value]="selectedPriority()"
+                          (change)="selectedPriority.set($any($event.target).value)">
+                          <option value="LOW">Bassa</option>
+                          <option value="MEDIUM">Media</option>
+                          <option value="HIGH">Alta</option>
+                        </select>
+                        <app-button
+                          variant="primary"
+                          type="button"
+                          (pressed)="openPriorityConfirmDialog()"
+                          [disabled]="isPriorityConfirmDisabled()">
+                          Conferma
+                        </app-button>
+                      </div>
+                    </div>
+
+                } @else {
+
+                  <div class="info-item">
+                    <!--<span class="info-label">Priorità</span>
+                    @if(ticket()?.priority) {
+                      <span
+                        class="priority-badge"
+                        [class.priority-high]="ticket()?.priority === 'HIGH'"
+                        [class.priority-medium]="ticket()?.priority === 'MEDIUM'"
+                        [class.priority-low]="ticket()?.priority === 'LOW'">
+                        {{ getPriorityLabel(ticket()?.priority) }}
+                      </span>
+                    }-->
+                  </div>
+
                 }
 
                 <div class="info-item full-width">
@@ -98,14 +186,10 @@
                     <textarea name="reply" rows="4" class="textarea" maxlength="500"
                       [(ngModel)]="message" [disabled]="isInvalidTextArea(ticket()?.status)"></textarea>
                     <span class="char-counter" [class.char-limit]="message.length >= 450">{{ message.length }}/500</span>
-                    @if(ticket()?.status === 'CLOSED'){
-                      <div style="color: red; margin: 0.1rem;  display: flex; text-align: center;"> 
-                        E impossibile inviare messaggi ad un ticket già chiuso.
-                      </div>
-                    }
                 </div>
             </div>
-            <!--<div class="info-item">-->
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
               <app-button 
                 variant="secondary" 
                 type="button" 
@@ -114,22 +198,16 @@
               > 
                 Invia 
               </app-button>
-            <!--</div>-->
-            <!-- <app-button 
-             variant="primary"
-             type="button"
-             style="margin-left: 0.5rem;"
-             (click)="onAlertClosingDialogOpen()"
-             [disabled]="isInvalid(ticket()?.status)"> 
-                Invia e Chiudi 
-            </app-button> -->
+              @if(ticket()?.status === 'CLOSED') {
+                <span style="color: red;"> 
+                  È impossibile inviare messaggi ad un ticket già chiuso.
+                </span>
+              }
+            </div>
         </div>
     </div>
 
-    <!-- tabella storico dei ticket -->
     <div class="table-card" #tableCard>
-
-      <!-- Header -->
       <div class="ticket-row ticket-header">
         <div>Stato</div>
         <div>Messaggio</div>
@@ -137,8 +215,6 @@
         <div>User Assegnato</div>
       </div>
 
-      <!-- Righe dinamiche -->
-      <!-- @if(isVisible()){ -->
         @if(paginatedReplies().length === 0){
           <div class="ticket-row-empty">
               <div style="color:#b4abb9">
@@ -171,7 +247,6 @@
             </div>
            }
           }
-        <!-- footer di asset type -->
         @if(totalPages() > 1){
           <div class="table-foot">
             <div class="table-info">
@@ -179,27 +254,27 @@
             </div>
             <div></div>
             <div style="display: flex; justify-content: flex-end;">
-              <app-pagination [currentPage]="currentPage()"[totalPages]="totalPages()"[maxVisible]="5"(pageChange)="goToPage($event)">
+              <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" [maxVisible]="5" (pageChange)="goToPage($event)">
               </app-pagination>
             </div>
           </div>
         }
-      <!-- } -->
     </div>
 
-  <!-- finestra di dialogo che ti chiede conferma prima di effettuare una modifica o creazione -->
   <dialog #alertDialog class="popup-window">
     <div class="ticket-modal-header">
       <div class="ticket-modal-icon" aria-hidden="true">i</div>
       <div class="ticket-modal-title">{{alertTitle}}</div>
     </div>
+    @if(alertMessage) {
+      <div class="ticket-modal-message">{{ alertMessage }}</div>
+    }
     <div class="ticket-modal-actions">
       <app-button type="button" variant="secondary" (click)="onAlertDialogClose()">Cancella</app-button>
       <app-button type="button" variant="primary" (click)="onConfirm()">Conferma</app-button>
     </div>
   </dialog>
 
-  <!-- Modal for displaying full message details -->
   <dialog #messageDialog class="popup-window">
     <div class="ticket-modal-header">
       <div class="ticket-modal-icon" aria-hidden="true">i</div>

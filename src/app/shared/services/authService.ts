@@ -16,6 +16,7 @@ export class AuthService {
 
   logout() {
     this.msal.logoutRedirect();
+    localStorage.removeItem('user');
   }
 
   getAccount() {

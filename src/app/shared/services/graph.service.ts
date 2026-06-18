@@ -19,17 +19,25 @@ export class GraphService {
     ?? this.msal.instance.getAllAccounts()[0];
 
   return from(
-    this.msal.instance.acquireTokenSilent({
-      scopes: ['https://graph.microsoft.com/.default'],
-      account
-    })
+    Promise.all([
+      this.msal.instance.acquireTokenSilent({
+        scopes: ['https://graph.microsoft.com/.default'],
+        account
+      }),
+      this.msal.instance.acquireTokenSilent({
+        scopes: ['6618f68e-5225-4b93-ae0c-42eb4425432e/.default'],
+        account
+      })
+    ])
   ).pipe(
-    switchMap(result => {
+    switchMap(([graphResult, appResult]) => {
+      this.graphToken = graphResult.accessToken;
+
       const headers = new HttpHeaders({
-        'X-Graph-Token': result.accessToken
+        'Authorization': `Bearer ${appResult.accessToken}`,
+        'X-Graph-Token': graphResult.accessToken
       });
 
-      //console.log('TOKEN:', result.accessToken);
       return this.http.post('http://localhost:8080/graph/groups', {}, { headers });
     }),
     catchError((error) => {
@@ -39,4 +47,7 @@ export class GraphService {
     })
   );
 }
+
+private graphToken: string | null = null;
+getGraphToken() { return this.graphToken; }
 }

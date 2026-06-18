@@ -12,12 +12,37 @@
     <div class="user-standard-page">
         <div class="header-union">
             <div class="page-header d-flex align-items-start justify-content-between gap-3">
-                <h2 class="page-title">Ciao {{justName()}}!</h2>
+                <h2 class="page-title">Ciao {{justName()}}!</h2> 
+                <app-button
+                class="sidebar-theme-toggle"
+                variant="sidebar"
+                type="button"
+                [fullWidth]="true"
+                (pressed)="onToggleTheme()">
+                <span class="icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    @if (isDarkTheme()) {
+                        <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M4.93 4.93L6.34 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M17.66 17.66L19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M3 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M19 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M4.93 19.07L6.34 17.66" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                    } @else {
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    }
+                    </svg>
+                </span>
+                <span class="label">{{ themeToggleLabel() }}</span>
+                </app-button>
                 <h2 class="page-subtitle">Riepilogo del tuo profilo e degli asset aziendali a te assegnati.</h2>
             </div>
             <div class="div-btn">
                 <app-button variant="secondary"type="button" (click)="onLogout()" style="margin-bottom: 0.5rem;"> Logout </app-button>
-                <app-button variant="primary"type="button" (click)="onOpenAskDialog()" style="margin-bottom: 0.5rem;">Inoltra richiesta per Asset</app-button>
+                <app-button variant="primary"type="button" (click)="onOpenAskDialog()" style="margin-bottom: 0.5rem;">Inoltra richiesta per Ticket</app-button>
                 <app-button variant="primary" type="button" (click)="onViewTickets()" 
                     style="margin-bottom: 0.5rem; display: inline-flex; align-items: center;">
                     <span class="ticket-button-content">
@@ -50,7 +75,7 @@
                         </div>
                         <div class="telefono">
                             <img src="/assets/icona-telefono.svg" alt="telefono">
-                            <div class="user-text">{{phoneNumber()}}</div>
+                            <div class="user-text">{{phoneNumber() ? phoneNumber() : '-'}}</div>
                         </div>
                     </div>
                 </div>
@@ -194,35 +219,47 @@
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
         <div>
-          <h3 class="asset-type-modal-title">Manda la richiesta di Asset</h3>
+          <h3 class="asset-type-modal-title">Manda la richiesta di Ticket</h3>
           <p class="asset-type-modal-subtitle">
-            Inserisci tutti i dettagli necessari dell'Asset e dell'utente.
+            Inserisci tutti i dettagli necessari del Ticket e dell'utente.
           </p>
         </div>
       </div>
 
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
-            <label class="ask-control label">Selezionare lo stato richiesto per l'asset: </label>
-            <select class="ask-control select" [(ngModel)]="controlRequest">
+            <label class="ask-control label">Selezionare lo stato richiesto per il ticket: </label>
+            <select class="ask-control select" [(ngModel)]="controlRequestType">
                 <option value="">selezionare il tipo di richiesta</option>
-                <option value="ASSEGNAZIONE">Assegnazione</option>
-                <option value="RICONSEGNA">Riconsegna</option>
-                <option value="DISMISSIONE">Dismissione</option>
+                <option value="HARDWARE">Hardware</option>
+                <option value="SOFTWARE">Software</option>
+                <option value="NETWORK">Rete</option>
             </select>
             
-            @if(controlRequest() === 'ASSEGNAZIONE'){
-                <label class="ask-control label">Inserire la tipologia di asset: </label>
+            @if(controlRequestType() === 'HARDWARE')
+            {
+                <label class="ask-control label">Selezionare lo stato richiesto per il ticket: </label>
+                <select class="ask-control select" [(ngModel)]="controlRequest">
+                    <option value="">selezionare l'operazione</option>
+                    <option value="ASSIGNED">Assegnazione</option>
+                    <option value="RETURNED">Restituzione</option>
+                    <option value="DISMISSED">Dismissione</option>
+                    <option value="BROKEN">Malfunzionamento</option>
+                </select>
+
+                @if(controlRequest() === 'ASSIGNED')
+                {
+                    <label class="ask-control label">Inserire la tipologia di asset: </label>
                     <select class="ask-control select" [(ngModel)]="requestType">
-                    <option value="">selezionare la tipologia di asset</option>
-                    @for(assetType of assetTypes(); track assetType.code)
-                    {
-                        <option [value]="assetType.name"> {{assetType.name}} </option>
-                    }
+                        <option value="">selezionare la tipologia di asset</option>
+                        @for(assetType of assetTypes(); track assetType.code)
+                        {
+                            <option [value]="assetType.name"> {{assetType.name}} </option>
+                        }
                     </select>
-            }
-            @else {
-                @if(controlRequest() === 'DISMISSIONE' || controlRequest() === 'RICONSEGNA'){
+                }
+                @else if(controlRequest() === 'RETURNED' || controlRequest() === 'DISMISSED' || controlRequest() === 'BROKEN')
+                {
                     <label class="ask-control label">Selezionare l'asset: </label>
                     <select class="ask-control select" [(ngModel)]="requestAsset">
                         @if(assigneedAssets().length === 0){
@@ -237,7 +274,17 @@
                     </select>
                 }
             }
-            @if(controlRequest())
+            @else if(controlRequestType() == 'SOFTWARE') 
+            {
+                <label class="ask-control label">Selezionare il tipo di problematica: </label>
+                <select class="ask-control select" [(ngModel)]="controlRequest">
+                    <option value="">selezionare l'operazione</option>
+                    <option value="INSTALL">Installazione</option>
+                    <option value="CONFIGURATION">Configurazione</option>
+                    <option value="BROKEN">Malfunzionamento</option>
+                </select>
+            }
+            <!--@if(controlRequest())
             {
                 <label class="ask-control label">Selezionare la priorità della richiesta: </label>
                 <select class="ask-control select" [(ngModel)]="requestPriority">
@@ -246,14 +293,28 @@
                     <option value="MEDIUM">Media</option>
                     <option value="HIGH">Alta</option>
                 </select>
-            }
+            }-->
+            
+            @if(controlRequestType() === 'NETWORK' || (controlRequestType() === 'HARDWARE' && controlRequest()) ||
+                (controlRequestType() === 'SOFTWARE' && controlRequest()))
+            {
+                <label class="ask-control label">Selezionare se la richiesta è per un lavoro Esterno (cliente) o Interno</label>
+                <select class="ask-control select" [(ngModel)]="requestPriority">
+                    <option value="">selezionare per quale tipo di lavoro si sta facendo riferimento</option>
+                    <option value="EXTERNAL">Esterno</option>
+                    <option value="INTERNAL">Interno</option>
+                </select>
+
             <label class="ask-control label">Motivazione della richiesta: </label>
-            <textarea
-              id="notes"
-              class="ask-control textarea"
-              rows="4"
-              placeholder="Inserisci qui la motivazione della tua richiesta..."
-              [(ngModel)]="requestNotes"></textarea>
+                <textarea
+                id="notes"
+                class="ask-control textarea"
+                rows="4"
+                placeholder="Inserisci qui la motivazione della tua richiesta..."
+                maxlength="500"
+                [(ngModel)]="requestNotes"></textarea>
+                <span class="char-counter" [class.char-limit]="requestNotes().length >= 450">{{ requestNotes().length }}/500</span>
+            }
         </div>
       </div>
 

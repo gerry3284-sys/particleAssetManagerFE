@@ -126,7 +126,7 @@
                   <div class="col-date">{{ movement.date }}</div>
                   <div class="col-user">{{ movement.user }}</div>
                   <div class="col-movement">
-                    <span class="movement-label">{{ movement.movementLabel }}</span>
+                    <span class="movement-label">{{ movement.outdated ? movement.movementLabel + ' (non più valida per asset modificato)' : movement.movementLabel }}</span>
                     <span class="movement-toggle">
                       @if (isMovementExpanded(movement, $index)) {
                         ▼
@@ -139,7 +139,9 @@
                     <div class="movement-detail">
                       <div class="movement-note">
                         <span class="movement-note-label">Note:</span>
-                        <span class="movement-note-text">{{ movement.note || 'Nessuna nota' }}</span>
+                        <span class="movement-note-text">
+                          {{ (movement.note || 'Nessuna nota') | breakEveryN:40 }}
+                        </span>
                       </div>
                       <button
                         type="button"
@@ -376,16 +378,20 @@
                   <div style="display: flex; gap: 16px; margin-bottom: 12px;">
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
                       <input
-                        type="checkbox"
+                        type="radio"
+                        name="storageType"
+                        value="SSD"
                         [checked]="editAssetForm.controls.storageType.value === 'SSD'"
-                        (change)="toggleStorageType('SSD', $any($event.target).checked)" />
+                        (change)="editAssetForm.controls.storageType.setValue('SSD')" />
                       <span>SSD</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
                       <input
-                        type="checkbox"
+                        type="radio"
+                        name="storageType"
+                        value="HDD"
                         [checked]="editAssetForm.controls.storageType.value === 'HDD'"
-                        (change)="toggleStorageType('HDD', $any($event.target).checked)" />
+                        (change)="editAssetForm.controls.storageType.setValue('HDD')" />
                       <span>HDD</span>
                     </label>
                   </div>
@@ -426,7 +432,12 @@
 
             <div class="edit-field full-width">
               <label for="edit-note">Note</label>
-              <textarea id="edit-note" rows="4" formControlName="note"></textarea>
+              <textarea id="edit-note" rows="4" maxlength="500" formControlName="note"></textarea>
+
+            <span class="char-counter" [class.char-limit]="editAssetForm.controls.note.value.length >= 450">
+              {{ editAssetForm.controls.note.value.length }}/500
+            </span>
+
             </div>
           </form>
 

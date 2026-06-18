@@ -87,7 +87,17 @@
   align-items: flex-end;
   flex-direction: column;
 }
+.char-counter {
+  font-size: 11px;
+  color: var(--color-text-secondary, #888);
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+}
 
+.char-counter.char-limit {
+  color: red;
+}
 .ticket-button-content {
   display: inline-flex;
   align-items: center;

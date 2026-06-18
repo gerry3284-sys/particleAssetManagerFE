@@ -188,6 +188,11 @@
   color: #16A34A;
 }
 
+.priority-none {
+  background-color: #E5E7EB;
+  color: #6B7280;
+}
+
 /*.ticket-row {
   background-color: rgba(251, 191, 36, 0.12); /* giallo chiaro */
 /*}*/

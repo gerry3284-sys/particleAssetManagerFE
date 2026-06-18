@@ -75,6 +75,9 @@ export class ApiService {
   putTicketChangeStatus(ticketCode: string, status: string, ticket: Object): Observable<Ticket>{
     return this.http.put<Ticket>(`${this.baseUrl}/ticket/changeStatus/${ticketCode}/${status}`, ticket);
   }
+  putTicketChangePriority(ticketCode: string, priority: Ticket['priority']): Observable<Ticket> {
+    return this.http.put<Ticket>(`${this.baseUrl}/ticket/changePriority/${ticketCode}/${priority}`, null);
+  }
   postAssetType(assetType: Object): Observable<AssetType> {
     return this.http.post(`${this.baseUrl}/assetType`, assetType, { responseType: 'text' }).pipe(
       map(response => JSON.parse(response))

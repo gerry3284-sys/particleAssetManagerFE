@@ -51,8 +51,12 @@
               id="return-notes"
               rows="4"
               placeholder="Es. schermo rotto, batteria esaurita"
+              maxlength="250"
               [value]="notes()"
               (input)="notes.set($any($event.target).value)"></textarea>
+            <span class="char-counter" [class.char-limit]="notes().length >= 200">
+              {{ notes().length }}/250
+            </span>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@
  import { ActivatedRoute, Router } from "@angular/router";
 import { ApiService } from '../../../services/api';
 import { User, MovementByuserID } from '../../../models/user.model';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { ButtonComponent } from "../../../shared/components/button/button";
@@ -16,6 +16,7 @@ import { AssetStateService } from '../../../shared/services/asset-state.service'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TicketByUser } from '../../../models/ticket.model';
 import { AuthService } from '../../../shared/services/authService';
+import { effect } from '@angular/core';
 
 @Component({
   selector: 'app-user-standard',
@@ -24,6 +25,7 @@ import { AuthService } from '../../../shared/services/authService';
   styleUrl: './user-standard.css',
 })
 export class UserStandard{
+  private static readonly THEME_STORAGE_KEY = 'pam-theme';
   private destroyRef = inject(DestroyRef);
   user = signal<User | null>(null);
   // users = signal<User[]>([]);
@@ -34,13 +36,15 @@ export class UserStandard{
   unmergedMovement: MovementByuserID[] = ([]);
   downloadableMovement: MovementByuserID|null = null;
 
-
+  isDarkTheme = signal(false);
+  controlRequestType = signal<string>('');
   controlRequest = signal<string>('');
   requestNotes = signal<string>('');
   requestType = signal<string>('');
   requestAsset = signal<string>('');
-  requestPriority = signal<string>('');
+  //requestPriority = signal<string>('');
   nonViewedTickets = signal<number>(0);
+  requestPriority = signal<string>('');
 
   @ViewChild('myDialog') dialog!: ElementRef<HTMLDialogElement>;
   @ViewChild('askDialog') askDialog!: ElementRef<HTMLDialogElement>;
@@ -133,7 +137,19 @@ export class UserStandard{
         this.unmergedMovement = [];
       }
     });
-    
+
+    effect(() => 
+    {
+      const type = this.controlRequestType();
+
+      if (type !== '') {
+        this.controlRequest.set('');
+        this.requestNotes.set('');
+        this.requestType.set('');
+        this.requestPriority.set('');
+        this.requestAsset.set('');
+      }
+    });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
@@ -256,9 +272,11 @@ export class UserStandard{
     this.askDialog.nativeElement.showModal();
   }
   onCloseAskDialog(){
+    this.controlRequestType.set('');
     this.controlRequest.set('');
     this.requestNotes.set('');
     this.requestType.set('');
+    this.requestPriority.set('');
     this.requestAsset.set('');
     
     this.askDialog.nativeElement.close();
@@ -266,20 +284,50 @@ export class UserStandard{
   onAskDialogBackdropClick(){
     this.onCloseAskDialog();
   }
-  isInvalid(): boolean {
-    if(this.controlRequest() !==''){
-      if(this.controlRequest() === 'ASSEGNAZIONE'){
-        if(this.requestType() === '' || this.requestNotes() === '' || this.requestPriority() === '') return true;
+  
+  isInvalid(): boolean
+  {
+    if(this.controlRequestType() !=='')
+    {
+      if(this.controlRequestType() === 'HARDWARE')
+      {
+        if(this.controlRequest() === '') return true;
+        else if(this.controlRequest() === 'ASSIGNED' 
+                && (this.requestType() === '' || this.requestNotes() === '') || this.requestPriority() === '') return true;
+        else if((this.controlRequest() === 'DISMISSED' || this.controlRequest() === 'RETURNED') 
+                  && (this.requestAsset() === '' || this.requestNotes() === '') || this.requestPriority() === '') return true;
+
         return false;
       }
-      else if(this.controlRequest() === 'DISMISSIONE' || this.controlRequest() === 'RICONSEGNA'){
-        if(this.requestAsset() === '' || this.requestNotes() === '' || this.requestPriority() === '') return true;
+      else if(this.controlRequestType() === 'SOFTWARE')
+      {
+        if(this.controlRequest() === '' || this.requestNotes() === '' || this.requestPriority() === '') return true;
+        return false;
+      }
+      else if(this.controlRequestType() === 'NETWORK' && this.requestNotes() === '' || this.requestPriority() === '') 
+         return true;
+      else 
+        return false;
+    }
+    else {return true};
+  }
+  /*isInvalid(): boolean 
+  {
+    if(this.controlRequestType() !=='')
+    {
+      if(this.controlRequestType() === 'ASSEGNAZIONE')
+      {
+        if(this.requestType() === '' || this.requestNotes() === '') return true;
+        return false;
+      }
+      else if(this.controlRequestType() === 'DISMISSIONE' || this.controlRequestType() === 'RICONSEGNA'){
+        if(this.requestAsset() === '' || this.requestNotes() === '') return true;
         return false;
       }
       else return true;
     }
     else {return true};
-  }
+  }*/
   // controlReturnedId(){
   //   const returned = computed(() => this.sortedUnmergedMovements().find(movement =>
   //     movement.asset.serialNumber === this.downloadableMovement!.asset.serialNumber &&
@@ -292,8 +340,179 @@ export class UserStandard{
   //   return !(this.downloadableMovement?.updateDate !== undefined);
   // }
   //Richiama il login e fa uscire da pagina di user
-  onsendRequest(){
-    if(this.requestType() !== '' && this.requestAsset() === ''){
+  onsendRequest()
+  {
+    if(this.controlRequestType() === 'HARDWARE')
+    {
+      if(this.controlRequest() === 'ASSIGNED')
+      {
+        const requestTypeId = this.assetTypes().find(type => type.name === this.requestType())?.code;
+        const postableAssignedRequest = {
+          userCode: this.user()!.oid,
+          operation: 'HARDWARE - Assegnazione: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+          assetTypeCode: requestTypeId,
+          assetCode: null,
+          message: this.requestNotes(),
+          clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+        }
+        this.apiService.postTicket(postableAssignedRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di assegnazione inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
+          },
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+          }
+        });
+      }
+      else if(this.controlRequest() === 'DISMISSED')
+      {
+        const postableDismissedRequest = {
+          userCode: this.user()!.oid,
+          operation: 'HARDWARE - Dismissione: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+          assetTypeCode: null,
+          assetCode: this.requestAsset(),
+          message: this.requestNotes(),
+          clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+        }
+        this.apiService.postTicket(postableDismissedRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di dismissione inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
+          },
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+          }
+        });
+      }
+      else if(this.controlRequest() === 'RETURNED')
+      {
+        const postableReturnedRequest = {
+          userCode: this.user()!.oid,
+          operation: 'HARDWARE - Restituzione: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+          assetTypeCode: null,
+          assetCode: this.requestAsset(),
+          message: this.requestNotes(),
+          clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+        }
+        this.apiService.postTicket(postableReturnedRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di riconsegna inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
+          },
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+          }
+        });
+      }
+      else if(this.controlRequest() === 'BROKEN')
+      {
+        const postableBrokenRequest = {
+          userCode: this.user()!.oid,
+          operation: 'HARDWARE - Malfunzionamento: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+          assetTypeCode: null,
+          assetCode: this.requestAsset(),
+          message: this.requestNotes(),
+          clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+        }
+        this.apiService.postTicket(postableBrokenRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di malfunzionamento inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
+          },
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+          }
+        });
+      }
+    }
+    else if(this.controlRequestType() === 'SOFTWARE')
+    {
+      if(this.controlRequest() === 'INSTALL')
+      {
+        const postableSoftwareRequest = {
+          userCode: this.user()!.oid,
+          operation: 'SOFTWARE - Installazione: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+          assetTypeCode: null,
+          assetCode: null,
+          message: this.requestNotes(),
+          clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+        }
+        this.apiService.postTicket(postableSoftwareRequest).subscribe({
+          next: () => {
+            this.popupMessageService.success('Richiesta di intervento software inviata con successo.');
+            this.ticketStateService.notifyTicketsChanged();
+          },
+          error: (err) => {
+            this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+          }
+        });
+      }
+      else if(this.controlRequest() === 'CONFIGURATION')
+      {
+      const postableSoftwareRequest = {
+        userCode: this.user()!.oid,
+        operation: 'SOFTWARE - Configurazione: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+        assetTypeCode: null,
+        assetCode: null,
+        message: this.requestNotes(),
+        clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+      }
+      this.apiService.postTicket(postableSoftwareRequest).subscribe({
+        next: () => {
+          this.popupMessageService.success('Richiesta di intervento software inviata con successo.');
+          this.ticketStateService.notifyTicketsChanged();
+        },
+        error: (err) => {
+          this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+        }
+      });
+    }
+    else if(this.controlRequest() === 'BROKEN')
+    {
+      const postableBrokenRequest = {
+        userCode: this.user()!.oid,
+        operation: 'SOFTWARE - Malfunzionamento: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+        assetTypeCode: null,
+        assetCode: null,
+        message: this.requestNotes(),
+        clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+      }
+      this.apiService.postTicket(postableBrokenRequest).subscribe({
+        next: () => {
+          this.popupMessageService.success('Richiesta di malfunzionamento inviata con successo.');
+          this.ticketStateService.notifyTicketsChanged();
+        },
+        error: (err) => {
+          this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+        }
+      });
+    }
+  }
+    else if(this.controlRequestType() === 'NETWORK')
+    {
+      const postableNetworkRequest = {
+        userCode: this.user()!.oid,
+        operation: 'RETE: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+        assetTypeCode: null,
+        assetCode: null,
+        message: this.requestNotes(),
+        clientProject: this.requestPriority() === 'EXTERNAL' ? true : false
+      }
+      this.apiService.postTicket(postableNetworkRequest).subscribe({
+        next: () => {
+          this.popupMessageService.success('Richiesta di intervento rete inviata con successo.');
+          this.ticketStateService.notifyTicketsChanged();
+        },
+        error: (err) => {
+          this.popupMessageService.error('Errore nell\'inzio della richiesta: ', err.message);
+        }
+      });
+    }
+    else{
+      this.popupMessageService.error('Errore nell\'inserimento dei valori.');
+    }
+    /*if(this.requestType() !== '' && this.requestAsset() === ''){
       const requestTypeId = this.assetTypes().find(type => type.name === this.requestType())?.code;
 
       const postableAssignedRequest = {
@@ -303,7 +522,7 @@ export class UserStandard{
         assetCode: null,
         message: this.requestNotes(),
         //status: 'OPEN',
-        priority: this.requestPriority()
+        //priority: this.requestPriority()
       }
       this.apiService.postTicket(postableAssignedRequest).subscribe({
         next: () => {
@@ -317,7 +536,7 @@ export class UserStandard{
     }
     else if(this.requestType() === '' && this.requestAsset() !== ''){
       console.log(this.requestAsset());
-      if(this.controlRequest() === 'DISMISSIONE'){
+      if(this.controlRequestType() === 'DISMISSIONE'){
         const postableDismissedRequest = {
           userCode: this.user()!.oid,
           operation: 'DISMISSED',
@@ -325,7 +544,7 @@ export class UserStandard{
           assetCode: this.requestAsset(),
           message: this.requestNotes(),
           //status: 'OPEN',
-          priority: this.requestPriority()
+          //priority: this.requestPriority()
         }
         this.apiService.postTicket(postableDismissedRequest).subscribe({
           next: () => {
@@ -337,7 +556,7 @@ export class UserStandard{
           }
         });
       }
-      else if(this.controlRequest() === 'RICONSEGNA'){
+      else if(this.controlRequestType() === 'RICONSEGNA'){
         console.log(this.requestAsset());
         const postableReturnedRequest = {
           userCode: this.user()!.oid,
@@ -346,7 +565,7 @@ export class UserStandard{
           assetCode: this.requestAsset(),
           message: this.requestNotes(),
           //status: 'OPEN',
-          priority: this.requestPriority()
+          //priority: this.requestPriority()
         }
         this.apiService.postTicket(postableReturnedRequest).subscribe({
           next: () => {
@@ -358,15 +577,12 @@ export class UserStandard{
           }
         });
       }
-    }
-    else{
-      this.popupMessageService.error('Errore nell\'inserimento delle credenziali.');
-    }
-    this.controlRequest.set('');
+    }*/
+    this.controlRequestType.set('');
     this.requestNotes.set('');
     this.requestType.set('');
     this.requestAsset.set('');
-    this.requestPriority.set('');
+    //this.requestPriority.set('');
     
     this.askDialog.nativeElement.close();
   }
@@ -375,5 +591,23 @@ export class UserStandard{
   }
   onLogout() {
     this.authService.logout();
+  }
+
+  themeToggleLabel(): string {
+    return this.isDarkTheme() ? 'Tema chiaro' : 'Tema scuro';
+  }
+
+  onToggleTheme(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const nextIsDark = !this.isDarkTheme();
+    document.body.classList.toggle('theme-dark', nextIsDark);
+    this.isDarkTheme.set(nextIsDark);
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(UserStandard.THEME_STORAGE_KEY, nextIsDark ? 'dark' : 'light');
+    }
   }
 }

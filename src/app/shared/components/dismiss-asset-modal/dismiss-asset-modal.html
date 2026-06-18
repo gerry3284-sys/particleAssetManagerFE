@@ -40,9 +40,13 @@
             rows="4"
             placeholder="Es. Schermo rotto, batteria esausta"
             class="dismiss-modal-textarea"
+            maxlength="250"
             [class.error]="notesError()"
             [value]="notes()"
             (input)="notes.set($any($event.target).value)"></textarea>
+          <span class="char-counter" [class.char-limit]="notes().length >= 200">
+            {{ notes().length }}/250
+          </span>
           @if (notesError()) {
             <span class="dismiss-modal-error">Inserisci una nota.</span>
           }
