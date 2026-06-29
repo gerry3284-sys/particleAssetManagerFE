@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, OnDestroy, output, signal } from '@angular/core';
+/*import { Component, effect, inject, input, OnDestroy, output, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -52,7 +52,7 @@ export class CreateAssetStatusTypeModalComponent implements OnDestroy {
     }
   }
 
-  onOverlayClick(): void {
+  /*onOverlayClick(): void {
     this.close.emit();
   }
 
@@ -99,3 +99,4 @@ export class CreateAssetStatusTypeModalComponent implements OnDestroy {
     this.nameError.set(false);
   }
 }
+*/

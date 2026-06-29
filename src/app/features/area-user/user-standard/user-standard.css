@@ -110,6 +110,8 @@
   margin-right: clamp(1rem, 3vw, 2rem);
   margin-top: clamp(1.5rem, 4vh, 2rem);
   margin-bottom: 1.5rem;
+  flex: 0 0 320px;
+  min-width: 320px;
 }
 .user-card {
 	background-color: var(--bg-card, #FFFFFF);
@@ -121,7 +123,6 @@
   gap: 1rem;
 	align-items: start;
 	padding: 1.5rem;
-  padding-right: 6rem;
 	font-weight: 700;
 	letter-spacing: 0.05em;
   display: flex;
@@ -178,15 +179,15 @@
 }
 .email{
   display: flex;
-  text-align: center;
+  align-items: flex-start;
   margin-top: 1rem;
-  margin-left: 0.5rem;
+  margin-left: 0;
 }
 .telefono{
   display: flex;
-  text-align: center;
+  align-items: flex-start;
   margin-top: 1rem;
-  margin-left: 0.5rem;
+  margin-left: 0;
 }
 .user-union-2{
   margin-right: clamp(1rem, 3vw, 2rem); /* 30px responsive */
@@ -439,4 +440,10 @@ dialog::backdrop {
 body.theme-dark .body {
   background-color: var(--bg-page, #1a1d23) !important;
   color: var(--text-main, #e2e5ed) !important;
+}
+
+.sidebar-theme-toggle {
+  width: auto !important;
+  display: inline-flex !important;
+  flex: 0 0 auto;
 }

@@ -44,8 +44,8 @@ export class UserDetail implements OnInit{
   });
   phoneNumber = computed(() => {
     const user = this.user();
-    if (!user) return '';
-    return `${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
+    if (!user || !user.phoneNumber || user.phoneNumber.length === 0) return '-';
+    return `+39 ${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
   });
 
   //request che permette di ottenere user e i suoi movement

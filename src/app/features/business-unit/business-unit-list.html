@@ -107,7 +107,7 @@
   </div> 
 
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
-  <dialog #myDialog class="popup-window" (click)="onDialogBackdropClick()">
+  <dialog #myDialog class="popup-window">
     <div class="business-unit-modal" (click)="$event.stopPropagation()">
       <div class="business-unit-modal-header">
         <div class="business-unit-modal-icon" aria-hidden="true">i</div>
@@ -122,7 +122,7 @@
       <div class="business-unit-modal-body">
         <div class="business-unit-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="scheduleErrorCheck()">
+          <input type="text" autocomplete="off" name="nome" placeholder="scrivere il nome della nuova business unit" class="input" [(ngModel)]="initialName" (input)="scheduleErrorCheck()">
 
           @if(specifiedError()){
             <div class="error-message">{{specifiedMessage}}</div>
@@ -141,7 +141,7 @@
   </dialog>
 
   <!-- finestra di dialogo per aggiungere una nuova business unit -->
-  <dialog #newDialog class="popup-window" (click)="onNewDialogBackdropClick()">
+  <dialog #newDialog class="popup-window">
     <div class="business-unit-modal"(click)="$event.stopPropagation()">
       <div class="business-unit-modal-header">
         <div class="business-unit-modal-icon" aria-hidden="true">i</div>
@@ -156,7 +156,7 @@
       <div class="business-unit-modal-body">
         <div class="business-unit-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text" name="nome"placeholder="scrivere il nome della nuova business unit"class="input"[(ngModel)]="initialName"(input)="scheduleErrorCheck()">
+          <input type="text" autocomplete="off" name="nome" placeholder="scrivere il nome della nuova business unit" class="input" [(ngModel)]="initialName" (input)="scheduleErrorCheck()">
 
           @if(specifiedError()){
             <div class="error-message">{{specifiedMessage}}</div>

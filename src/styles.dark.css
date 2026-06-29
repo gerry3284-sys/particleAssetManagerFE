@@ -464,7 +464,7 @@ body.theme-dark .asset-header > div,
 body.theme-dark thead th,
 body.theme-dark thead th > div {
   color: #ffffff !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 /* Force data cell text to white in dark theme, but don't change action buttons */
@@ -579,11 +579,11 @@ body.theme-dark .ticket-row > div {
   color: #ffffff !important;
 }
 
-body.theme-dark .ticket-row:not(.ticket-replied):not(.ticket-header) {
+body.theme-dark .ticket-row:not(.ticket-replied):not(.ticket-header):not(:has(.info-item)) {
   background-color: rgba(251, 191, 36, 0.08) !important;
 }
 
-body.theme-dark .ticket-row:not(.ticket-replied):not(.ticket-header):hover {
+body.theme-dark .ticket-row:not(.ticket-replied):not(.ticket-header):not(:has(.info-item)):hover {
   background-color: rgba(251, 191, 36, 0.14) !important;
 }
 

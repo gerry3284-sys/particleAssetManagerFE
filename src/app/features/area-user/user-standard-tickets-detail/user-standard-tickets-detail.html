@@ -28,9 +28,20 @@
                 <div class="info-item">
                     <span class="info-label">Operazione</span>
                     <span class="info-value">
-                      @if(ticket()?.operation === 'ASSIGNED') { Assegnazione di {{ assetType() }} }
+                      <!--@if(ticket()?.operation === 'ASSIGNED') { Assegnazione di {{ assetType() }} }
                       @else if(ticket()?.operation === 'RETURNED') { Restituzione di {{asset()}} }
-                      @else { Dismissione di {{asset()}} }
+                      @else { Dismissione di {{asset()}} }-->
+                      <span class="info-value">
+                        {{ ticket()?.operation }}
+                        @if(assetType() && assetType() !== 'N/D') 
+                        {
+                          <span> {{ assetType() }}</span>
+                        }
+                        @if(asset() && asset() !== 'N/D') 
+                        {
+                          : <span> {{ asset() }} </span>
+                        }
+                      </span>
                     </span>
                 </div>
                 <div class="info-item">

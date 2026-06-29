@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+/*import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../shared/components/button/button';
 import { FiltersComponent } from '../../shared/components/filters/filters';
@@ -198,3 +198,4 @@ export class AssetStatusTypeListComponent implements OnInit {
     return (value ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
 }
+*/

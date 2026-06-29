@@ -34,78 +34,97 @@ export class UserStandardTicketsDetail {
     @ViewChild('alertDialog') alertDialog!: ElementRef<HTMLDialogElement>;
     @ViewChild('messageDialog') messageDialog!: ElementRef<HTMLDialogElement>;
 
-    constructor(private apiService: ApiService,
-      private assetService: AssetService,
-      private ticketStateService: AssetStateService,
-      public route: ActivatedRoute,
-      private readonly popupMessageService: PopupMessageService,
-      private router: Router
-    ){
-      const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
-      const id = this.route.snapshot.paramMap.get('oid');
+    constructor(
+    private apiService: ApiService,
+    private assetService: AssetService,
+    private ticketStateService: AssetStateService,
+    public route: ActivatedRoute,
+    private readonly popupMessageService: PopupMessageService,
+    private router: Router
+  ) {
+    const ticketCode = this.route.snapshot.paramMap.get('ticketCode');
 
-      const subscription = forkJoin({
-        user: this.apiService.getUsersById(id? id:''),
-        ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
-        replies: this.apiService.getTicketChat(ticketCode ?? '')
-      }).subscribe({
-        next: (results) => 
-        {
-          this.user.set(results.user);
-          this.ticket.set(results.ticket);
-          this.replies.set(results.replies);
+    const subscription = forkJoin({
+      ticket: this.apiService.getTicketByCode(ticketCode ?? ''),
+      replies: this.apiService.getTicketChat(ticketCode ?? ''),
+      // users: this.apiService.getUsers()
+    }).subscribe({
+      next: (results) => {
+        this.ticket.set(results.ticket);
+        this.replies.set(results.replies);
 
-          if(!results.ticket.userCheckReply)
-            this.apiService.checkNotification(results.ticket.ticketCode, results.user.oid).subscribe({
-              next: () => {
-                console.log('Notifica aggiornata con successo');
-                this.ticketStateService.notifyTicketsChanged(); // Notifica il cambiamento dei ticket
-              },
-              error: (error) => {
-                console.error('Errore durante l\'aggiornamento della notifica:', error);
-              }
-            });
-
-          if (results.ticket?.assetCode) {
-        const assetSubscription = this.assetService.getAssetByCode(results.ticket.assetCode).subscribe({
-              next: (asset) => {
-                this.asset.set(asset.brand + ' ' + asset.model);
-                this.assetType.set('Esempio');
-              },
-              error: (error) => {
-                console.error('Errore durante il recupero dei dati dell\'asset:', error);
-                this.popupMessageService.error('Errore durante il caricamento dei dati dell\'asset');
-                this.asset.set('Dati asset non disponibili');
-                this.assetType.set('Dati asset non disponibili');
-              }
-            });
-            this.destroyRef.onDestroy(() => assetSubscription.unsubscribe());
-          } else {
-            const assetTypeSubscription = this.apiService.getAssetTypeByCode(results.ticket?.assetTypeCode ?? '').subscribe({
-              next: (assetType) => {
-                this.assetType.set(assetType.name);
-              },
-              error: (error) => {
-                console.error('Errore durante il recupero dei dati del tipo di asset:', error);
-                this.popupMessageService.error('Errore durante il caricamento dei dati del tipo di asset');
-                this.assetType.set('Dati tipo asset non disponibili');
-              }
-            });
-            this.destroyRef.onDestroy(() => assetTypeSubscription.unsubscribe());
+        this.apiService.checkNotification(
+          results.ticket.ticketCode,
+          '1f3c9b82-7a41-4e3d-9c2a-91f4b0d7e8a1'
+        ).subscribe({
+          next: () => {
+            console.log('Notifica aggiornata con successo');
+            this.ticketStateService.notifyTicketsChanged();
+          },
+          error: (error) => {
+            console.error('Errore durante l\'aggiornamento della notifica:', error);
           }
-          this.loading.set(false);
+        });
+
+        // -------------------------------
+        //   GESTIONE ASSET / ASSET TYPE
+        // -------------------------------
+        const assetCode = results.ticket?.assetCode;
+        const assetTypeCode = results.ticket?.assetTypeCode;
+
+        // Caso 1: entrambi null → nessuna ricerca
+        if (!assetCode && !assetTypeCode) {
+          this.asset.set('N/D');
+          this.assetType.set('N/D');
         }
-      , error: (error) => {
-          console.error('Errore durante il recupero dei dati:', error);
-          this.popupMessageService.error('Errore durante il caricamento dei dati');
-          this.user.set(null);
-          this.ticket.set(null);
-          this.replies.set([]);
-          this.loading.set(false);
+
+        // Caso 2: assetCode presente → cerca asset
+        else if (assetCode) {
+          const assetSubscription = this.assetService.getAssetByCode(assetCode).subscribe({
+            next: (asset) => {
+              this.asset.set(`${asset.brand} ${asset.model}`);
+              //this.assetType.set(asset.assetType ?? 'N/D');
+            },
+            error: (error) => {
+              console.error('Errore durante il recupero dei dati dell\'asset:', error);
+              this.popupMessageService.error('Errore durante il caricamento dei dati dell\'asset');
+              this.asset.set('Dati asset non disponibili');
+              this.assetType.set('Dati asset non disponibili');
+            }
+          });
+          this.destroyRef.onDestroy(() => assetSubscription.unsubscribe());
         }
-      });
-      this.destroyRef.onDestroy(() => subscription.unsubscribe());
-    }
+
+        // Caso 3: assetCode null ma assetTypeCode presente → cerca tipo asset
+        else if (assetTypeCode) {
+          const assetTypeSubscription = this.apiService.getAssetTypeByCode(assetTypeCode).subscribe({
+            next: (assetType) => {
+              this.assetType.set(assetType.name);
+              this.asset.set('N/D');
+            },
+            error: (error) => {
+              console.error('Errore durante il recupero dei dati del tipo di asset:', error);
+              this.popupMessageService.error('Errore durante il caricamento dei dati del tipo di asset');
+              this.assetType.set('Dati tipo asset non disponibili');
+            }
+          });
+          this.destroyRef.onDestroy(() => assetTypeSubscription.unsubscribe());
+        }
+
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Errore durante il recupero dei dati:', error);
+        this.popupMessageService.error('Errore durante il caricamento dei dati');
+        this.ticket.set(null);
+        this.replies.set([]);
+        //this.users.set([]);
+        this.loading.set(false);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
 
     sortedReplies = computed(() =>
       [...this.replies()].sort((a, b) =>

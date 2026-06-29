@@ -15,6 +15,7 @@ import { PaginationComponent } from "../../../shared/components/pagination/pagin
 import { AssetType } from '../../../shared/services/asset-type.service';
 import { AssetStateService } from '../../../shared/services/asset-state.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval } from 'rxjs';
 
 type EnrichedTicket = TicketByUser & { displayTitle: string};
 
@@ -26,6 +27,7 @@ type EnrichedTicket = TicketByUser & { displayTitle: string};
 })
 export class UserStandardTickets implements OnInit {
   users = signal<User[]>([]);
+  private static readonly POLL_INTERVAL_MS = 20000; // Intervallo per il polling dei ticket non visualizzati (20 secondi)
   businessUnits = signal<BusinessUnit[]>([]);
   assets = signal<Asset[]>([]);
   assetTypes = signal<AssetType[]>([]);
@@ -94,14 +96,20 @@ ngOnInit(): void {
     .subscribe(() => {
       this.loadTickets();
     });
+
+  interval(UserStandardTickets.POLL_INTERVAL_MS)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.loadTickets();
+        });
 }
 
   enrichedTickets = computed(() =>
     this.tickets().map(ticket => {
-      const displayUser = ticket.user ?? '-';
+      //const displayUser = ticket.user ?? '-';
 
-      let displayTitle = 'Richiesta ';
-      const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
+      let displayTitle = ticket.operation;
+      /*const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
       if (ticket.operation === 'ASSIGNED') {
         const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
         displayTitle += `Assegnazione: ${assetType?.name}`;
@@ -109,33 +117,29 @@ ngOnInit(): void {
         displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
       } else {
         displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
-      }
+      }*/
 
       return { ...ticket, displayTitle};
     })
   );
 
-  //flippa i ticket per avere il più recente prima e il più lontano dopo
-  sortedTickets = computed((): EnrichedTicket[] => {
-    return [...this.filteredTickets()]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .map(ticket => {
-        const displayUser = ticket.user ?? '-';
+  //flippa i ticket per avere il più recente prima e il più lontano dopo, con i non letti in cima
+sortedTickets = computed((): EnrichedTicket[] => {
+  return [...this.filteredTickets()]
+    .sort((a, b) => {
+      // Prima i non letti (userCheckReply === false) rispetto a quelli letti
+      if (a.userCheckReply !== b.userCheckReply) {
+        return a.userCheckReply ? 1 : -1; // false (non letto) viene prima
+      }
+      // All'interno dello stesso gruppo, ordina per data più recente
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    })
+    .map(ticket => {
+      let displayTitle = ticket.operation;
 
-        let displayTitle = 'Richiesta ';
-        const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
-        if (ticket.operation === 'ASSIGNED') {
-          const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
-          displayTitle += `Assegnazione: ${assetType?.name}`;
-        } else if (ticket.operation === 'DISMISSED') {
-          displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
-        } else {
-          displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
-        }
-    
-        return { ...ticket, displayTitle};
-      });
-  });
+      return { ...ticket, displayTitle};
+    });
+});
 
 paginatedTickets = computed((): EnrichedTicket[] => {
   const start = (this.currentPage() - 1) * this.itemsPerPage();

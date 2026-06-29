@@ -254,7 +254,7 @@
                     type="button"
                     [fullWidth]="true"
                     (pressed)="resetDate()">
-                    Reset Data
+                    Reimposta Data
                   </app-button>
                 </div>
               }
@@ -314,7 +314,7 @@
   </app-dismiss-asset-modal>
 
   @if (showEditAssetModal()) {
-    <div class="edit-modal-overlay" (click)="closeEditAssetModal()">
+    <div class="edit-modal-overlay">
       <div class="edit-modal-card" (click)="$event.stopPropagation()">
         <div class="edit-modal-header">
           <h3 class="edit-modal-title">Modifica Asset</h3>
@@ -327,17 +327,17 @@
           <form class="edit-modal-grid" [formGroup]="editAssetForm">
             <div class="edit-field">
               <label for="edit-brand">Marca *</label>
-              <input id="edit-brand" type="text" formControlName="brand" />
+              <input id="edit-brand" autocomplete="off" type="text" formControlName="brand" />
             </div>
 
             <div class="edit-field">
               <label for="edit-model">Modello *</label>
-              <input id="edit-model" type="text" formControlName="model" />
+              <input id="edit-model" autocomplete="off" type="text" formControlName="model" />
             </div>
 
             <div class="edit-field">
               <label for="edit-serial">Numero seriale *</label>
-              <input id="edit-serial" type="text" formControlName="serialNumber" />
+              <input id="edit-serial" autocomplete="off" type="text" formControlName="serialNumber" />
             </div>
 
             <div class="edit-field">
@@ -363,7 +363,7 @@
             @if (editRequiresRam()) {
               <div class="edit-field">
                 <label for="edit-ram">RAM (GB)</label>
-                <input id="edit-ram" type="number" min="0" formControlName="ram" />
+                <input id="edit-ram" autocomplete="off" type="number" min="0" formControlName="ram" />
               </div>
             }
 
@@ -404,6 +404,7 @@
                       </label>
                       <input
                         id="edit-storage-size"
+                        autocomplete="off"
                         type="text"
                         placeholder="Es. 512"
                         inputmode="decimal"

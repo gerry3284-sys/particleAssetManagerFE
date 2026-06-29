@@ -26,7 +26,7 @@
         </div>
         <div class="telefono">
             <img src="/assets/icona-telefono.svg" alt="telefono">
-            <div class="user-text">+39 {{phoneNumber()}}</div>
+            <div class="user-text"> {{phoneNumber()}}</div>
         </div>
     </div>
     <h5 class="page-subtitle">Storico degli asset</h5>
@@ -61,11 +61,11 @@
                             <td>{{movement.asset.serialNumber}}</td>
                             @if(movement.movementType === 'ASSIGNED'){
                                 <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
-                                <td>ASSEGNAZIONE</td>
+                                <td>Assegnazione</td>
                             }
                             @else {
                                 <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
-                                <td>RICONSEGNA</td>
+                                <td>Riconsegna</td>
                             }
 
                             <!-- @if(movement.updateDate === undefined){
@@ -85,11 +85,11 @@
                             <td>{{movement.asset.serialNumber}}</td>
                             @if(movement.movementType === 'ASSIGNED'){
                                 <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
-                                <td>ASSEGNAZIONE</td>
+                                <td>Assegnazione</td>
                             }
                             @else {
                                 <td>{{movement.date | date: 'dd/MM/yyyy - HH.mm'}}</td>
-                                <td>RICONSEGNA</td>
+                                <td>Riconsegna</td>
                             }
                             <!-- @if(movement.updateDate === undefined){
                                 <td> - </td>

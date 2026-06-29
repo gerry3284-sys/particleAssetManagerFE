@@ -121,7 +121,7 @@
   </div>
 
   <!-- finestra di dialogo per fare la modifica di un tipo di asset -->
-  <dialog #myDialog class="popup-window" (click)="onDialogBackdropClick()">
+  <dialog #myDialog class="popup-window">
     <div class="asset-type-modal" (click)="$event.stopPropagation()">
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
@@ -136,7 +136,7 @@
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="scheduleErrorCheck()">
+          <input type="text" autocomplete="off" name="nome" placeholder="scrivere il nome del tipo di asset" class="input" [(ngModel)]="initialName" (input)="scheduleErrorCheck()">
           @if(specifiedError()){
             <div class="error-message">{{specifiedMessage}}</div>
           }
@@ -161,7 +161,7 @@
   </dialog>
 
   <!-- finestra di dialogo per aggiungere un tipo di asset -->
-  <dialog #newDialog class="popup-window" (click)="onNewDialogBackdropClick()">
+  <dialog #newDialog class="popup-window">
     <div class="asset-type-modal" (click)="$event.stopPropagation()">
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>
@@ -176,7 +176,7 @@
       <div class="asset-type-modal-body">
         <div class="asset-type-modal-field">
           <label class="label" style="margin-bottom: 0.3rem;">Nome: </label>
-          <input type="text"name="nome"placeholder="scrivere il nome del tipo di asset"class="input"[(ngModel)]="initialName"(input)="touched = true; scheduleErrorCheck()">
+          <input type="text" autocomplete="off" name="nome" placeholder="scrivere il nome del tipo di asset" class="input" [(ngModel)]="initialName" (input)="touched = true; scheduleErrorCheck()">
           @if(specifiedError() && touched){
             <div class="error-message">{{specifiedMessage}}</div>
           }

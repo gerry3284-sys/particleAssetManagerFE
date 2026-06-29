@@ -30,6 +30,7 @@
               type="text"
               id="brand"
               class="form-control"
+              autocomplete="off"
               placeholder="Es. Apple"
               formControlName="brand"
               required />
@@ -43,6 +44,7 @@
               type="text"
               id="model"
               class="form-control"
+              autocomplete="off"
               placeholder="Es. MacBook Pro 16&quot;"
               formControlName="model"
               required />
@@ -73,6 +75,7 @@
               type="text"
               id="serialNumber"
               class="form-control"
+              autocomplete="off"
               placeholder="Inserisci il numero seriale"
               formControlName="serialNumber"
               required />
@@ -105,6 +108,7 @@
                   type="text"
                   id="ramGb"
                   class="form-control"
+                  autocomplete="off"
                   placeholder="Es. 16"
                   inputmode="numeric"
                   pattern="[0-9]*"
@@ -132,14 +136,16 @@
                 <div class="storage-options">
                   <label class="storage-option">
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name="storageType"
                       [checked]="assetForm.controls.storageType.value === 'SSD'"
                       (change)="toggleStorageType('SSD', $any($event.target).checked)" />
                     <span>SSD</span>
                   </label>
                   <label class="storage-option">
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name="storageType"
                       [checked]="assetForm.controls.storageType.value === 'HDD'"
                       (change)="toggleStorageType('HDD', $any($event.target).checked)" />
                     <span>HDD</span>
@@ -160,6 +166,7 @@
                   type="text"
                   id="storageSize"
                   class="form-control"
+                  autocomplete="off"
                   placeholder="Es. 512"
                   inputmode="decimal"
                   formControlName="storageSize" />

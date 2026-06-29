@@ -80,11 +80,11 @@ export class AssetDetailComponent implements OnInit {
   });
   returnReceiptBanner = signal<ReceiptBannerState>({
     type: 'success',
-    message: 'Riconsegna registrata correttamente.'
+    message: 'L\'asset è stato restituito correttamente.'
   });
   dismissReceiptBanner = signal<ReceiptBannerState>({
     type: 'success',
-    message: 'Dismissione registrata correttamente.'
+    message: 'L\'asset è stato dismesso correttamente.'
   });
   downloadingMovementReceiptId = signal<string | null>(null);
   businessUnitOptions = signal<FilterBusinessUnit[]>([]);
@@ -577,7 +577,7 @@ export class AssetDetailComponent implements OnInit {
               this.pendingAssignmentReceipt.set(assignmentReceiptData);
               this.assignmentReceiptBanner.set({
                 type: 'success',
-                message: `L'asset e stato assegnato correttamente a ${formData.userName}.`
+                message: `L'asset è stato assegnato correttamente a ${formData.userName}.`
               });
               this.showAssignmentReceiptPrompt.set(true);
               this.loadAssetDetail(this.assetId());
@@ -1111,7 +1111,7 @@ export class AssetDetailComponent implements OnInit {
               this.pendingDismissReceipt.set(dismissReceiptData);
               this.dismissReceiptBanner.set({
                 type: 'success',
-                message: 'L\'asset e stato dismesso correttamente.'
+                message: 'L\'asset è stato dismesso correttamente.'
               });
               this.showDismissReceiptPrompt.set(true);
               this.loadAssetDetail(this.assetId());

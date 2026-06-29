@@ -11,7 +11,7 @@ import { LoginComponent } from './features/auth/login/login';
 import { AssetDetailComponent } from './features/assets/pages/asset-detail/asset-detail';
 import { NotFoundComponent } from './features/errors/pages/not-found/not-found';
 import { AssetTypeList } from './features/asset-type-list/asset-type-list';
-import { AssetStatusTypeListComponent } from './features/asset-status-type-list/asset-status-type-list';
+//import { AssetStatusTypeListComponent } from './features/asset-status-type-list/asset-status-type-list';
 import { BusinessUnitList } from './features/business-unit/business-unit-list';
 import { TicketList } from './features/assets/pages/ticket-list/ticket-list';
 import { AssetMaintenanceListComponent } from './features/assets/pages/asset-maintenance-list/asset-maintenance-list';

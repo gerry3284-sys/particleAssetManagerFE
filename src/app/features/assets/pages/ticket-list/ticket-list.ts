@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { AssetType } from '../../../../shared/services/asset-type.service';
 import { AssetStateService } from '../../../../shared/services/asset-state.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval } from 'rxjs';
 
 type EnrichedTicket = Ticket & { displayTitle: string; displayUser: string; priority: string };
 
@@ -26,6 +27,7 @@ type EnrichedTicket = Ticket & { displayTitle: string; displayUser: string; prio
 })
 export class TicketList implements OnInit {
   tickets = signal<Ticket[]>([]);
+  private static readonly POLL_INTERVAL_MS = 20000; // Intervallo per il polling dei ticket non visualizzati (20 secondi)
   users = signal<User[]>([]);
   businessUnits = signal<BusinessUnit[]>([]);
   assets = signal<Asset[]>([]);
@@ -116,6 +118,12 @@ export class TicketList implements OnInit {
     .subscribe(() => {
       this.loadTickets();
     });
+
+    interval(TicketList.POLL_INTERVAL_MS)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.loadTickets();
+          });
   }
 
   private loadTickets(): void {
@@ -204,20 +212,32 @@ sortedTickets = computed((): EnrichedTicket[] => {
     const displayUser = user ? `${user.name} ${user.surname} di ${businessUnit?.name ?? '-'}` : '-';
 
     let displayTitle = ticket.operation;
-    /*const asset = this.assets().find(a => a.assetCode === ticket.assetCode);
-    if (ticket.operation === 'ASSIGNED') {
-      const assetType = this.assetTypes().find(a => a.code === ticket.assetTypeCode);
-      displayTitle += `Assegnazione: ${assetType?.name}`;
-    } else if (ticket.operation === 'DISMISSED') {
-      displayTitle += `Dismissione: ${asset?.brand} ${asset?.model}`;
-    } else {
-      displayTitle += `Restituzione: ${asset?.brand} ${asset?.model}`;
-    }*/
 
     return { ...ticket, displayTitle, displayUser };
   });
 
-  return enriched.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const priorityOrder: Record<string, number> = {
+    HIGH: 0,
+    MEDIUM: 1,
+    LOW: 2
+  };
+
+  return enriched.sort((a, b) => {
+    // 1. Prima i non letti (adminCheckReply === false) rispetto a quelli letti
+    if (a.adminCheckReply !== b.adminCheckReply) {
+      return a.adminCheckReply ? 1 : -1; // false (non letto) viene prima
+    }
+
+    // 2. All'interno dello stesso gruppo, ordina per priorità (HIGH > MEDIUM > LOW > null/N.D.)
+    const aPriority = a.priority ? priorityOrder[a.priority] ?? 3 : 3;
+    const bPriority = b.priority ? priorityOrder[b.priority] ?? 3 : 3;
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
+
+    // 3. A parità di priorità, ordina per data più recente
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 });
 
 paginatedTickets = computed((): EnrichedTicket[] => {

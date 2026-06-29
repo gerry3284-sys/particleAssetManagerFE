@@ -4,7 +4,7 @@
 import { ApiService } from '../../../services/api';
 import { User, MovementByuserID } from '../../../models/user.model';
 import { DatePipe, NgClass } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { forkJoin, interval } from 'rxjs';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { ButtonComponent } from "../../../shared/components/button/button";
 import { PopupMessageService } from '../../../shared/services/popup-message.service';
@@ -26,12 +26,14 @@ import { effect } from '@angular/core';
 })
 export class UserStandard{
   private static readonly THEME_STORAGE_KEY = 'pam-theme';
+  private static readonly POLL_INTERVAL_MS = 20000; // Intervallo per il polling dei ticket non visualizzati (20 secondi)
   private destroyRef = inject(DestroyRef);
   user = signal<User | null>(null);
   // users = signal<User[]>([]);
   // assetStatusTypes = signal<AssetStatusType[]>([]);
   assetTypes = signal<AssetType[]>([]);
   movements = signal<MovementByuserID[]>([]);
+  lastMovements = signal<MovementByuserID[]>([]);
   assets = signal<Asset[]>([]);
   unmergedMovement: MovementByuserID[] = ([]);
   downloadableMovement: MovementByuserID|null = null;
@@ -73,14 +75,15 @@ export class UserStandard{
   });
   phoneNumber = computed(() => {
     const user = this.user();
-    if (!user) return '-';
+    if (!user || !user.phoneNumber || user.phoneNumber.length === 0) return '-';
+
     return `${user.phoneNumber.slice(0, 3)} ${user.phoneNumber.slice(3, 6)} ${user.phoneNumber.slice(6, 10)}`;
   });
   assigneedAssets = computed(() => {
     /*const user = this.user();
     if (!user) return [];
     return this.assets().filter(asset => asset.assignedUser === user.name);*/
-    const assetList = this.movements();
+    const assetList = this.lastMovements();
     if(!assetList) return [];
     return assetList.filter(movement => movement.movementType === 'ASSIGNED').map(movement => movement.asset);
   });
@@ -106,12 +109,14 @@ export class UserStandard{
       // assetStatusType: this.filterService.getAssetStatusTypes(false),
       assetType: this.apiService.getAssetTypes(),
       movements: this.apiService.getMovementByUserId(id? id:''),
+      lastMovements: this.apiService.getLastMovementsByUserId(id? id:'')
     }).subscribe({
-      next: ({ user, assetType, movements }) => {
+      next: ({ user, assetType, movements, lastMovements }) => {
         this.user.set(user ?? {});
         // this.assetStatusTypes.set(assetStatusType ?? []);
         this.assetTypes.set(assetType ?? []);
         this.movements.set(movements ?? []);
+        this.lastMovements.set(lastMovements ?? []);
         this.unmergedMovement = movements;
 
         if (this.user()?.userType !== 'USER') {
@@ -170,6 +175,12 @@ export class UserStandard{
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
 
     this.ticketStateService.ticketsChanged
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadNonViewedTickets();
+      });
+
+    interval(UserStandard.POLL_INTERVAL_MS)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.loadNonViewedTickets();
@@ -281,9 +292,10 @@ export class UserStandard{
     
     this.askDialog.nativeElement.close();
   }
-  onAskDialogBackdropClick(){
+
+  /*onAskDialogBackdropClick(){
     this.onCloseAskDialog();
-  }
+  }*/
   
   isInvalid(): boolean
   {
@@ -493,7 +505,7 @@ export class UserStandard{
     {
       const postableNetworkRequest = {
         userCode: this.user()!.oid,
-        operation: 'RETE: ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
+        operation: 'RETE - ' + (this.requestType() === 'EXTERNAL' ? 'Esterna' : 'Interna') + ' all\'azienda',
         assetTypeCode: null,
         assetCode: null,
         message: this.requestNotes(),

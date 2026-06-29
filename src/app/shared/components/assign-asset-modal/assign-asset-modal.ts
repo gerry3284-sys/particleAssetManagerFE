@@ -145,9 +145,9 @@ export class AssignAssetModalComponent implements OnDestroy {
     }
   }
 
-  onOverlayClick(): void {
+  /*onOverlayClick(): void {
     this.close.emit();
-  }
+  }*/
 
   // onDateChange(value: string): void {
   //   this.assignmentDate.set(value);

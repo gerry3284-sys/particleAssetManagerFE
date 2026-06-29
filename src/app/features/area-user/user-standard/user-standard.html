@@ -17,7 +17,6 @@
                 class="sidebar-theme-toggle"
                 variant="sidebar"
                 type="button"
-                [fullWidth]="true"
                 (pressed)="onToggleTheme()">
                 <span class="icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -55,97 +54,95 @@
             </div>
         </div>
         <!-- informazioni dell'utente -->
-        <div class="user-standard-subpage">
-            <div class="user-union">
-                <div class="user-title">Il mio Profilo</div>
-                <div class="user-card"> 
-                    <div class="user-info">
-                        <div class="user-item">
-                            <div class="avatar">
-                                <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
-                            </div>
-                            <div>
-                            <div class="user-name fw-bold">{{fullName()}}</div>
-                            <div class="user-role">Business Unit: {{businessUnit()}}</div>
-                            </div>
-                        </div>
-                        <div class="email">
-                            <img src="/assets/icona-email.svg" alt="email">
-                            <div class="user-text">{{email()}}</div>
-                        </div>
-                        <div class="telefono">
-                            <img src="/assets/icona-telefono.svg" alt="telefono">
-                            <div class="user-text">{{phoneNumber() ? phoneNumber() : '-'}}</div>
-                        </div>
+<div class="user-standard-subpage">
+    <div class="user-union">
+        <div class="user-title">Il mio Profilo</div>
+        <div class="user-card"> 
+            <div class="user-info">
+    <div class="user-item">
+        <div class="avatar">
+            <img src="/assets/logo_Utente.png" alt="Avatar" class="img-fluid">
+        </div>
+        <div class="user-name fw-bold">{{fullName()}}</div>
+    </div>
+    <div class="user-role">Business Unit: {{businessUnit()}}</div>
+    <div class="email">
+        <img src="/assets/icona-email.svg" alt="email">
+        <div class="user-text">{{email()}}</div>
+    </div>
+    <div class="telefono">
+        <img src="/assets/icona-telefono.svg" alt="telefono">
+        <div class="user-text">{{phoneNumber()}}</div>
+    </div>
+</div>
+        </div>
+    </div>
+    <!-- tabella storico degli asset -->
+    <div class="user-union-2">
+        <div class="user-title"> I miei Asset assegnati</div>
+        <table class="table-card">
+            <thead>
+                <tr class="user-header">
+                    <th> MARCA </th>
+                    <th> MODELLO </th>
+                    <th> NUMERO SERIALE </th>
+                    <th> DATA OPERAZIONE </th>
+                    <th> TIPO OPERAZIONE </th>
+                </tr>
+            </thead>
+            <!-- righe dinamiche -->
+            <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                @if(paginatedMovements().length === 0){
+                    <tr class="user-row-empty">
+                        <td>Non sono presenti Asset</td>
+                    </tr>
+                }
+                @else{
+                    @for(movement of paginatedMovements(); track movement.date){
+                        <tr class="user-row" 
+                         [class.muted]="movement.asset.statusCode === 'DI3'"
+                         (click)="onOpenPDFDialog(movement)"
+                         style="cursor: pointer;
+                        ">
+                            <td>{{movement.asset.brand}}</td>
+                            <td>{{movement.asset.model}}</td>
+                            <td>{{movement.asset.serialNumber}}</td>
+                            @if(movement.movementType === 'ASSIGNED'){
+                                <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
+                                <td>Assegnazione</td>
+                            }
+                            @else {
+                                <td>{{movement.date| date: 'dd/MM/yyyy'}}</td>
+                                <td>Riconsegna</td>
+                            }
+                        </tr>
+                    }
+                }
+                
+            </tbody>
+        </table>
+        <footer>
+            <!-- footer di asset type -->
+            @if(totalPages() > 1){
+                <div class="table-foot">
+                    <div class="table-info">
+                        {{displayRange()}}
+                    </div>
+                    <div></div>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <app-pagination 
+                         [currentPage]="currentPage()"
+                         [totalPages]="totalPages()"
+                         [maxVisible]="5"
+                         (pageChange)="goToPage($event)"
+                        >
+                        </app-pagination>
                     </div>
                 </div>
-            </div>
-            <!-- tabella storico degli asset -->
-            <div class="user-union-2">
-                <div class="user-title"> I miei Asset assegnati</div>
-                <table class="table-card">
-                    <thead>
-                        <tr class="user-header">
-                            <th> MARCA </th>
-                            <th> MODELLO </th>
-                            <th> NUMERO SERIALE </th>
-                            <th> DATA OPERAZIONE </th>
-                            <th> TIPO OPERAZIONE </th>
-                        </tr>
-                    </thead>
-                    <!-- righe dinamiche -->
-                    <tbody style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-                        @if(paginatedMovements().length === 0){
-                            <tr class="user-row-empty">
-                                <td>Non sono presenti Asset</td>
-                            </tr>
-                        }
-                        @else{
-                            @for(movement of paginatedMovements(); track movement.date){
-                                <tr class="user-row" 
-                                 [class.muted]="movement.asset.statusCode === 'DI3'"
-                                 (click)="onOpenPDFDialog(movement)"
-                                 style="cursor: pointer;
-                                ">
-                                    <td>{{movement.asset.brand}}</td>
-                                    <td>{{movement.asset.model}}</td>
-                                    <td>{{movement.asset.serialNumber}}</td>
-                                    @if(movement.movementType === 'ASSIGNED'){
-                                        <td>{{movement.date | date: 'dd/MM/yyyy'}}</td>
-                                        <td>Assegnazione</td>
-                                    }
-                                    @else {
-                                        <td>{{movement.date| date: 'dd/MM/yyyy'}}</td>
-                                        <td>Riconsegna</td>
-                                    }
-                                </tr>
-                            }
-                        }
-                        
-                    </tbody>
-                </table>
-                <footer>
-                    <!-- footer di asset type -->
-                    @if(totalPages() > 1){
-                        <div class="table-foot">
-                            <div class="table-info">
-                                {{displayRange()}}
-                            </div>
-                            <div></div>
-                            <div style="display: flex; justify-content: flex-end;">
-                                <app-pagination 
-                                 [currentPage]="currentPage()"
-                                 [totalPages]="totalPages()"
-                                 [maxVisible]="5"
-                                 (pageChange)="goToPage($event)"
-                                >
-                                </app-pagination>
-                            </div>
-                        </div>
-                        }
-                </footer>
-            </div>
-        </div>
+                }
+        </footer>
+    </div>
+</div>
     </div>
     <div class="under-page-union">
         <div>
@@ -214,7 +211,8 @@
   </dialog>
 
   <!-- finestra di dialogo per mandare una richiesta di asset ad un utente admin-->
-  <dialog #askDialog class="popup-window" (click)="onAskDialogBackdropClick()">
+   <!--<dialog #askDialog class="popup-window" (click)="onAskDialogBackdropClick()">-->
+  <dialog #askDialog class="popup-window">
     <div class="asset-type-modal" (click)="$event.stopPropagation()">
       <div class="asset-type-modal-header">
         <div class="asset-type-modal-icon" aria-hidden="true">i</div>

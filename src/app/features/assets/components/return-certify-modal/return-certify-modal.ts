@@ -77,9 +77,9 @@ export class ReturnCertifyModalComponent implements OnDestroy {
     }
   }
 
-  onOverlayClick(): void {
+  /*onOverlayClick(): void {
     this.close.emit();
-  }
+  }*/
 
   private handleEsc = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {

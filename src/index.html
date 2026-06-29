@@ -9,70 +9,80 @@
     - Aggiungere il filtro per data invio richiesta delle pagine dei ticket (sia per l'utente che per l'admin)
     - Aggiungere la possibilità di modificare la priorità di un ticket (solo per l'admin)
     - Spostare nell'angolo il numero di ticket con messaggi non letti (utente)
-    - Inserire un filtro di default per le varie pagine dei ticket
     - Completare l'implementazione del tema scuro {Fatto ma è da aggiornare in futuro}
-    - Togliere l'autocomplete
-    - Il tasto "Contatta l'Amministratore" non è ancora funzionante (lato utente) → inserire una email ?
-    - Inserire il tasto per il tema scuro anche a lato utente
-    - Inserire lo sfondo giallo per i ticket nuovi col tema scuro e cambiarne il colore
-    - Ci sono alcune coppie di bottoni che hanno a destra la conferma e a sinistra l'annullamento,
-      mentre altre viceversa. E' necessario standardizzare.
-    - Inserire Ellipsis/a capo per quanto riguarda le note per dello storico dei movimenti
+    - Il tasto "Contatta l'Amministratore" non è ancora funzionante → inserire un modale dove l'utente inserire
+      una mail che sarà utilizzata per effettuare la richiesta e sotto il messaggio che sarà inviato a tutti gli admin
     - Sistemare le Note nelle ricevute (sono troppo lunghe e non vanno a capo)
     - Quando si inseriscono delle note che superano il limite del form, bisogna andare a capo per quando 
       si visualizza il riepilogo
     - Inserire il tema scuro per la pagina di reindirazzione errata (404)
-    - Togliere il fatto che si possa cliccare fuori dal modale per chiuderlo nella richiesta di Ticket.
-    - Lo storico dei messaggi nel dettaglio ticket ha lo sfondo giallo con il tema scuro.
-    - Il tasto per il tema scuro nella pagina degli utenti deve essere sistemato perchè può essere selezionato anche se
-        non si è sopra di esso
+    - Inserire la possibilità di modificare le note di un Movimento
+    - C'è un bug nella pagina user-standard. Quando si ricarica la pagina col Tema Scuro attivo,
+      il bottone mostra sempre "Tema Scuro" invece di "Tema Chiaro" (anche se il tema è scuro)
+    - Implementare i pdf della manutenzione
 
-    Modifiche Effettuate
-    1) sidebar (Admin):
-      - Aggiunto il nome e cognome dell'utente loggato (recuperati da localStorage)
+    Modifiche Effettuate:
+    1) dettaglio ticket (Utente):
+      - Rimossa la ricerca di asset e asset type quando sono nulli
 
-    2) dettaglio ticket (Admin):
-      - Aggiunta la visualizzazione della priorità del ticket
-      - Aggiunta la possibilità di modificare la priorità del ticket
-      - Allineate le due tabelle
-      - Aggiunta la possibilità di cliccare sull'asset per andare al suo dettaglio
+    2) lista ticket (Utente):
+      - Modificato il titolo della Richiesta per farlo matchare con quello della lista ticket di Admin
 
-    3) dettaglio asset (Admin):
-      - Aggiunta la scritta "(non più valida per asset modificato)" accanto al tipo di movimento se l'asset è stato modificato
-      - Modificato il cambio di storage da checkbox a radio button
-      - Fixato un errore che ingrandiva per una frazione di secondo il modale alla modifica del tipo di storage (HDD/SSD)
-      - Inserito un limite di 500 caratteri per le note per la modifica dell'asset
-      - Inserito un limite di 250 caratteri per le note per la assegnazione/riconsegna/dismissione dell'asset
-      - Fixato il problema della visualizzazione delle righe dello storico dei movimenti (adesso non vanno fuori riga)
-      - Aggiunta una pipe per andare a capo ogni 40 caratteri per le note dello storico dei movimenti
+    3) dettaglio ticket (Admin & Utente):
+      - Col tema scuro lo sfondo dei messaggi è stato modificato per non farlo essere più giallo
 
-    4) lista ticket (Admin):
-      - Aggiunta la visualizzazione di "N/D" se il ticket non ha una priorità definita
-      - Modificato il messaggio da "E possibile che la combinazione di filtri inserita non abbia attuali ticket" a
-        "È possibile che la combinazione di filtri inserita non abbia attuali ticket"
+    4) richiesta ticket (Utente):
+      - Quando si invia una richiesta per un asset posseduto, gli asset che vengono segnati sono solo quelli
+        posseduti e non più tutti quelli presenti nella lista dei movimenti
 
-    5) lista ticket (Utente):
-      - Cancellata la possibilità di vedere la priorità dei ticket 
+    5) creazione asset (Admin):
+      - Sostituita la checkbox della parte di RAM con un radio button
+      - Tolto autocomplete per i campi testuali
 
-    6) richiesta ticket (Utente):
-      - Tolta la possibilità di inserire una priorità per il ticket
-      - Inserito un limite di 500 caratteri per le note per la richiesta del ticket
-      - Modificate le opzioni del menu a tendina per le varie richieste.
-      - Modificato l'errore da "Errore nell'inserimento delle credenziali" a "Errore nell'inserimento dei valori"
+    6) sidebar/lista ticket (Admin):
+      - Inserito un polling per aggiornare la lista dei ticket non visualizzati e degli asset in manutenzione
+        ogni 20 secondi - anche se sono leggermente distaccati l'un l'altro
+      - Modificato il filtro per far si che i ticket che non hanno ricevuto risposta siano visualizzati per primi
 
-    7) creazione asset (Admin):
-      - Inserito un limite di 500 caratteri per le note per la creazione dell'asset
+    7) user-standard/lista ticket (Utente):
+      - Inserito un polling per aggiornare la lista dei ticket non visualizzati e degli asset in manutenzione
+        ogni 20 secondi - anche se sono leggermente distaccati l'un l'altro
+      - Modificato il filtro per far si che i ticket che non hanno ricevuto risposta siano visualizzati per primi
 
-    8) pagina non trovata (404):
-      - Tolto il bottone "Vai alla lista asset"
-      - Modificata la scritta "L'indirizzo che hai inserito non esiste o e' stato spostato." in
-        "L'indirizzo che hai inserito non esiste o non è stato scritto correttamente."
+    8) user-standard (Utente):
+      - Modificato il numero di telefono per far apparire un '-' quando non è presente
+      - Tolta la possibilità di chiudere il modale della richiesta di asset cliccando fuori da esso
+      - Sistemato il bottone del Tema Scuro/Chiaro per far si che l'input sia solo attorno al bottone
+      - Sistemato "Il mio profilo" per far si che il nome/cognome, la Business Unit e l'indirizzo mail non vadano a capo
+        (per quanto possibile)
 
-    9) tema scuro:
-      - Aggiunto il tema scuro per lo storico dei movimenti in dettaglio asset
+    9) user-detail (Admin):
+      - Modificato il numero di telefono per far apparire un '-' quando non è presente
+      - Modificato il tipo di operazione da "ASSEGNAZIONE" e "RICONSEGNA" a "Assegnazione" e "Riconsegna"
 
-    10) Ricevute:
-      - Creata la base per le ricevute di fine manutenzione (maintenance-receipt.pdf.service.ts)
+    10) modifica asset, crea/modifica tipo di asset, crea/modifica business unit (Admin):
+      - Tolto autocomplete per i campi testuali
+      - Tolta la possibilità di chiudere il modale cliccando fuori da esso
+
+    11) dettaglio asset (Admin):
+      - Modificata la scritta "Reset Data" in "Reimposta Data"
+      - Modificata la scritta del modale post assegnazione da 
+        "L'asset e stato assegnato correttamente a {nome utente}" a "L'asset è stato assegnato correttamente a {nome utente}."
+      - Modificata la scritta del modale post dismissione da 
+        "L'asset e stato dismesso correttamente" a "L'asset è stato dismesso correttamente."
+      - Modificata la scritta del modale post riconsegna da 
+        "L'asset e stato riconsegnato correttamente" a "L'asset è stato riconsegnato correttamente."
+      - Modificato il campo "Note" per far si che vada a capo quando il testo supera la lunghezza del form dopo
+        aver effettuato un'operazione di Assegnazione/Riconsegna/Dismissione
+
+    12) Tipo di Asset (Admin):
+      - Commentate tutte le pagine perchè non più utilizzate
+
+    13) Tema Scuro:
+      - Modificato il font weight per renderlo uguale a quello del tema chiaro
+
+    14) Generale:
+      - Aggiunto lo spinner per quando si caricano i dati iniziali dell'applicazione
 -->
 <!doctype html>
 <html lang="en">

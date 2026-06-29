@@ -9,6 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../../services/api';
 import { Ticket } from '../../../models/ticket.model';
 import { AuthService } from '../../services/authService';
+import { interval } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar',
@@ -19,6 +20,7 @@ import { AuthService } from '../../services/authService';
 })
 export class SidebarComponent implements OnInit {
   private static readonly THEME_STORAGE_KEY = 'pam-theme';
+  private static readonly POLL_INTERVAL_MS = 20000; // Intervallo per il polling dei ticket non visualizzati (20 secondi)
   private readonly router = inject(Router);
   private readonly assetService = inject(AssetService);
   private readonly assetStateService = inject(AssetStateService);
@@ -65,6 +67,13 @@ export class SidebarComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.loadNonViewedTickets();
+      });
+
+    interval(SidebarComponent.POLL_INTERVAL_MS)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadNonViewedTickets();
+        this.loadMaintenanceAssets();
       });
   }
 

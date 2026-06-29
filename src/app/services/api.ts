@@ -26,6 +26,9 @@ export class ApiService {
   getMovementByUserId(oid: string): Observable<MovementByuserID[]>{
     return this.http.get<MovementByuserID[]>(`${this.baseUrl}/user/${oid}/movement`);
   }
+  getLastMovementsByUserId(oid: string): Observable<MovementByuserID[]>{
+    return this.http.get<MovementByuserID[]>(`${this.baseUrl}/user/${oid}/LastMovement`);
+  }
   getAssetTypes(): Observable<AssetType[]>{
     return this.http.get<AssetType[]>(`${this.baseUrl}/assetType`);
   }

@@ -601,6 +601,9 @@
   font-size: 14px;
   font-weight: 600;
   text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 60%;
 }
 
 .assignment-receipt-actions {

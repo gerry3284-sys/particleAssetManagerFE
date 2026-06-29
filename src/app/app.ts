@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { PopupMessageComponent } from './shared/components/popup-message/popup-message';
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
@@ -7,15 +7,18 @@ import { isPlatformBrowser } from '@angular/common';
 import { filter, take } from 'rxjs';
 import { AuthService } from './shared/services/authService';
 import { GraphService } from './shared/services/graph.service';
+import { LoadingSpinnerComponent } from './shared/services/loading-spinner';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, PopupMessageComponent],
+  imports: [RouterOutlet, PopupMessageComponent, LoadingSpinnerComponent],
   templateUrl: './app.html',
 })
 export class App implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
+
+  isInitializing = signal(true);
 
   constructor(
     private msalService: MsalService,
@@ -29,12 +32,16 @@ export class App implements OnInit {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    
-    // Inizializza MSAL
+
+    // Se siamo sulla pagina di login, non mostrare lo spinner globale
+    // (la pagina di login ha già il suo stato visivo)
+    if (this.router.url === '/login' || this.router.url === '/') {
+      this.isInitializing.set(false);
+    }
+
     await this.msalService.instance.initialize();
     await this.msalService.instance.handleRedirectPromise();
 
-    // Aspetta che MSAL abbia finito il redirect
     this.msalBroadcast.inProgress$
       .pipe(
         filter(status => status === InteractionStatus.None),
@@ -44,15 +51,14 @@ export class App implements OnInit {
         const account = this.msalService.instance.getAllAccounts()[0];
 
         if (account) {
-          // Imposta l'account attivo
+          this.isInitializing.set(true);
+
           this.msalService.instance.setActiveAccount(account);
-          const result = await this.msalService.instance.acquireTokenSilent({
+          await this.msalService.instance.acquireTokenSilent({
             scopes: ['https://graph.microsoft.com/.default'],
             account
           });
-          //console.log('TOKEN:', result.accessToken);
 
-          // Debug account
           console.log('Account MSAL attivo:', {
             name: account.name,
             username: account.username,
@@ -62,33 +68,35 @@ export class App implements OnInit {
             idTokenClaims: account.idTokenClaims
           });
 
-          // [MODIFICA] getUserGroups() viene chiamato prima di getMe()
-          // e getMe() parte solo nel next, quando il token Graph
-          // è già stato salvato nell'interceptor
           this.graphService.getUserGroups().subscribe({
             next: (groups) => {
               console.log('Gruppi utente da Graph:', groups);
 
-              // [MODIFICA] Chiamata al backend spostata qui,
-              // dentro il next di getUserGroups
               this.authService.getMe().subscribe({
                 next: (user) => {
                   console.log('Utente backend /user/me:', user);
                   const nextRoute = this.authService.getPostLoginRoute(user);
                   localStorage.setItem('user', JSON.stringify(user));
-                  this.router.navigateByUrl(nextRoute);
+                  this.router.navigateByUrl(nextRoute).then(() => {
+                    this.isInitializing.set(false);
+                  });
                 },
                 error: (err) => {
                   console.error('Errore /user/me:', err);
+                  this.isInitializing.set(false);
                   this.router.navigate(['/404']);
                 }
               });
             },
             error: (err) => {
               console.error('Errore chiamata Graph:', err);
+              this.isInitializing.set(false);
               this.router.navigate(['/404']);
             }
           });
+        } else {
+          // Nessun account: vai al login, niente da aspettare
+          this.isInitializing.set(false);
         }
       });
   }

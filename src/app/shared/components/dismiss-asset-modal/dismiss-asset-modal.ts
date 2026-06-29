@@ -54,9 +54,9 @@ export class DismissAssetModalComponent {
     });
   }
 
-  onOverlayClick(): void {
+  /*onOverlayClick(): void {
     this.close.emit();
-  }
+  }*/
 
   submit(): void {
     const reason = this.reason().trim();
